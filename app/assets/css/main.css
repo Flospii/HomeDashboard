@@ -1,0 +1,67 @@
+@import "tailwindcss";
+@import "@nuxt/ui"; /* or "@nuxt/ui-pro" if you're using the pro version */
+
+/* Define design tokens using @theme */
+@theme static {
+  --font-sans: "Public Sans", sans-serif;
+
+  /* Breakpoints */
+  --breakpoint-3xl: 1920px;
+
+  /* Brand colors (green) */
+  --color-primary-50: #effdf5;
+  --color-primary-100: #d9fbe8;
+  --color-primary-200: #b3f5d1;
+  --color-primary-300: #75edae;
+  --color-primary-400: #00dc82;
+  --color-primary-500: #00c16a;
+  --color-primary-600: #00a155;
+  --color-primary-700: #007f45;
+  --color-primary-800: #016538;
+  --color-primary-900: #0a5331;
+  --color-primary-950: #052e16;
+
+  /* Neutral base (slate) */
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+  --color-neutral-950: #020617;
+}
+
+/* Container width */
+@theme {
+  --container-8xl: 90rem;
+}
+
+/* Base light mode variables */
+:root {
+  --ui-font-sans: var(--font-sans);
+
+  --ui-primary: var(--color-primary-500);
+  --ui-neutral: var(--color-neutral-700);
+
+  --ui-bg: var(--color-neutral-50);
+  --ui-text: var(--color-neutral-900);
+  --ui-border: var(--color-neutral-200);
+
+  --ui-radius: 0.375rem; /* equivalent to rounded-md */
+
+  --ui-container: var(--container-8xl);
+}
+
+/* Dark mode overrides */
+.dark {
+  --ui-primary: var(--color-primary-400);
+  --ui-neutral: var(--color-neutral-200);
+
+  --ui-bg: var(--color-neutral-950);
+  --ui-text: var(--color-neutral-200);
+  --ui-border: var(--color-neutral-800);
+}

@@ -1,0 +1,25 @@
+{
+    "input": {
+        "data": "Data (URL/Text)",
+        "placeholder": "https://..."
+    },
+    "button": {
+        "removeLogo": "Remove logo",
+        "download": "Download QR Code"
+    },
+    "label": {
+        "dotColor": "Dot Color",
+        "dotStyle": "Dot Style",
+        "backgroundColor": "Background Color"
+    },
+    "dotType": {
+        "rounded": "Rounded",
+        "dots": "Dots",
+        "classy": "Classy",
+        "square": "Square",
+        "extra-rounded": "Extra Rounded"
+    },
+    "footer": {
+        "text": "You want a website too? Contact the creator:"
+    }
+}

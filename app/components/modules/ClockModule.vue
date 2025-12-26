@@ -1,0 +1,55 @@
+<template>
+  <BaseModule :dimmed="isNight">
+    <div class="flex flex-col items-center justify-center text-white">
+      <div class="text-6xl font-bold tracking-tighter tabular-nums">
+        {{ timeString }}
+      </div>
+      <div class="text-xl font-medium opacity-80 mt-2">
+        {{ dateString }}
+      </div>
+    </div>
+  </BaseModule>
+</template>
+
+<script setup lang="ts">
+import BaseModule from "./BaseModule.vue";
+
+const props = defineProps<{
+  displaySeconds?: boolean;
+}>();
+
+const now = ref(new Date());
+const isNight = computed(() => {
+  const hours = now.value.getHours();
+  return hours >= 22 || hours < 6;
+});
+
+const timeString = computed(() => {
+  return now.value.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: props.displaySeconds ? "2-digit" : undefined,
+    hour12: false,
+  });
+});
+
+const dateString = computed(() => {
+  return now.value.toLocaleDateString([], {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+});
+
+let timer: any = null;
+
+onMounted(() => {
+  timer = setInterval(() => {
+    now.value = new Date();
+  }, 1000);
+});
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer);
+});
+</script>

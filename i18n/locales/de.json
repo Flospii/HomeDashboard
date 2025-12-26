@@ -1,0 +1,25 @@
+{
+    "input": {
+        "data": "Daten (URL/Text)",
+        "placeholder": "https://..."
+    },
+    "button": {
+        "removeLogo": "Logo entfernen",
+        "download": "QR-Code herunterladen"
+    },
+    "label": {
+        "dotColor": "Punktfarbe",
+        "dotStyle": "Punktstil",
+        "backgroundColor": "Hintergrundfarbe"
+    },
+    "dotType": {
+        "rounded": "Abgerundet",
+        "dots": "Punkte",
+        "classy": "Elegant",
+        "square": "Quadratisch",
+        "extra-rounded": "Extra abgerundet"
+    },
+    "footer": {
+        "text": "Du willst auch eine Webseite? Kontaktiere den Ersteller:"
+    }
+}
