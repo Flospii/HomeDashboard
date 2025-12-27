@@ -32,7 +32,7 @@ export type TransitionMode = (typeof TRANSITION_MODES)[number];
 
 export interface DashboardConfig {
   background: {
-    mediaUrlArray: BackgroundItem[];
+    externalMediaUrlList: BackgroundItem[];
     interval: number;
     useLocalBackgrounds?: boolean;
     localPollingInterval?: number;
@@ -50,7 +50,7 @@ export const useDashboardStore = defineStore("dashboard", () => {
 
   const allBackgrounds = computed(() => {
     if (!config.value) return [];
-    const staticMedia = config.value.background.mediaUrlArray || [];
+    const staticMedia = config.value.background.externalMediaUrlList || [];
     return [...staticMedia, ...localBackgrounds.value];
   });
 

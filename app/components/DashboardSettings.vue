@@ -86,7 +86,8 @@
         <h3 class="text-lg font-semibold mb-4">External Background URLs</h3>
         <div class="space-y-4">
           <div
-            v-for="(item, index) in store.config.background.mediaUrlArray"
+            v-for="(item, index) in store.config.background
+              .externalMediaUrlList"
             :key="index"
             class="flex items-center space-x-4 bg-white/5 p-3 rounded-xl border border-white/10"
           >
@@ -147,14 +148,14 @@ const newUrl = reactive({
 
 const addExternalUrl = () => {
   if (!newUrl.url || !store.config) return;
-  store.config.background.mediaUrlArray.push({ ...newUrl });
+  store.config.background.externalMediaUrlList.push({ ...newUrl });
   newUrl.url = "";
   newUrl.type = "image";
 };
 
 const removeExternalUrl = (index: number) => {
   if (!store.config) return;
-  store.config.background.mediaUrlArray.splice(index, 1);
+  store.config.background.externalMediaUrlList.splice(index, 1);
 };
 
 const handleSaveSettings = async () => {
