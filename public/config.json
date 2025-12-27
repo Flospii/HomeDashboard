@@ -6,14 +6,15 @@
         "type": "image"
       },
       {
-        "url": "https://images.unsplash.com/photo-1511485977113-f34c92461ad9",
+        "url": "https://miro.medium.com/1*SdXRP8f2Lhin89Tht_GRIA.jpeg",
         "type": "image"
       }
     ],
-    "interval": 6000,
+    "interval": 2000,
     "useLocalBackgrounds": true,
     "localPollingInterval": 10000,
-    "transitionMode": "fade"
+    "transitionMode": "blur",
+    "playbackOrder": "random"
   },
   "modules": [
     {

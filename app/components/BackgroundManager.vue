@@ -1,9 +1,9 @@
 <template>
   <div
-    class="w-full max-w-2xl mx-auto glass-module p-8 rounded-3xl shadow-2xl backdrop-blur-md bg-white/10 border border-white/20 text-white"
+    class="w-full max-w-4xl mx-auto glass-module p-8 rounded-3xl shadow-2xl backdrop-blur-md bg-white/10 border border-white/20 text-white"
   >
     <div class="flex items-center justify-between mb-8">
-      <h2 class="text-2xl font-bold">Background Manager</h2>
+      <h2 class="text-2xl font-bold">Background Media Manager</h2>
       <UButton
         icon="i-heroicons-home"
         color="neutral"
@@ -13,22 +13,22 @@
       />
     </div>
 
-    <!-- Upload Section -->
-    <div class="mb-8">
+    <!-- Add Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+      <!-- Local Upload -->
       <div
-        class="border-2 border-dashed border-white/20 rounded-2xl p-12 text-center hover:border-white/40 transition-all cursor-pointer group"
+        class="border-2 border-dashed border-white/20 rounded-2xl p-8 text-center hover:border-white/40 transition-all cursor-pointer group flex flex-col justify-center"
         @click="triggerFileInput"
       >
         <UIcon
           name="i-heroicons-cloud-arrow-up"
-          class="w-12 h-12 mx-auto mb-4 opacity-40 group-hover:opacity-100 transition-opacity"
+          class="w-10 h-10 mx-auto mb-4 opacity-40 group-hover:opacity-100 transition-opacity"
         />
         <p
-          class="text-lg opacity-60 group-hover:opacity-100 transition-opacity"
+          class="text-sm opacity-60 group-hover:opacity-100 transition-opacity"
         >
-          Click or drag to upload new backgrounds
+          Upload local images/videos
         </p>
-        <p class="text-sm opacity-40 mt-2">Supports images and videos</p>
         <input
           ref="fileInput"
           type="file"
@@ -38,49 +38,128 @@
           @change="handleFileUpload"
         />
       </div>
+
+      <!-- External URL -->
+      <div class="bg-white/5 p-8 rounded-2xl border border-white/10">
+        <h3 class="text-sm font-semibold mb-4 opacity-60">Add External URL</h3>
+        <div class="space-y-4">
+          <UInput
+            v-model="newExternal.url"
+            placeholder="https://example.com/image.jpg"
+            class="w-full"
+          />
+          <div class="flex space-x-4">
+            <USelect
+              v-model="newExternal.type"
+              :items="['image', 'video']"
+              class="flex-1"
+            />
+            <UButton
+              label="Add"
+              icon="i-heroicons-plus"
+              color="neutral"
+              variant="subtle"
+              :disabled="!newExternal.url"
+              @click="addExternalUrl"
+            />
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Status -->
+    <!-- Status Messages -->
     <div
       v-if="isUploading"
-      class="flex items-center justify-center space-x-3 text-primary-400 animate-pulse"
+      class="text-center text-primary-400 animate-pulse mb-8"
     >
-      <UIcon name="i-heroicons-arrow-path" class="w-5 h-5 animate-spin" />
-      <span>Uploading files...</span>
+      Uploading files...
     </div>
 
-    <!-- Success Message -->
-    <div v-if="uploadSuccess" class="text-center text-green-400 text-sm mt-4">
-      Upload successful!
+    <!-- Media Gallery -->
+    <div class="space-y-8">
+      <h3 class="text-xl font-semibold border-b border-white/10 pb-2">
+        Your Backgrounds
+      </h3>
+
+      <div
+        v-if="store.allBackgrounds.length === 0"
+        class="text-center py-12 opacity-40"
+      >
+        No backgrounds found. Add some above!
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div
+          v-for="(item, index) in store.allBackgrounds"
+          :key="item.url"
+          class="relative group aspect-video rounded-xl overflow-hidden border border-white/10 bg-black/40"
+        >
+          <!-- Preview -->
+          <img
+            v-if="item.type === 'image'"
+            :src="item.url"
+            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
+          <video
+            v-else
+            :src="item.url"
+            class="w-full h-full object-cover"
+            muted
+          />
+
+          <!-- Overlay Actions -->
+          <div
+            class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2"
+          >
+            <UButton
+              icon="i-heroicons-trash"
+              color="error"
+              variant="solid"
+              size="sm"
+              @click="deleteMedia(item)"
+            />
+          </div>
+
+          <!-- Type Badge -->
+          <div
+            class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 text-[10px] uppercase tracking-wider opacity-60"
+          >
+            {{ isLocal(item.url) ? "Local" : "External" }}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 import { useDashboardStore } from "~~/stores/dashboard";
 
 const store = useDashboardStore();
 const isUploading = ref(false);
-const uploadSuccess = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
+
+const newExternal = reactive({
+  url: "",
+  type: "image" as "image" | "video",
+});
 
 const triggerFileInput = () => {
   fileInput.value?.click();
 };
+
+const isLocal = (url: string) => url.startsWith("/backgrounds/");
 
 const handleFileUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (!target.files?.length) return;
 
   isUploading.value = true;
-  uploadSuccess.value = false;
   const formData = new FormData();
   for (let i = 0; i < target.files.length; i++) {
     const file = target.files[i];
-    if (file) {
-      formData.append("files", file);
-    }
+    if (file) formData.append("files", file);
   }
 
   try {
@@ -90,18 +169,60 @@ const handleFileUpload = async (event: Event) => {
     });
 
     if (response.ok) {
-      // Refresh the dashboard config to show new media
       await store.fetchConfig();
-      uploadSuccess.value = true;
-      setTimeout(() => {
-        uploadSuccess.value = false;
-      }, 3000);
     }
   } catch (error) {
     console.error("Upload failed:", error);
   } finally {
     isUploading.value = false;
     if (fileInput.value) fileInput.value.value = "";
+  }
+};
+
+const addExternalUrl = async () => {
+  if (!newExternal.url || !store.config) return;
+
+  store.config.background.externalMediaUrlList.push({ ...newExternal });
+  newExternal.url = "";
+  newExternal.type = "image";
+
+  try {
+    await store.saveConfig();
+  } catch (error) {
+    console.error("Failed to save external URL:", error);
+  }
+};
+
+const deleteMedia = async (item: any) => {
+  if (!confirm(`Are you sure you want to remove this background?`)) return;
+
+  if (isLocal(item.url)) {
+    // Delete local file
+    const filename = item.url.replace("/backgrounds/", "");
+    try {
+      const response = await fetch(`/api/backgrounds?filename=${filename}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        await store.fetchConfig();
+      }
+    } catch (error) {
+      console.error("Failed to delete local file:", error);
+    }
+  } else {
+    // Remove external URL
+    if (!store.config) return;
+    const index = store.config.background.externalMediaUrlList.findIndex(
+      (m) => m.url === item.url
+    );
+    if (index !== -1) {
+      store.config.background.externalMediaUrlList.splice(index, 1);
+      try {
+        await store.saveConfig();
+      } catch (error) {
+        console.error("Failed to remove external URL:", error);
+      }
+    }
   }
 };
 </script>

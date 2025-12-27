@@ -18,6 +18,7 @@
         :media="store.allBackgrounds"
         :interval="store.config.background.interval"
         :transition-mode="store.config.background.transitionMode"
+        :playback-order="store.config.background.playbackOrder"
       />
 
       <!-- UI Overlay Grid -->

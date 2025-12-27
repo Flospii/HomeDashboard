@@ -38,6 +38,7 @@ const props = defineProps<{
   media: MediaItem[];
   interval?: number;
   transitionMode?: "fade" | "slide" | "zoom" | "blur";
+  playbackOrder?: "sequential" | "random";
 }>();
 
 const currentIndex = ref(0);
@@ -48,7 +49,15 @@ const currentMedia = computed(
 let timer: any = null;
 
 const nextMedia = () => {
-  currentIndex.value = (currentIndex.value + 1) % props.media.length;
+  if (props.playbackOrder === "random" && props.media.length > 1) {
+    let nextIndex = currentIndex.value;
+    while (nextIndex === currentIndex.value) {
+      nextIndex = Math.floor(Math.random() * props.media.length);
+    }
+    currentIndex.value = nextIndex;
+  } else {
+    currentIndex.value = (currentIndex.value + 1) % props.media.length;
+  }
 };
 
 onMounted(() => {

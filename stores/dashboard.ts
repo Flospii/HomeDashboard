@@ -30,6 +30,9 @@ export interface ModuleConfig {
 export const TRANSITION_MODES = ["fade", "slide", "zoom", "blur"] as const;
 export type TransitionMode = (typeof TRANSITION_MODES)[number];
 
+export const PLAYBACK_MODES = ["sequential", "random"] as const;
+export type PlaybackMode = (typeof PLAYBACK_MODES)[number];
+
 export interface DashboardConfig {
   background: {
     externalMediaUrlList: BackgroundItem[];
@@ -37,6 +40,7 @@ export interface DashboardConfig {
     useLocalBackgrounds?: boolean;
     localPollingInterval?: number;
     transitionMode?: TransitionMode;
+    playbackOrder?: PlaybackMode;
   };
   modules: ModuleConfig[];
 }
