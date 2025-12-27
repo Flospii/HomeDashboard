@@ -1,99 +1,140 @@
 <template>
-  <div
+  <UCard
     v-if="store.config"
-    class="w-full max-w-2xl mx-auto glass-module p-8 rounded-3xl shadow-2xl backdrop-blur-md bg-white/10 border border-white/20 text-white"
+    variant="glassDark"
+    class="!border-0 !shadow-none overflow-hidden"
+    :ui="{
+      body: 'p-8',
+    }"
   >
-    <div class="flex items-center justify-between mb-8">
-      <h2 class="text-2xl font-bold">Dashboard Settings</h2>
-      <div class="flex items-center space-x-4">
-        <span
-          v-if="saveStatus === 'success'"
-          class="text-green-400 text-sm animate-fade-in"
+    <template #header>
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-3xl font-bold text-(--ui-text) tracking-tight">
+            Dashboard Settings
+          </h2>
+          <p class="text-(--ui-text)/50 mt-1">
+            Configure how your dashboard looks and behaves
+          </p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <Transition name="fade">
+            <span
+              v-if="saveStatus === 'success'"
+              class="text-primary-400 text-sm font-medium flex items-center"
+            >
+              <UIcon name="i-heroicons-check-circle" class="mr-1 w-5 h-5" />
+              Saved
+            </span>
+            <span
+              v-else-if="saveStatus === 'error'"
+              class="text-red-400 text-sm font-medium flex items-center"
+            >
+              <UIcon
+                name="i-heroicons-exclamation-circle"
+                class="mr-1 w-5 h-5"
+              />
+              Error
+            </span>
+          </Transition>
+          <UButton
+            icon="i-heroicons-check"
+            color="primary"
+            size="lg"
+            :loading="isSaving"
+            label="Save Changes"
+            class="px-6"
+            @click="handleSaveSettings"
+          />
+        </div>
+      </div>
+    </template>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+      <!-- Left Column: Visuals -->
+      <div class="space-y-8">
+        <h3
+          class="text-sm font-bold uppercase tracking-widest text-primary-400/80"
         >
-          Settings saved!
-        </span>
-        <span
-          v-if="saveStatus === 'error'"
-          class="text-red-400 text-sm animate-fade-in"
+          Visuals & Transitions
+        </h3>
+
+        <UFormField
+          label="Transition Mode"
+          description="The animation style between backgrounds"
         >
-          Failed to save
-        </span>
-        <UButton
-          icon="i-heroicons-check"
-          color="primary"
-          :loading="isSaving"
-          label="Save Settings"
-          @click="handleSaveSettings"
-        />
+          <USelect
+            v-model="store.config.background.transitionMode"
+            :items="[...TRANSITION_MODES]"
+            size="xl"
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField
+          label="Playback Order"
+          description="Sequential or random playback"
+        >
+          <USelect
+            v-model="store.config.background.playbackOrder"
+            :items="[...PLAYBACK_MODES]"
+            size="xl"
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField
+          label="Rotation Interval (ms)"
+          description="Time between background changes"
+        >
+          <UInput
+            v-model.number="store.config.background.interval"
+            type="number"
+            step="1000"
+            min="1000"
+            size="xl"
+            class="w-full"
+          />
+        </UFormField>
+      </div>
+
+      <!-- Right Column: Scanning & Polling -->
+      <div class="space-y-8">
+        <h3
+          class="text-sm font-bold uppercase tracking-widest text-primary-400/80"
+        >
+          Local Discovery
+        </h3>
+
+        <UFormField
+          label="Local Scanning"
+          description="Automatically scan public/backgrounds folder"
+        >
+          <span class="text-sm text-(--ui-text)/70"
+            >Enable Local Discovery</span
+          >
+          <USwitch v-model="store.config.background.useLocalBackgrounds" />
+        </UFormField>
+
+        <Transition name="slide-up">
+          <UFormField
+            v-if="store.config.background.useLocalBackgrounds"
+            label="Polling Interval (ms)"
+            description="How often to check for new local files"
+          >
+            <UInput
+              v-model.number="store.config.background.localPollingInterval"
+              type="number"
+              step="1000"
+              min="5000"
+              size="xl"
+              class="w-full"
+            />
+          </UFormField>
+        </Transition>
       </div>
     </div>
-
-    <div class="space-y-6">
-      <!-- Transition Mode -->
-      <UFormField
-        label="Transition Mode"
-        description="The animation style between backgrounds"
-      >
-        <USelect
-          v-model="store.config.background.transitionMode"
-          :items="[...TRANSITION_MODES]"
-          class="w-full"
-        />
-      </UFormField>
-
-      <!-- Playback Order -->
-      <UFormField
-        label="Playback Order"
-        description="Sequential or random playback"
-      >
-        <USelect
-          v-model="store.config.background.playbackOrder"
-          :items="[...PLAYBACK_MODES]"
-          class="w-full"
-        />
-      </UFormField>
-
-      <!-- Interval -->
-      <UFormField
-        label="Rotation Interval (ms)"
-        description="Time between background changes"
-      >
-        <UInput
-          v-model.number="store.config.background.interval"
-          type="number"
-          step="1000"
-          min="1000"
-          class="w-full"
-        />
-      </UFormField>
-
-      <!-- Local Backgrounds -->
-      <UFormField
-        label="Local Backgrounds"
-        description="Automatically scan public/backgrounds folder"
-      >
-        <UCheckbox
-          v-model="store.config.background.useLocalBackgrounds"
-          label="Enable Local Scanning"
-        />
-      </UFormField>
-
-      <!-- Polling Interval -->
-      <UFormField
-        v-if="store.config.background.useLocalBackgrounds"
-        label="Polling Interval (ms)"
-        description="How often to check for new local files"
-      >
-        <UInput
-          v-model.number="store.config.background.localPollingInterval"
-          type="number"
-          step="1000"
-          min="5000"
-          class="w-full"
-        />
-      </UFormField>
-    </div>
-  </div>
+  </UCard>
 </template>
 
 <script setup lang="ts">

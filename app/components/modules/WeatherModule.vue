@@ -1,26 +1,38 @@
 <template>
   <BaseModule>
-    <div class="flex flex-col text-white min-w-[200px]">
-      <div class="flex items-center justify-between mb-4">
+    <div class="flex flex-col text-white min-w-[220px]">
+      <div class="flex items-center justify-between mb-6">
         <div>
-          <div class="text-4xl font-bold">{{ currentTemp }}°</div>
-          <div class="text-sm opacity-80">Feels like {{ feelsLike }}°</div>
+          <div
+            class="text-6xl font-black tracking-tighter text-white [text-shadow:0_0_20px_rgba(255,255,255,0.3)]"
+          >
+            {{ currentTemp }}°
+          </div>
+          <div
+            class="text-sm opacity-50 mt-1 uppercase tracking-wider font-medium"
+          >
+            Feels like {{ feelsLike }}°
+          </div>
         </div>
-        <div class="text-5xl">
-          <!-- Placeholder for SVG Icon -->
-          <UIcon name="i-heroicons-cloud-solid" class="w-12 h-12" />
+        <div class="[text-shadow:0_0_20px_rgba(16,185,129,0.5)]">
+          <UIcon
+            name="i-heroicons-cloud-solid"
+            class="w-14 h-14 text-primary-400"
+          />
         </div>
       </div>
 
-      <div class="space-y-2 border-t border-white/10 pt-4">
+      <div class="space-y-3 border-t border-white/10 pt-6">
         <div
           v-for="day in forecast"
           :key="day.date"
-          class="flex items-center justify-between text-sm"
+          class="flex items-center justify-between text-sm font-medium"
         >
-          <span class="w-12">{{ day.weekday }}</span>
-          <UIcon :name="day.icon" class="w-5 h-5 opacity-80" />
-          <span class="w-12 text-right font-medium">{{ day.temp }}°</span>
+          <span class="w-12 opacity-60 uppercase tracking-tight">{{
+            day.weekday
+          }}</span>
+          <UIcon :name="day.icon" class="w-6 h-6 opacity-80" />
+          <span class="w-12 text-right font-bold">{{ day.temp }}°</span>
         </div>
       </div>
     </div>

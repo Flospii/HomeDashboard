@@ -2,13 +2,13 @@
   <div class="relative w-full h-full overflow-hidden">
     <div
       v-if="store.isLoading"
-      class="flex items-center justify-center h-full text-white text-2xl"
+      class="flex items-center justify-center h-full text-(--ui-text) text-2xl"
     >
       Loading Dashboard...
     </div>
     <div
       v-else-if="store.error"
-      class="flex items-center justify-center h-full text-red-500 text-2xl"
+      class="flex items-center justify-center h-full text-error-500 text-2xl"
     >
       Error: {{ store.error }}
     </div>

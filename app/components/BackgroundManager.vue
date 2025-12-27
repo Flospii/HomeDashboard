@@ -1,135 +1,183 @@
 <template>
-  <div
-    class="w-full max-w-4xl mx-auto glass-module p-8 rounded-3xl shadow-2xl backdrop-blur-md bg-white/10 border border-white/20 text-white"
-  >
-    <div class="flex items-center justify-between mb-8">
-      <h2 class="text-2xl font-bold">Background Media Manager</h2>
-      <UButton
-        icon="i-heroicons-home"
-        color="neutral"
-        variant="ghost"
-        to="/"
-        label="Back to Dashboard"
-      />
-    </div>
-
-    <!-- Add Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-      <!-- Local Upload -->
-      <div
-        class="border-2 border-dashed border-white/20 rounded-2xl p-8 text-center hover:border-white/40 transition-all cursor-pointer group flex flex-col justify-center"
-        @click="triggerFileInput"
-      >
-        <UIcon
-          name="i-heroicons-cloud-arrow-up"
-          class="w-10 h-10 mx-auto mb-4 opacity-40 group-hover:opacity-100 transition-opacity"
-        />
-        <p
-          class="text-sm opacity-60 group-hover:opacity-100 transition-opacity"
-        >
-          Upload local images/videos
-        </p>
-        <input
-          ref="fileInput"
-          type="file"
-          class="hidden"
-          accept="image/*,video/*"
-          multiple
-          @change="handleFileUpload"
-        />
-      </div>
-
-      <!-- External URL -->
-      <div class="bg-white/5 p-8 rounded-2xl border border-white/10">
-        <h3 class="text-sm font-semibold mb-4 opacity-60">Add External URL</h3>
-        <div class="space-y-4">
-          <UInput
-            v-model="newExternal.url"
-            placeholder="https://example.com/image.jpg"
-            class="w-full"
-          />
-          <div class="flex space-x-4">
-            <USelect
-              v-model="newExternal.type"
-              :items="['image', 'video']"
-              class="flex-1"
-            />
-            <UButton
-              label="Add"
-              icon="i-heroicons-plus"
-              color="neutral"
-              variant="subtle"
-              :disabled="!newExternal.url"
-              @click="addExternalUrl"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Status Messages -->
-    <div
-      v-if="isUploading"
-      class="text-center text-primary-400 animate-pulse mb-8"
+  <UContainer class="py-12">
+    <UCard
+      variant="glassDark"
+      class="!border-0 !shadow-none overflow-hidden"
+      :ui="{
+        body: 'p-8',
+      }"
     >
-      Uploading files...
-    </div>
+      <template #header>
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-3xl font-bold text-(--ui-text) tracking-tight">
+              Background Media
+            </h2>
+            <p class="text-(--ui-text)/50 mt-1">
+              Manage your local and external background resources
+            </p>
+          </div>
+          <UButton
+            icon="i-heroicons-home"
+            color="neutral"
+            variant="subtle"
+            to="/"
+            label="Dashboard"
+            size="lg"
+          />
+        </div>
+      </template>
 
-    <!-- Media Gallery -->
-    <div class="space-y-8">
-      <h3 class="text-xl font-semibold border-b border-white/10 pb-2">
-        Your Backgrounds
-      </h3>
-
-      <div
-        v-if="store.allBackgrounds.length === 0"
-        class="text-center py-12 opacity-40"
-      >
-        No backgrounds found. Add some above!
-      </div>
-
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <!-- Add Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <!-- Local Upload -->
         <div
-          v-for="(item, index) in store.allBackgrounds"
-          :key="item.url"
-          class="relative group aspect-video rounded-xl overflow-hidden border border-white/10 bg-black/40"
+          class="border-2 border-dashed border-(--ui-border) p-10 text-center hover:border-primary-500/50 hover:bg-primary-500/5 transition-all cursor-pointer group flex flex-col justify-center items-center"
+          @click="triggerFileInput"
         >
-          <!-- Preview -->
-          <img
-            v-if="item.type === 'image'"
-            :src="item.url"
-            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
-          <video
-            v-else
-            :src="item.url"
-            class="w-full h-full object-cover"
-            muted
-          />
-
-          <!-- Overlay Actions -->
           <div
-            class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2"
+            class="w-16 h-16 bg-(--ui-bg)/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
           >
-            <UButton
-              icon="i-heroicons-trash"
-              color="error"
-              variant="solid"
-              size="sm"
-              @click="deleteMedia(item)"
+            <UIcon
+              name="i-heroicons-cloud-arrow-up"
+              class="w-8 h-8 text-(--ui-text)/40 group-hover:text-primary-400 transition-colors"
             />
           </div>
+          <h3 class="text-lg font-semibold text-(--ui-text) mb-1">
+            Upload Local
+          </h3>
+          <p class="text-sm text-(--ui-text)/40">
+            Drag and drop or click to browse
+          </p>
+          <input
+            ref="fileInput"
+            type="file"
+            class="hidden"
+            accept="image/*,video/*"
+            multiple
+            @change="handleFileUpload"
+          />
+        </div>
 
-          <!-- Type Badge -->
-          <div
-            class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 text-[10px] uppercase tracking-wider opacity-60"
-          >
-            {{ isLocal(item.url) ? "Local" : "External" }}
+        <!-- External URL -->
+        <div class="bg-(--ui-bg)/5 p-10 border border-(--ui-border)">
+          <h3 class="text-lg font-semibold text-(--ui-text) mb-4">
+            Add External
+          </h3>
+          <div class="space-y-6">
+            <UFormField label="Resource URL">
+              <UInput
+                v-model="newExternal.url"
+                placeholder="https://images.unsplash.com/..."
+                size="xl"
+                class="w-full"
+              />
+            </UFormField>
+            <div class="flex space-x-4">
+              <UFormField label="Type" class="flex-1">
+                <USelect
+                  v-model="newExternal.type"
+                  :items="['image', 'video']"
+                  size="xl"
+                  class="w-full"
+                />
+              </UFormField>
+              <div class="flex items-end">
+                <UButton
+                  label="Add Resource"
+                  icon="i-heroicons-plus"
+                  color="primary"
+                  size="xl"
+                  class="px-8"
+                  :disabled="!newExternal.url"
+                  @click="addExternalUrl"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
+
+      <!-- Status Messages -->
+      <div
+        v-if="isUploading"
+        class="flex items-center justify-center space-x-3 text-primary-400 animate-pulse mb-8"
+      >
+        <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin" />
+        <span class="font-medium">Uploading your media...</span>
+      </div>
+
+      <!-- Media Gallery -->
+      <div class="space-y-8">
+        <div
+          class="flex items-center justify-between border-b border-(--ui-border) pb-4"
+        >
+          <h3 class="text-xl font-bold text-(--ui-text)">Your Gallery</h3>
+          <UBadge
+            :label="`${store.allBackgrounds.length} Items`"
+            color="neutral"
+            variant="subtle"
+            size="lg"
+          />
+        </div>
+
+        <div
+          v-if="store.allBackgrounds.length === 0"
+          class="text-center py-20 bg-(--ui-bg)/5 border border-(--ui-border)"
+        >
+          <UIcon
+            name="i-heroicons-photo"
+            class="w-16 h-16 mx-auto mb-4 opacity-10"
+          />
+          <p class="text-(--ui-text)/30 text-lg">No backgrounds found.</p>
+        </div>
+
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        >
+          <div
+            v-for="(item, index) in store.allBackgrounds"
+            :key="item.url"
+            class="relative group aspect-video overflow-hidden border border-(--ui-border) bg-(--ui-bg)/40 shadow-xl"
+          >
+            <!-- Preview -->
+            <img
+              v-if="item.type === 'image'"
+              :src="item.url"
+              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <video
+              v-else
+              :src="item.url"
+              class="w-full h-full object-cover"
+              muted
+            />
+
+            <!-- Overlay Actions -->
+            <div
+              class="absolute inset-0 bg-(--ui-bg)/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-sm"
+            >
+              <UButton
+                icon="i-heroicons-trash"
+                color="error"
+                variant="solid"
+                size="xl"
+                class="shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-300"
+                @click="deleteMedia(item)"
+              />
+            </div>
+
+            <!-- Type Badge -->
+            <div
+              class="absolute top-4 left-4 px-3 py-1 bg-(--ui-bg)/60 backdrop-blur-md text-[10px] font-bold uppercase tracking-widest text-(--ui-text)/80 border border-(--ui-border)"
+            >
+              {{ isLocal(item.url) ? "Local" : "External" }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </UCard>
+  </UContainer>
 </template>
 
 <script setup lang="ts">

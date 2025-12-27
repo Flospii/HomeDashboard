@@ -1,29 +1,30 @@
 <template>
-  <div
-    class="w-full p-4 bg-black/40 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden"
-  >
+  <BaseModule class="overflow-hidden">
     <div class="flex items-center">
-      <div
-        class="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded mr-4 uppercase tracking-wider"
-      >
-        News
-      </div>
+      <UBadge
+        label="News"
+        color="primary"
+        variant="solid"
+        class="mr-4 font-bold uppercase tracking-wider"
+      />
       <div class="flex-grow overflow-hidden whitespace-nowrap">
         <div class="ticker-content inline-block animate-ticker">
           <span
             v-for="(item, index) in news"
             :key="index"
-            class="mx-8 text-white/90 font-medium"
+            class="mx-8 font-medium [text-shadow:0_0_20px_rgba(255,255,255,0.3)]"
           >
             {{ item }}
           </span>
         </div>
       </div>
     </div>
-  </div>
+  </BaseModule>
 </template>
 
 <script setup lang="ts">
+import BaseModule from "./BaseModule.vue";
+
 const news = ref([
   "SpaceX successfully launches another Starlink mission.",
   "Global markets show steady growth in Q4.",
@@ -37,7 +38,7 @@ const news = ref([
 .animate-ticker {
   display: inline-block;
   padding-left: 100%;
-  animation: ticker 30s linear infinite;
+  animation: ticker 40s linear infinite;
 }
 
 @keyframes ticker {
