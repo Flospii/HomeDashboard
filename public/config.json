@@ -2,38 +2,14 @@
   "background": {
     "mediaUrlArray": [
       {
-        "url": "/backgrounds/1.png",
+        "url": "https://images.unsplash.com/photo-1511485977113-f34c92461ad9",
         "type": "image"
-      },
-      {
-        "url": "/backgrounds/245709.jpg",
-        "type": "image"
-      },
-      {
-        "url": "/backgrounds/245718.jpg",
-        "type": "image"
-      },
-      {
-        "url": "/backgrounds/245742.jpg",
-        "type": "image"
-      },
-      {
-        "url": "/backgrounds/IMG_5897.MP4",
-        "type": "video"
-      },
-      {
-        "url": "/backgrounds/IMG_5948.MP4",
-        "type": "video"
-      },
-      {
-        "url": "/backgrounds/dji_mimo_20250905_131650_20250905131651_1757064610261_video.MP4",
-        "type": "video"
       }
     ],
     "interval": 6000,
     "useLocalBackgrounds": true,
     "localPollingInterval": 10000,
-    "transitionMode": "slide"
+    "transitionMode": "fade"
   },
   "modules": [
     {

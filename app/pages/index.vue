@@ -44,6 +44,11 @@ const store = useDashboardStore();
 
 onMounted(() => {
   store.fetchConfig();
+  store.startConfigPolling();
+});
+
+onUnmounted(() => {
+  store.stopConfigPolling();
 });
 
 const moduleMap: Record<string, any> = {

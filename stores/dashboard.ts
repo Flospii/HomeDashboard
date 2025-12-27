@@ -89,23 +89,50 @@ export const useDashboardStore = defineStore("dashboard", () => {
   const fetchConfig = async () => {
     try {
       isLoading.value = true;
-      const response = await fetch("/config.json");
-      if (!response.ok) {
-        throw new Error("Failed to load config.json");
-      }
-      const data = await response.json();
-      config.value = data;
-
-      await fetchLocalBackgrounds();
-
-      if (data.background?.useLocalBackgrounds) {
-        startPolling();
-      }
+      await refreshConfig();
     } catch (err: any) {
       error.value = err.message;
       console.error("Error loading dashboard config:", err);
     } finally {
       isLoading.value = false;
+    }
+  };
+
+  const refreshConfig = async () => {
+    try {
+      const response = await fetch("/config.json");
+      if (!response.ok) {
+        throw new Error("Failed to load config.json");
+      }
+      const data = await response.json();
+
+      // Only update if data has changed to avoid unnecessary re-renders
+      if (JSON.stringify(config.value) !== JSON.stringify(data)) {
+        config.value = data;
+        await fetchLocalBackgrounds();
+
+        if (data.background?.useLocalBackgrounds) {
+          startPolling();
+        } else {
+          stopPolling();
+        }
+      }
+    } catch (err) {
+      console.error("Error refreshing dashboard config:", err);
+    }
+  };
+
+  let configPollingTimer: any = null;
+
+  const startConfigPolling = (interval = 5000) => {
+    stopConfigPolling();
+    configPollingTimer = setInterval(refreshConfig, interval);
+  };
+
+  const stopConfigPolling = () => {
+    if (configPollingTimer) {
+      clearInterval(configPollingTimer);
+      configPollingTimer = null;
     }
   };
 
@@ -145,6 +172,9 @@ export const useDashboardStore = defineStore("dashboard", () => {
     isLoading,
     error,
     fetchConfig,
+    refreshConfig,
+    startConfigPolling,
+    stopConfigPolling,
     saveConfig,
     getModulesAtPosition,
     stopPolling,
