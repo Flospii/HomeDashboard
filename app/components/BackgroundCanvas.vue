@@ -1,6 +1,6 @@
 <template>
   <div class="absolute inset-0 z-0 overflow-hidden">
-    <TransitionGroup name="fade">
+    <TransitionGroup :name="transitionMode || 'fade'">
       <div
         v-for="(item, index) in [currentMedia]"
         :key="item.url + index"
@@ -37,6 +37,7 @@ interface MediaItem {
 const props = defineProps<{
   media: MediaItem[];
   interval?: number;
+  transitionMode?: "fade" | "slide" | "zoom" | "blur";
 }>();
 
 const currentIndex = ref(0);
@@ -62,13 +63,53 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Fade */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 2s ease-in-out;
 }
-
 .fade-enter-from,
 .fade-leave-to {
+  opacity: 0;
+}
+
+/* Slide */
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 1.5s ease-in-out;
+}
+.slide-enter-from {
+  transform: translateX(100%);
+}
+.slide-leave-to {
+  transform: translateX(-100%);
+}
+
+/* Zoom */
+.zoom-enter-active,
+.zoom-leave-active {
+  transition: transform 2s ease-in-out, opacity 2s ease-in-out;
+}
+.zoom-enter-from {
+  transform: scale(1.2);
+  opacity: 0;
+}
+.zoom-leave-to {
+  transform: scale(0.8);
+  opacity: 0;
+}
+
+/* Blur */
+.blur-enter-active,
+.blur-leave-active {
+  transition: filter 1.5s ease-in-out, opacity 1.5s ease-in-out;
+}
+.blur-enter-from {
+  filter: blur(20px);
+  opacity: 0;
+}
+.blur-leave-to {
+  filter: blur(20px);
   opacity: 0;
 }
 </style>

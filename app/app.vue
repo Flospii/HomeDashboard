@@ -1,6 +1,6 @@
 <template>
   <UApp :locale="locales[locale]">
-    <div class="fixed inset-0 overflow-hidden bg-black text-white font-sans">
+    <div class="fixed inset-0 overflow-y-auto bg-black text-white font-sans">
       <NuxtPage />
     </div>
   </UApp>
@@ -16,7 +16,6 @@ const { locale } = useI18n();
 body {
   margin: 0;
   padding: 0;
-  overflow: hidden;
   background-color: black;
 }
 </style>

@@ -15,8 +15,9 @@
     <template v-else-if="store.config">
       <!-- Background Layer -->
       <BackgroundCanvas
-        :media="store.config.background.media"
+        :media="store.allBackgrounds"
         :interval="store.config.background.interval"
+        :transition-mode="store.config.background.transitionMode"
       />
 
       <!-- UI Overlay Grid -->
