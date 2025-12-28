@@ -41,6 +41,15 @@
           <span class="w-12 text-right font-bold">{{ day.temp }}°</span>
         </div>
       </div>
+
+      <div
+        v-if="showProvider"
+        class="mt-4 pt-4 border-t border-white/5 flex justify-end"
+      >
+        <div class="text-[10px] opacity-30 uppercase tracking-widest font-bold">
+          Source: {{ weatherProvider }}
+        </div>
+      </div>
     </div>
   </BaseModule>
 </template>

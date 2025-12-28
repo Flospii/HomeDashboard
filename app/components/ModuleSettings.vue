@@ -114,17 +114,23 @@
                     <UInput
                       v-model.number="(mod.config as any).lat"
                       type="number"
-                      step="0.0001"
-                      size="xl"
+                      size="md"
+                      placeholder="48.0986"
                     />
                   </UFormField>
                   <UFormField label="Longitude">
                     <UInput
                       v-model.number="(mod.config as any).lon"
                       type="number"
-                      step="0.0001"
-                      size="xl"
+                      size="md"
+                      placeholder="14.0353"
                     />
+                  </UFormField>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4">
+                  <UFormField label="Show Provider">
+                    <USwitch v-model="(mod.config as any).showProvider" />
                   </UFormField>
                 </div>
               </div>

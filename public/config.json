@@ -25,8 +25,9 @@
       "config": {
         "weatherProvider": "openmeteo",
         "type": "current",
-        "lat": 48.0986,
-        "lon": 14.0353
+        "lat": 48.0667,
+        "lon": 14.0,
+        "showProvider": true
       }
     },
     {

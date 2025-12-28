@@ -34,6 +34,7 @@ export interface WeatherModuleConfig {
   type: "current";
   lat: number;
   lon: number;
+  showProvider?: boolean;
 }
 
 export interface NewsFeed {
