@@ -15,10 +15,7 @@
           </div>
         </div>
         <div class="[text-shadow:0_0_20px_rgba(16,185,129,0.5)]">
-          <UIcon
-            name="i-heroicons-cloud-solid"
-            class="w-14 h-14 text-primary-400"
-          />
+          <UIcon name="i-heroicons-cloud-solid" class="w-14 h-14 text-white" />
         </div>
       </div>
 
