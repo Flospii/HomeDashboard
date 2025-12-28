@@ -3,15 +3,6 @@ import path from "node:path";
 import { defineEventHandler, readMultipartFormData, createError } from "h3";
 
 export default defineEventHandler(async (event) => {
-  const method = event.method;
-
-  if (method !== "POST") {
-    throw createError({
-      statusCode: 405,
-      statusMessage: "Method Not Allowed",
-    });
-  }
-
   const formData = await readMultipartFormData(event);
   if (!formData) {
     throw createError({

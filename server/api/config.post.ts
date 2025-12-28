@@ -3,15 +3,6 @@ import path from "node:path";
 import { defineEventHandler, readBody, createError } from "h3";
 
 export default defineEventHandler(async (event) => {
-  const method = event.method;
-
-  if (method !== "POST") {
-    throw createError({
-      statusCode: 405,
-      statusMessage: "Method Not Allowed",
-    });
-  }
-
   const body = await readBody(event);
   if (!body) {
     throw createError({

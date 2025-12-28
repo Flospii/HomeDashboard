@@ -1,0 +1,35 @@
+{
+  "background": {
+    "externalMediaUrlList": [],
+    "interval": 2000,
+    "useLocalBackgrounds": true,
+    "localPollingInterval": 10000,
+    "transitionMode": "fade",
+    "playbackOrder": "random"
+  },
+  "modules": [
+    {
+      "id": "clock-1",
+      "module": "clock",
+      "position": "top_left",
+      "enabled": true,
+      "config": {
+        "displaySeconds": true
+      }
+    },
+    {
+      "id": "weather-1",
+      "module": "weather",
+      "position": "top_right",
+      "enabled": true,
+      "config": {}
+    },
+    {
+      "id": "news-1",
+      "module": "news",
+      "position": "bottom_center",
+      "enabled": true,
+      "config": {}
+    }
+  ]
+}

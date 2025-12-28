@@ -104,9 +104,9 @@ export const useDashboardStore = defineStore("dashboard", () => {
 
   const refreshConfig = async () => {
     try {
-      const response = await fetch("/config.json");
+      const response = await fetch("/api/config");
       if (!response.ok) {
-        throw new Error("Failed to load config.json");
+        throw new Error("Failed to load config");
       }
       const data = await response.json();
 

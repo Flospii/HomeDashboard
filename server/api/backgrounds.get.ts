@@ -2,14 +2,14 @@ import fs from "node:fs";
 import path from "node:path";
 import { defineEventHandler } from "h3";
 
-export default defineEventHandler(async (event) => {
-  const mediaDir = path.resolve(process.cwd(), "public/backgrounds");
+export default defineEventHandler(async () => {
+  const backgroundsDir = path.resolve(process.cwd(), "public/backgrounds");
 
-  if (!fs.existsSync(mediaDir)) {
+  if (!fs.existsSync(backgroundsDir)) {
     return [];
   }
 
-  const files = fs.readdirSync(mediaDir);
+  const files = fs.readdirSync(backgroundsDir);
   const mediaExtensions = {
     image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
     video: [".mp4", ".webm", ".ogg", ".mov"],

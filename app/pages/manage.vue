@@ -26,7 +26,7 @@
               </p>
             </div>
           </div>
-
+          <ThemeToggle />
           <UButton
             icon="i-heroicons-arrow-left"
             variant="ghost"
@@ -36,7 +36,6 @@
             class="hover:bg-(--ui-bg)/5"
           />
         </div>
-        <ThemeToggle />
       </UContainer>
     </header>
 
