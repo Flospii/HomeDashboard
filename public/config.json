@@ -1,11 +1,17 @@
 {
   "background": {
-    "externalMediaUrlList": [],
-    "interval": 2000,
+    "externalMediaUrlList": [
+      {
+        "url": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b",
+        "type": "image"
+      }
+    ],
+    "interval": 6000,
     "useLocalBackgrounds": true,
     "localPollingInterval": 10000,
     "transitionMode": "fade",
-    "playbackOrder": "random"
+    "playbackOrder": "random",
+    "videoPlaybackMode": "once"
   },
   "modules": [
     {
@@ -26,7 +32,7 @@
         "weatherProvider": "openmeteo",
         "type": "current",
         "lat": 48.0667,
-        "lon": 14.0,
+        "lon": 14,
         "showProvider": true
       }
     },
@@ -40,10 +46,6 @@
           {
             "title": "Der Standard",
             "url": "https://www.derstandard.at/rss"
-          },
-          {
-            "title": "Krone",
-            "url": "https://api.krone.at/v1/rss/rssfeed-google.xml?id=2311992"
           }
         ],
         "showSourceTitle": true,

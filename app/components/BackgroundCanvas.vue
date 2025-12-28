@@ -17,7 +17,7 @@
           :src="item.url"
           autoplay
           muted
-          loop
+          :loop="videoPlaybackMode === 'loop'"
           playsinline
           class="object-cover w-full h-full"
         ></video>
@@ -34,6 +34,7 @@ import type {
   BackgroundItem,
   TransitionMode,
   PlaybackMode,
+  VideoPlaybackMode,
 } from "~/types/config";
 
 const props = defineProps<{
@@ -41,6 +42,7 @@ const props = defineProps<{
   interval?: number;
   transitionMode?: TransitionMode;
   playbackOrder?: PlaybackMode;
+  videoPlaybackMode?: VideoPlaybackMode;
 }>();
 
 const currentIndex = ref(0);

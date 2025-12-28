@@ -5,7 +5,8 @@
     "useLocalBackgrounds": true,
     "localPollingInterval": 10000,
     "transitionMode": "fade",
-    "playbackOrder": "random"
+    "playbackOrder": "random",
+    "videoPlaybackMode": "loop"
   },
   "modules": [
     {

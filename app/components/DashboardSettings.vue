@@ -96,6 +96,18 @@
             class="w-full"
           />
         </UFormField>
+
+        <UFormField
+          label="Video Playback"
+          description="Loop video or play once"
+        >
+          <USelect
+            v-model="store.config.background.videoPlaybackMode"
+            :items="[...VIDEO_PLAYBACK_MODES]"
+            size="xl"
+            class="w-full"
+          />
+        </UFormField>
       </div>
 
       <!-- Right Column: Scanning & Polling -->
@@ -139,7 +151,11 @@
 
 <script setup lang="ts">
 import { ref, reactive } from "vue";
-import { TRANSITION_MODES, PLAYBACK_MODES } from "~/types/config";
+import {
+  TRANSITION_MODES,
+  PLAYBACK_MODES,
+  VIDEO_PLAYBACK_MODES,
+} from "~/types/config";
 import { useConfigStore } from "~~/stores/config";
 
 const store = useConfigStore();

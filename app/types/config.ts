@@ -25,6 +25,9 @@ export type TransitionMode = (typeof TRANSITION_MODES)[number];
 export const PLAYBACK_MODES = ["sequential", "random"] as const;
 export type PlaybackMode = (typeof PLAYBACK_MODES)[number];
 
+export const VIDEO_PLAYBACK_MODES = ["loop", "once"] as const;
+export type VideoPlaybackMode = (typeof VIDEO_PLAYBACK_MODES)[number];
+
 export interface ClockModuleConfig {
   displaySeconds: boolean;
 }
@@ -70,6 +73,7 @@ export interface DashboardConfig {
     localPollingInterval?: number;
     transitionMode?: TransitionMode;
     playbackOrder?: PlaybackMode;
+    videoPlaybackMode?: VideoPlaybackMode;
   };
   modules: ModuleConfig[];
 }
