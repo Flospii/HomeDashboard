@@ -29,16 +29,18 @@
 </template>
 
 <script setup lang="ts">
-interface MediaItem {
-  url: string;
-  type: "image" | "video";
-}
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import type {
+  BackgroundItem,
+  TransitionMode,
+  PlaybackMode,
+} from "~/types/config";
 
 const props = defineProps<{
-  media: MediaItem[];
+  media: BackgroundItem[];
   interval?: number;
-  transitionMode?: "fade" | "slide" | "zoom" | "blur";
-  playbackOrder?: "sequential" | "random";
+  transitionMode?: TransitionMode;
+  playbackOrder?: PlaybackMode;
 }>();
 
 const currentIndex = ref(0);

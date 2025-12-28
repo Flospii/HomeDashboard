@@ -104,9 +104,9 @@ const tabs = [
     icon: "i-heroicons-squares-2x2",
   },
 ];
-import { useDashboardStore } from "~~/stores/dashboard";
+import { useConfigStore } from "~~/stores/config";
 
-const store = useDashboardStore();
+const store = useConfigStore();
 
 onMounted(() => {
   if (!store.config) {

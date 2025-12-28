@@ -139,13 +139,10 @@
 
 <script setup lang="ts">
 import { ref, reactive } from "vue";
-import {
-  useDashboardStore,
-  TRANSITION_MODES,
-  PLAYBACK_MODES,
-} from "~~/stores/dashboard";
+import { TRANSITION_MODES, PLAYBACK_MODES } from "~/types/config";
+import { useConfigStore } from "~~/stores/config";
 
-const store = useDashboardStore();
+const store = useConfigStore();
 const isSaving = ref(false);
 const saveStatus = ref<"success" | "error" | null>(null);
 

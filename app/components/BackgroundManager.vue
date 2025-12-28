@@ -182,9 +182,9 @@
 
 <script setup lang="ts">
 import { ref, reactive } from "vue";
-import { useDashboardStore } from "~~/stores/dashboard";
+import { useConfigStore } from "~~/stores/config";
 
-const store = useDashboardStore();
+const store = useConfigStore();
 const isUploading = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 

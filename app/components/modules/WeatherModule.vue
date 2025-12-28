@@ -1,6 +1,15 @@
 <template>
   <BaseModule>
-    <div class="flex flex-col text-white min-w-[220px]">
+    <div
+      v-if="isLoading"
+      class="flex items-center justify-center min-w-[220px] min-h-[150px]"
+    >
+      <UIcon
+        name="i-heroicons-arrow-path"
+        class="w-8 h-8 text-white animate-spin opacity-50"
+      />
+    </div>
+    <div v-else class="flex flex-col text-white min-w-[220px]">
       <div class="flex items-center justify-between mb-6">
         <div>
           <div
@@ -39,40 +48,76 @@
 <script setup lang="ts">
 import BaseModule from "./BaseModule.vue";
 
-// Mock data for initial implementation
-const currentTemp = ref(18);
-const feelsLike = ref(16);
+import type { WeatherModuleConfig } from "~/types/config";
 
-const forecast = ref([
-  {
-    date: "2025-12-27",
-    weekday: "Mon",
-    icon: "i-heroicons-sun-solid",
-    temp: 22,
-  },
-  {
-    date: "2025-12-28",
-    weekday: "Tue",
-    icon: "i-heroicons-cloud-solid",
-    temp: 19,
-  },
-  {
-    date: "2025-12-29",
-    weekday: "Wed",
-    icon: "i-heroicons-cloud-rain-solid",
-    temp: 15,
-  },
-  {
-    date: "2025-12-30",
-    weekday: "Thu",
-    icon: "i-heroicons-sun-solid",
-    temp: 21,
-  },
-  {
-    date: "2025-12-31",
-    weekday: "Fri",
-    icon: "i-heroicons-cloud-solid",
-    temp: 18,
-  },
-]);
+const props = defineProps<WeatherModuleConfig>();
+
+const currentTemp = ref(0);
+const feelsLike = ref(0);
+const forecast = ref<any[]>([]);
+const isLoading = ref(true);
+
+const getWeatherIcon = (code: number) => {
+  // WMO Weather interpretation codes (WW)
+  if (code === 0) return "i-heroicons-sun-solid";
+  if (code <= 3) return "i-heroicons-cloud-solid";
+  if (code <= 48) return "i-heroicons-cloud-solid"; // Fog
+  if (code <= 67) return "i-heroicons-cloud-rain-solid";
+  if (code <= 77) return "i-heroicons-cloud-solid"; // Snow
+  if (code <= 82) return "i-heroicons-cloud-rain-solid";
+  if (code <= 99) return "i-heroicons-bolt-solid";
+  return "i-heroicons-cloud-solid";
+};
+
+const fetchWeather = async () => {
+  if (!props.lat || !props.lon) return;
+
+  try {
+    const response = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${props.lat}&longitude=${props.lon}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`
+    );
+    const data = await response.json();
+
+    if (data.current_weather) {
+      currentTemp.value = Math.round(data.current_weather.temperature);
+      feelsLike.value = currentTemp.value; // Open-Meteo doesn't provide feels_like in basic current_weather
+
+      const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      forecast.value = data.daily.time
+        .map((time: string, i: number) => {
+          const date = new Date(time);
+          return {
+            date: time,
+            weekday: weekdays[date.getDay()],
+            icon: getWeatherIcon(data.daily.weathercode[i]),
+            temp: Math.round(data.daily.temperature_2m_max[i]),
+          };
+        })
+        .slice(1, 6); // Next 5 days
+    }
+  } catch (error) {
+    console.error("Failed to fetch weather:", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+let timer: any = null;
+
+onMounted(() => {
+  fetchWeather();
+  // Refresh every 30 minutes
+  timer = setInterval(fetchWeather, 30 * 60 * 1000);
+});
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer);
+});
+
+watch(
+  () => [props.lat, props.lon],
+  () => {
+    fetchWeather();
+  }
+);
 </script>

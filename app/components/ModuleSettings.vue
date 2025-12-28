@@ -94,9 +94,39 @@
                     <span class="text-sm text-(--ui-text)/70"
                       >Enable Seconds</span
                     >
-                    <USwitch v-model="mod.config.displaySeconds" />
+                    <USwitch v-model="(mod.config as any).displaySeconds" />
                   </div>
                 </UFormField>
+              </div>
+
+              <!-- Weather Config -->
+              <div v-if="mod.module === 'weather'" class="space-y-6">
+                <UFormField label="Weather Provider">
+                  <USelect
+                    v-model="(mod.config as any).weatherProvider"
+                    :items="['openmeteo']"
+                    size="xl"
+                    class="w-full"
+                  />
+                </UFormField>
+                <div class="grid grid-cols-2 gap-4">
+                  <UFormField label="Latitude">
+                    <UInput
+                      v-model.number="(mod.config as any).lat"
+                      type="number"
+                      step="0.0001"
+                      size="xl"
+                    />
+                  </UFormField>
+                  <UFormField label="Longitude">
+                    <UInput
+                      v-model.number="(mod.config as any).lon"
+                      type="number"
+                      step="0.0001"
+                      size="xl"
+                    />
+                  </UFormField>
+                </div>
               </div>
             </div>
           </div>
@@ -108,9 +138,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useDashboardStore, MODULE_POSITIONS } from "~~/stores/dashboard";
+import { useConfigStore } from "~~/stores/config";
+import { MODULE_POSITIONS } from "~/types/config";
 
-const store = useDashboardStore();
+const store = useConfigStore();
 const isSaving = ref(false);
 const saveStatus = ref<"success" | "error" | null>(null);
 

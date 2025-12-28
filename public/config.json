@@ -22,7 +22,12 @@
       "module": "weather",
       "position": "top_right",
       "enabled": true,
-      "config": {}
+      "config": {
+        "weatherProvider": "openmeteo",
+        "type": "current",
+        "lat": 48.0986,
+        "lon": 14.0353
+      }
     },
     {
       "id": "news-1",

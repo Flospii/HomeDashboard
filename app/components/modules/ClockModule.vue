@@ -16,9 +16,9 @@
 <script setup lang="ts">
 import BaseModule from "./BaseModule.vue";
 
-const props = defineProps<{
-  displaySeconds?: boolean;
-}>();
+import type { ClockModuleConfig } from "~/types/config";
+
+const props = defineProps<ClockModuleConfig>();
 
 const now = ref(new Date());
 const isNight = computed(() => {

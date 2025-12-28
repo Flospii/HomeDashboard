@@ -39,9 +39,9 @@ import DashboardGrid from "~/components/DashboardGrid.vue";
 import ClockModule from "~/components/modules/ClockModule.vue";
 import WeatherModule from "~/components/modules/WeatherModule.vue";
 import NewsFeedModule from "~/components/modules/NewsFeedModule.vue";
-import { useDashboardStore } from "~~/stores/dashboard";
+import { useConfigStore } from "~~/stores/config";
 
-const store = useDashboardStore();
+const store = useConfigStore();
 
 onMounted(() => {
   store.fetchConfig();
