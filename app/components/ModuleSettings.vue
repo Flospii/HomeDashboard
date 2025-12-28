@@ -23,8 +23,10 @@
         <UButton
           icon="i-heroicons-check"
           color="primary"
+          size="lg"
           :loading="isSaving"
-          label="Save Settings"
+          label="Save Changes"
+          class="px-6"
           @click="handleSaveSettings"
         />
       </div>
