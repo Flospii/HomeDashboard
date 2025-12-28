@@ -34,7 +34,16 @@
       "module": "news",
       "position": "bottom_center",
       "enabled": true,
-      "config": {}
+      "config": {
+        "feeds": [
+          {
+            "title": "Der Standard",
+            "url": "https://www.derstandard.at/rss"
+          }
+        ],
+        "showSourceTitle": true,
+        "showPublishDate": true
+      }
     }
   ]
 }

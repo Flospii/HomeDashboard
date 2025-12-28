@@ -34,7 +34,20 @@
       "module": "news",
       "position": "bottom_center",
       "enabled": true,
-      "config": {}
+      "config": {
+        "feeds": [
+          {
+            "title": "Der Standard",
+            "url": "https://www.derstandard.at/rss"
+          },
+          {
+            "title": "Krone",
+            "url": "https://api.krone.at/v1/rss/rssfeed-google.xml?id=2311992"
+          }
+        ],
+        "showSourceTitle": true,
+        "showPublishDate": true
+      }
     }
   ]
 }

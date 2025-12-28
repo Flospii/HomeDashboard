@@ -128,6 +128,67 @@
                   </UFormField>
                 </div>
               </div>
+
+              <!-- News Config -->
+              <div v-if="mod.module === 'news'" class="space-y-6">
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <h4
+                      class="text-sm font-bold text-(--ui-text)/60 uppercase tracking-widest"
+                    >
+                      RSS Feeds
+                    </h4>
+                    <UButton
+                      icon="i-heroicons-plus"
+                      size="xs"
+                      variant="ghost"
+                      label="Add Feed"
+                      @click="
+                        (mod.config as any).feeds.push({ title: '', url: '' })
+                      "
+                    />
+                  </div>
+
+                  <div
+                    v-for="(feed, fIdx) in (mod.config as any).feeds"
+                    :key="fIdx"
+                    class="grid grid-cols-12 gap-2 items-start p-4 bg-(--ui-bg)/5 border border-(--ui-border)"
+                  >
+                    <div class="col-span-4">
+                      <UInput
+                        v-model="feed.title"
+                        placeholder="Feed Title"
+                        size="md"
+                      />
+                    </div>
+                    <div class="col-span-7">
+                      <UInput
+                        v-model="feed.url"
+                        placeholder="RSS URL"
+                        size="md"
+                      />
+                    </div>
+                    <div class="col-span-1 flex justify-end">
+                      <UButton
+                        icon="i-heroicons-trash"
+                        size="xs"
+                        color="error"
+                        variant="ghost"
+                        @click="(mod.config as any).feeds.splice(fIdx, 1)"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <UFormField label="Show Source">
+                    <USwitch v-model="(mod.config as any).showSourceTitle" />
+                  </UFormField>
+                  <UFormField label="Show Date">
+                    <USwitch v-model="(mod.config as any).showPublishDate" />
+                  </UFormField>
+                </div>
+              </div>
             </div>
           </div>
         </Transition>

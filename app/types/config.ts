@@ -36,8 +36,15 @@ export interface WeatherModuleConfig {
   lon: number;
 }
 
+export interface NewsFeed {
+  title: string;
+  url: string;
+}
+
 export interface NewsModuleConfig {
-  // Add news specific config if any
+  feeds: NewsFeed[];
+  showSourceTitle: boolean;
+  showPublishDate: boolean;
 }
 
 export type AnyModuleConfig =
