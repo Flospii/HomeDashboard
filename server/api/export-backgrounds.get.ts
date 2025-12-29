@@ -5,7 +5,6 @@ import archiver from "archiver";
 
 export default defineEventHandler(async (event) => {
   const dataDir = path.resolve(process.cwd(), "data/backgrounds");
-  const publicDir = path.resolve(process.cwd(), "public/backgrounds");
 
   const archive = archiver("zip", {
     zlib: { level: 9 }, // Sets the compression level.
@@ -32,10 +31,7 @@ export default defineEventHandler(async (event) => {
     }
   };
 
-  // Add files from both directories
-  // Note: If files have the same name, the last one added will overwrite in the zip
-  // which is fine as we deduplicate in the UI anyway
-  addFilesFromDir(publicDir);
+  // Add files from data directory
   addFilesFromDir(dataDir);
 
   // Finalize the archive

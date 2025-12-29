@@ -4,7 +4,6 @@ import { defineEventHandler } from "h3";
 
 export default defineEventHandler(async () => {
   const dataDir = path.resolve(process.cwd(), "data/backgrounds");
-  const publicDir = path.resolve(process.cwd(), "public/backgrounds");
 
   const mediaExtensions = {
     image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
@@ -37,13 +36,6 @@ export default defineEventHandler(async () => {
   };
 
   const dataFiles = scanDir(dataDir);
-  const publicFiles = scanDir(publicDir);
 
-  // Combine and deduplicate by URL (filename)
-  const combined = [...dataFiles, ...publicFiles];
-  const unique = Array.from(
-    new Map(combined.map((item) => [item!.url, item])).values()
-  );
-
-  return unique;
+  return dataFiles;
 });

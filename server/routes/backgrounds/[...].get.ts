@@ -17,20 +17,9 @@ export default defineEventHandler(async (event) => {
     "data/backgrounds",
     safeFilename
   );
-  const publicPath = path.resolve(
-    process.cwd(),
-    "public/backgrounds",
-    safeFilename
-  );
-
-  // 1. Try persistent data directory first
+  // Try persistent data directory
   if (fs.existsSync(dataPath)) {
     return sendStream(event, fs.createReadStream(dataPath));
-  }
-
-  // 2. Fallback to public directory (default backgrounds)
-  if (fs.existsSync(publicPath)) {
-    return sendStream(event, fs.createReadStream(publicPath));
   }
 
   throw createError({
