@@ -103,11 +103,65 @@ const nextMedia = () => {
 
 onMounted(() => {
   startTimer();
+  setupEventSource();
 });
 
 onUnmounted(() => {
   stopTimer();
+  closeEventSource();
 });
+
+let eventSource: EventSource | null = null;
+
+const setupEventSource = () => {
+  eventSource = new EventSource("/api/background-events");
+  eventSource.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      handleCommand(data);
+    } catch (err) {
+      console.error("Failed to parse background event:", err);
+    }
+  };
+  eventSource.onerror = (err) => {
+    console.error("EventSource failed:", err);
+    eventSource?.close();
+    // Reconnect after 5 seconds
+    setTimeout(setupEventSource, 5000);
+  };
+};
+
+const closeEventSource = () => {
+  if (eventSource) {
+    eventSource.close();
+    eventSource = null;
+  }
+};
+
+const handleCommand = (data: any) => {
+  if (data.command === "next") {
+    nextMedia();
+    startTimer(); // Reset timer
+  } else if (data.command === "prev") {
+    prevMedia();
+    startTimer(); // Reset timer
+  } else if (data.command === "set-index") {
+    if (
+      typeof data.index === "number" &&
+      data.index >= 0 &&
+      data.index < props.media.length
+    ) {
+      currentIndex.value = data.index;
+      startTimer(); // Reset timer
+    }
+  }
+};
+
+const prevMedia = () => {
+  if (props.media.length <= 1) return;
+  currentIndex.value =
+    (currentIndex.value - 1 + props.media.length) % props.media.length;
+};
 
 // Watch for changes in interval or media list to restart the timer
 watch(
