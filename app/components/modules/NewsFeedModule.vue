@@ -55,6 +55,8 @@ interface NewsItem {
   title: string;
   source: string;
   pubDate: string;
+  formattedDate: string;
+  formattedTime: string;
 }
 
 const props = defineProps<{
@@ -68,28 +70,18 @@ const isLoading = ref(true);
 const currentIndex = ref(0);
 
 const currentItem = computed(
-  () => news.value[currentIndex.value] || { title: "", source: "", pubDate: "" }
+  () =>
+    news.value[currentIndex.value] || {
+      title: "",
+      source: "",
+      pubDate: "",
+      formattedDate: "",
+      formattedTime: "",
+    }
 );
 
-const formattedTime = computed(() => {
-  if (!currentItem.value.pubDate) return "";
-  try {
-    const date = new Date(currentItem.value.pubDate);
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  } catch (e) {
-    return "";
-  }
-});
-
-const formattedDate = computed(() => {
-  if (!currentItem.value.pubDate) return "";
-  try {
-    const date = new Date(currentItem.value.pubDate);
-    return date.toLocaleDateString([], { day: "2-digit", month: "2-digit" });
-  } catch (e) {
-    return "";
-  }
-});
+const formattedTime = computed(() => currentItem.value.formattedTime);
+const formattedDate = computed(() => currentItem.value.formattedDate);
 
 const shuffleArray = <T>(array: T[]): T[] => {
   const newArray = [...array];
@@ -105,7 +97,13 @@ const shuffleArray = <T>(array: T[]): T[] => {
 const fetchNews = async () => {
   if (!props.feeds || props.feeds.length === 0) {
     news.value = [
-      { title: "No news feeds configured.", source: "System", pubDate: "" },
+      {
+        title: "No news feeds configured.",
+        source: "System",
+        pubDate: "",
+        formattedDate: "",
+        formattedTime: "",
+      },
     ];
     isLoading.value = false;
     return;
@@ -127,6 +125,8 @@ const fetchNews = async () => {
               title: item.title,
               source: feed.title,
               pubDate: item.pubDate,
+              formattedDate: item.formattedDate,
+              formattedTime: item.formattedTime,
             });
           });
         }
@@ -142,13 +142,21 @@ const fetchNews = async () => {
           title: "Could not load news headlines.",
           source: "Error",
           pubDate: "",
+          formattedDate: "",
+          formattedTime: "",
         },
       ];
     }
   } catch (error) {
     console.error("Failed to fetch news:", error);
     news.value = [
-      { title: "Error loading news.", source: "Error", pubDate: "" },
+      {
+        title: "Error loading news.",
+        source: "Error",
+        pubDate: "",
+        formattedDate: "",
+        formattedTime: "",
+      },
     ];
   } finally {
     isLoading.value = false;

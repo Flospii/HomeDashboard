@@ -20,7 +20,12 @@ export default defineEventHandler(async (event) => {
 
     // Simple regex to extract titles from RSS items
     // This is a basic implementation to avoid adding dependencies
-    const items: { title: string; pubDate: string }[] = [];
+    const items: {
+      title: string;
+      pubDate: string;
+      formattedDate: string;
+      formattedTime: string;
+    }[] = [];
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
     let match;
 
@@ -46,9 +51,34 @@ export default defineEventHandler(async (event) => {
           .trim();
 
         if (title) {
+          const rawPubDate = (pubDateMatch && pubDateMatch[1]) || "";
+          let formattedDate = "";
+          let formattedTime = "";
+
+          if (rawPubDate) {
+            try {
+              const date = new Date(rawPubDate);
+              if (!isNaN(date.getTime())) {
+                // Format: DD.MM.
+                const day = String(date.getDate()).padStart(2, "0");
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                formattedDate = `${day}.${month}.`;
+
+                // Format: HH:mm
+                const hours = String(date.getHours()).padStart(2, "0");
+                const minutes = String(date.getMinutes()).padStart(2, "0");
+                formattedTime = `${hours}:${minutes}`;
+              }
+            } catch (e) {
+              // Fallback to empty strings if parsing fails
+            }
+          }
+
           items.push({
             title,
-            pubDate: (pubDateMatch && pubDateMatch[1]) || "",
+            pubDate: rawPubDate,
+            formattedDate,
+            formattedTime,
           });
         }
       }
