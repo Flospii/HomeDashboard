@@ -2,51 +2,56 @@
   <BaseModule>
     <div
       v-if="isLoading"
-      class="flex items-center justify-center min-w-[220px] min-h-[150px]"
+      class="flex items-center justify-center min-w-[140px] md:min-w-[220px] min-h-[100px] md:min-h-[150px]"
     >
       <UIcon
         name="i-heroicons-arrow-path"
-        class="w-8 h-8 text-white animate-spin opacity-50"
+        class="w-6 h-6 md:w-8 md:h-8 text-white animate-spin opacity-50"
       />
     </div>
-    <div v-else class="flex flex-col text-white min-w-[220px]">
-      <div class="flex items-center justify-between mb-6">
+    <div v-else class="flex flex-col text-white min-w-[140px] md:min-w-[220px]">
+      <div class="flex items-center justify-between mb-3 md:mb-6">
         <div>
           <div
-            class="text-6xl font-black tracking-tighter text-white [text-shadow:0_0_20px_rgba(255,255,255,0.3)]"
+            class="text-4xl md:text-6xl font-black tracking-tighter text-white [text-shadow:0_0_20px_rgba(255,255,255,0.3)]"
           >
             {{ currentTemp }}°
           </div>
           <div
-            class="text-sm opacity-50 mt-1 uppercase tracking-wider font-medium"
+            class="text-[10px] md:text-sm opacity-50 mt-0.5 md:mt-1 uppercase tracking-wider font-medium"
           >
             Feels like {{ feelsLike }}°
           </div>
         </div>
         <div class="[text-shadow:0_0_20px_rgba(16,185,129,0.5)]">
-          <UIcon name="i-heroicons-cloud-solid" class="w-14 h-14 text-white" />
+          <UIcon
+            name="i-heroicons-cloud-solid"
+            class="w-10 h-10 md:w-14 md:h-14 text-white"
+          />
         </div>
       </div>
 
-      <div class="space-y-3 border-t border-white/10 pt-6">
+      <div class="space-y-2 md:space-y-3 border-t border-white/10 pt-3 md:pt-6">
         <div
           v-for="day in forecast"
           :key="day.date"
-          class="flex items-center justify-between text-sm font-medium"
+          class="flex items-center justify-between text-[11px] md:text-sm font-medium"
         >
-          <span class="w-12 opacity-60 uppercase tracking-tight">{{
+          <span class="w-10 md:w-12 opacity-60 uppercase tracking-tight">{{
             day.weekday
           }}</span>
-          <UIcon :name="day.icon" class="w-6 h-6 opacity-80" />
-          <span class="w-12 text-right font-bold">{{ day.temp }}°</span>
+          <UIcon :name="day.icon" class="w-4 h-4 md:w-6 md:h-6 opacity-80" />
+          <span class="w-10 md:w-12 text-right font-bold">{{ day.temp }}°</span>
         </div>
       </div>
 
       <div
         v-if="showProvider"
-        class="mt-4 pt-4 border-t border-white/5 flex justify-end"
+        class="mt-2 md:mt-4 pt-2 md:pt-4 border-t border-white/5 flex justify-end"
       >
-        <div class="text-[10px] opacity-30 uppercase tracking-widest font-bold">
+        <div
+          class="text-[8px] md:text-[10px] opacity-30 uppercase tracking-widest font-bold"
+        >
           Source: {{ weatherProvider }}
         </div>
       </div>

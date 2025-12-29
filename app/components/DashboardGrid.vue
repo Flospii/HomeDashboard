@@ -1,6 +1,6 @@
 <template>
   <div
-    class="absolute inset-0 z-20 grid grid-cols-3 grid-rows-3 p-8 gap-8 pointer-events-none"
+    class="absolute inset-0 z-20 grid grid-cols-3 grid-rows-3 p-4 md:p-8 gap-4 md:gap-8 pointer-events-none"
   >
     <!-- Top Row -->
     <div class="flex flex-col items-start justify-start">

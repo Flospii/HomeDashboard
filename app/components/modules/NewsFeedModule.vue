@@ -1,9 +1,9 @@
 <template>
   <BaseModule class="overflow-hidden !p-0">
     <div
-      class="flex flex-col justify-center h-full bg-black/40 backdrop-blur-sm border-t border-white/5 px-8"
+      class="flex flex-col justify-center h-full bg-black/40 backdrop-blur-sm border-t border-white/5 px-4 md:px-8"
     >
-      <div v-if="isLoading" class="opacity-50 italic text-sm">
+      <div v-if="isLoading" class="opacity-50 italic text-[10px] md:text-sm">
         Fetching latest headlines...
       </div>
 
@@ -12,26 +12,31 @@
         class="relative h-full flex flex-col justify-center overflow-hidden"
       >
         <Transition name="fade-slide" mode="out-in">
-          <div :key="currentIndex" class="flex flex-col space-y-1 py-2">
+          <div
+            :key="currentIndex"
+            class="flex flex-col space-y-0.5 md:space-y-1 py-1 md:py-2"
+          >
             <!-- Row 1: Source, Date and Time -->
             <div
               v-if="showSourceTitle || showPublishDate"
-              class="flex items-center space-x-3 text-xs font-bold uppercase tracking-widest text-white"
+              class="flex items-center space-x-2 md:space-x-3 text-[9px] md:text-xs font-bold uppercase tracking-widest text-white"
             >
               <span v-if="showSourceTitle">{{ currentItem.source }}</span>
               <span
                 v-if="showSourceTitle && showPublishDate"
-                class="w-1 h-1 rounded-full bg-white/20"
+                class="w-0.5 h-0.5 md:w-1 md:h-1 rounded-full bg-white/20"
               ></span>
               <template v-if="showPublishDate">
                 <span class="text-white/60">{{ formattedDate }}</span>
-                <span class="w-1 h-1 rounded-full bg-white/20"></span>
+                <span
+                  class="w-0.5 h-0.5 md:w-1 md:h-1 rounded-full bg-white/20"
+                ></span>
                 <span class="text-white/40">{{ formattedTime }}</span>
               </template>
             </div>
             <!-- Row 2: Headline -->
             <div
-              class="text-lg font-medium text-white/90 [text-shadow:0_2_10px_rgba(0,0,0,0.5)] leading-tight"
+              class="text-sm md:text-lg font-medium text-white/90 [text-shadow:0_2_10px_rgba(0,0,0,0.5)] leading-tight"
             >
               {{ currentItem.title }}
             </div>

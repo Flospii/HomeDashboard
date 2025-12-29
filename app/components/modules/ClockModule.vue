@@ -2,11 +2,13 @@
   <BaseModule :dimmed="isNight">
     <div class="flex flex-col items-center justify-center text-white">
       <div
-        class="text-7xl font-bold tracking-tighter tabular-nums [text-shadow:0_0_20px_rgba(255,255,255,0.3)]"
+        class="text-4xl md:text-7xl font-bold tracking-tighter tabular-nums [text-shadow:0_0_20px_rgba(255,255,255,0.3)]"
       >
         {{ timeString }}
       </div>
-      <div class="text-2xl font-medium opacity-60 mt-2 tracking-wide uppercase">
+      <div
+        class="text-sm md:text-2xl font-medium opacity-60 mt-1 md:mt-2 tracking-wide uppercase"
+      >
         {{ dateString }}
       </div>
     </div>
