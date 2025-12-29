@@ -28,38 +28,6 @@
         </div>
       </template>
 
-      <!-- Remote Control Section -->
-      <div
-        class="mb-12 bg-(--ui-bg)/5 p-8 border border-(--ui-border) rounded-xl"
-      >
-        <div class="flex items-center justify-between mb-6">
-          <div>
-            <h3 class="text-xl font-bold text-(--ui-text)">Remote Control</h3>
-            <p class="text-sm text-(--ui-text)/40">
-              Control the dashboard background in real-time
-            </p>
-          </div>
-          <div class="flex space-x-4">
-            <UButton
-              icon="i-heroicons-backward"
-              label="Previous"
-              color="neutral"
-              variant="subtle"
-              size="lg"
-              @click="sendCommand('prev')"
-            />
-            <UButton
-              icon="i-heroicons-forward"
-              label="Next"
-              color="neutral"
-              variant="subtle"
-              size="lg"
-              @click="sendCommand('next')"
-            />
-          </div>
-        </div>
-      </div>
-
       <!-- Add Section -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
         <!-- Local Upload -->
@@ -197,22 +165,13 @@
 
             <!-- Overlay Actions -->
             <div
-              class="absolute inset-0 bg-(--ui-bg)/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center backdrop-blur-sm space-y-4"
+              class="absolute inset-0 bg-(--ui-bg)/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-sm"
             >
-              <UButton
-                icon="i-heroicons-play"
-                label="Show Now"
-                color="primary"
-                variant="solid"
-                size="md"
-                class="shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-300"
-                @click="sendCommand('set-index', index)"
-              />
               <UButton
                 icon="i-heroicons-trash"
                 color="error"
-                variant="ghost"
-                size="sm"
+                variant="solid"
+                size="xl"
                 class="shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-300"
                 @click="deleteMedia(item)"
               />
@@ -294,20 +253,6 @@ const addExternalUrl = async () => {
 
 const downloadZip = () => {
   window.location.href = "/api/export-backgrounds";
-};
-
-const sendCommand = async (command: string, index?: number) => {
-  try {
-    await fetch("/api/background-control", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ command, index }),
-    });
-  } catch (error) {
-    console.error("Failed to send background command:", error);
-  }
 };
 
 const deleteMedia = async (item: any) => {
