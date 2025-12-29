@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const backgroundsDir = path.resolve(process.cwd(), "public/backgrounds");
+  const backgroundsDir = path.resolve(process.cwd(), "data/backgrounds");
   if (!fs.existsSync(backgroundsDir)) {
     fs.mkdirSync(backgroundsDir, { recursive: true });
   }

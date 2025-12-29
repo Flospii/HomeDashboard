@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   const safeFilename = path.basename(filename);
   const filePath = path.resolve(
     process.cwd(),
-    "public",
+    "data",
     "backgrounds",
     safeFilename
   );
