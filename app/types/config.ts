@@ -38,6 +38,10 @@ export interface WeatherModuleConfig {
   lat: number;
   lon: number;
   showProvider?: boolean;
+  showWindSpeed?: boolean;
+  showHumidity?: boolean;
+  showSunriseSunset?: boolean;
+  showLocation?: boolean;
 }
 
 export interface NewsFeed {

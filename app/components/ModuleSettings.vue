@@ -128,9 +128,21 @@
                   </UFormField>
                 </div>
 
-                <div class="grid grid-cols-1 gap-4">
+                <div class="grid grid-cols-2 gap-4">
                   <UFormField label="Show Provider">
                     <USwitch v-model="(mod.config as any).showProvider" />
+                  </UFormField>
+                  <UFormField label="Show Wind Speed">
+                    <USwitch v-model="(mod.config as any).showWindSpeed" />
+                  </UFormField>
+                  <UFormField label="Show Humidity">
+                    <USwitch v-model="(mod.config as any).showHumidity" />
+                  </UFormField>
+                  <UFormField label="Show Sunrise/Sunset">
+                    <USwitch v-model="(mod.config as any).showSunriseSunset" />
+                  </UFormField>
+                  <UFormField label="Show Location">
+                    <USwitch v-model="(mod.config as any).showLocation" />
                   </UFormField>
                 </div>
               </div>

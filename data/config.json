@@ -31,8 +31,8 @@
       "config": {
         "weatherProvider": "openmeteo",
         "type": "current",
-        "lat": 48.0667,
-        "lon": 14,
+        "lat": 48.086,
+        "lon": 14.0433,
         "showProvider": true,
         "showWindSpeed": true,
         "showHumidity": true,
