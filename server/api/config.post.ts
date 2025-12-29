@@ -11,12 +11,18 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const configPath = path.resolve(process.cwd(), "public/config.json");
+  const dataDir = path.resolve(process.cwd(), "data");
+  const configPath = path.join(dataDir, "config.json");
 
   try {
     // Basic validation: ensure it's an object and has required top-level keys
     if (typeof body !== "object" || !body.background || !body.modules) {
       throw new Error("Invalid configuration format");
+    }
+
+    // Ensure data directory exists
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
     }
 
     fs.writeFileSync(configPath, JSON.stringify(body, null, 2), "utf-8");

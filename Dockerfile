@@ -24,6 +24,16 @@ WORKDIR /app
 # Copy the build output from the build stage
 COPY --from=build /app/.output ./.output
 
+# Copy defaults directory for initial config
+COPY --from=build /app/defaults ./defaults
+
+# Copy public directory for backgrounds and other static assets
+COPY --from=build /app/public ./public
+
+# Create data directory for persistent storage
+RUN mkdir -p /app/data
+VOLUME /app/data
+
 # Expose the port the app runs on
 EXPOSE 3000
 
