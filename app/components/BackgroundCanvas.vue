@@ -52,6 +52,20 @@ const currentMedia = computed(
 
 let timer: any = null;
 
+const stopTimer = () => {
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
+};
+
+const startTimer = () => {
+  stopTimer();
+  if (props.media.length > 1) {
+    timer = setInterval(nextMedia, props.interval || 30000);
+  }
+};
+
 const nextMedia = () => {
   if (props.playbackOrder === "random" && props.media.length > 1) {
     let nextIndex = currentIndex.value;
@@ -65,14 +79,20 @@ const nextMedia = () => {
 };
 
 onMounted(() => {
-  if (props.media.length > 1) {
-    timer = setInterval(nextMedia, props.interval || 30000);
-  }
+  startTimer();
 });
 
 onUnmounted(() => {
-  if (timer) clearInterval(timer);
+  stopTimer();
 });
+
+// Watch for changes in interval or media list to restart the timer
+watch(
+  () => [props.interval, props.media.length],
+  () => {
+    startTimer();
+  }
+);
 </script>
 
 <style scoped>
