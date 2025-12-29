@@ -25,6 +25,23 @@
     </TransitionGroup>
     <!-- Overlay for better text readability -->
     <div class="absolute inset-0 bg-black/20 z-10"></div>
+
+    <!-- Preloading Layer (Hidden) -->
+    <div class="hidden">
+      <template v-if="nextMediaItem">
+        <img
+          v-if="nextMediaItem.type === 'image'"
+          :src="nextMediaItem.url"
+          loading="eager"
+        />
+        <video
+          v-else-if="nextMediaItem.type === 'video'"
+          :src="nextMediaItem.url"
+          preload="auto"
+          muted
+        ></video>
+      </template>
+    </div>
   </div>
 </template>
 
@@ -49,6 +66,12 @@ const currentIndex = ref(0);
 const currentMedia = computed(
   () => props.media[currentIndex.value] || { url: "", type: "image" }
 );
+
+const nextMediaItem = computed(() => {
+  if (props.media.length <= 1) return null;
+  const nextIndex = (currentIndex.value + 1) % props.media.length;
+  return props.media[nextIndex];
+});
 
 let timer: any = null;
 
