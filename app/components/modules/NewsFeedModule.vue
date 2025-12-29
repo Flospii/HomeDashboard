@@ -44,7 +44,7 @@
 
 <script setup lang="ts">
 import BaseModule from "./BaseModule.vue";
-import type { NewsFeed } from "~/types/config";
+import type { NewsFeed } from "../../types/config";
 
 interface NewsItem {
   title: string;

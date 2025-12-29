@@ -206,7 +206,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useConfigStore } from "~~/stores/config";
-import { MODULE_POSITIONS } from "~/types/config";
+import { MODULE_POSITIONS } from "../types/config";
 
 const store = useConfigStore();
 const isSaving = ref(false);

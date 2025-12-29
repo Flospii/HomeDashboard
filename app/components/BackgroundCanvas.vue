@@ -35,7 +35,7 @@ import type {
   TransitionMode,
   PlaybackMode,
   VideoPlaybackMode,
-} from "~/types/config";
+} from "../types/config";
 
 const props = defineProps<{
   media: BackgroundItem[];

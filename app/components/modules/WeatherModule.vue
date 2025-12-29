@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import BaseModule from "./BaseModule.vue";
 
-import type { WeatherModuleConfig } from "~/types/config";
+import type { WeatherModuleConfig } from "../../types/config";
 
 const props = defineProps<WeatherModuleConfig>();
 

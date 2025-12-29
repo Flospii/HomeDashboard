@@ -155,7 +155,7 @@ import {
   TRANSITION_MODES,
   PLAYBACK_MODES,
   VIDEO_PLAYBACK_MODES,
-} from "~/types/config";
+} from "../types/config";
 import { useConfigStore } from "~~/stores/config";
 
 const store = useConfigStore();

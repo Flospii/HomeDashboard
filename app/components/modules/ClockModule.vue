@@ -16,7 +16,7 @@
 <script setup lang="ts">
 import BaseModule from "./BaseModule.vue";
 
-import type { ClockModuleConfig } from "~/types/config";
+import type { ClockModuleConfig } from "../../types/config";
 
 const props = defineProps<ClockModuleConfig>();
 
