@@ -113,12 +113,22 @@
           class="flex items-center justify-between border-b border-(--ui-border) pb-4"
         >
           <h3 class="text-xl font-bold text-(--ui-text)">Your Gallery</h3>
-          <UBadge
-            :label="`${store.allBackgrounds.length} Items`"
-            color="neutral"
-            variant="subtle"
-            size="lg"
-          />
+          <div class="flex items-center space-x-4">
+            <UButton
+              icon="i-heroicons-archive-box-arrow-down"
+              color="neutral"
+              variant="subtle"
+              label="Export All (ZIP)"
+              size="sm"
+              @click="downloadZip"
+            />
+            <UBadge
+              :label="`${store.allBackgrounds.length} Items`"
+              color="neutral"
+              variant="subtle"
+              size="lg"
+            />
+          </div>
         </div>
 
         <div
@@ -239,6 +249,10 @@ const addExternalUrl = async () => {
   } catch (error) {
     console.error("Failed to save external URL:", error);
   }
+};
+
+const downloadZip = () => {
+  window.location.href = "/api/export-backgrounds";
 };
 
 const deleteMedia = async (item: any) => {
