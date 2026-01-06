@@ -1,5 +1,5 @@
 <template>
-  <BaseModule :dimmed="isNight">
+  <BaseModule>
     <div class="flex flex-col items-center justify-center text-white">
       <div
         class="text-4xl md:text-7xl font-bold tracking-tighter tabular-nums [text-shadow:0_0_20px_rgba(255,255,255,0.3)]"
@@ -23,10 +23,6 @@ import type { ClockModuleConfig } from "../../types/config";
 const props = defineProps<ClockModuleConfig>();
 
 const now = ref(new Date());
-const isNight = computed(() => {
-  const hours = now.value.getHours();
-  return hours >= 22 || hours < 6;
-});
 
 const timeString = computed(() => {
   return now.value.toLocaleTimeString([], {
