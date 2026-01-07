@@ -24,5 +24,6 @@ logs
 !.env.example
 
 # Local state
+# data/
 public/config.json
 public/backgrounds/
