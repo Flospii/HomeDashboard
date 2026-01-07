@@ -59,14 +59,16 @@ To show the dashboard in fullscreen without browser borders on a monitor attache
    chromium-browser --kiosk --incognito --noerrdialogs --disable-infobars http://localhost:3000
    ```
 
-2. **Auto-start on Boot**:
-   Edit `~/.config/lxsession/LXDE-pi/autostart` and add:
-   ```text
-   @xset s off
-   @xset -dpms
-   @xset s noblank
-   @chromium-browser --kiosk --incognito --noerrdialogs --disable-infobars http://localhost:3000
+2. **Auto-start on Boot (PM2)**:
+
+   ```bash
+   sudo npm install -g pm2
+   pm2 start "chromium-browser --kiosk --incognito --noerrdialogs --disable-infobars http://localhost:3000" --name "kiosk"
+   pm2 save
+   pm2 startup
    ```
+
+   _Follow the instructions printed by `pm2 startup` to enable it on boot._
 
 ---
 
