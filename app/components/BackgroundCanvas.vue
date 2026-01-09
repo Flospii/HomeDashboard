@@ -53,6 +53,7 @@ import type {
   PlaybackMode,
   VideoPlaybackMode,
 } from "../types/config";
+import { useConfigStore } from "~~/stores/config";
 
 const props = defineProps<{
   media: BackgroundItem[];
@@ -62,14 +63,15 @@ const props = defineProps<{
   videoPlaybackMode?: VideoPlaybackMode;
 }>();
 
-const currentIndex = ref(0);
+const store = useConfigStore();
+
 const currentMedia = computed(
-  () => props.media[currentIndex.value] || { url: "", type: "image" }
+  () => props.media[store.currentBackgroundIndex] || { url: "", type: "image" }
 );
 
 const nextMediaItem = computed(() => {
   if (props.media.length <= 1) return null;
-  const nextIndex = (currentIndex.value + 1) % props.media.length;
+  const nextIndex = (store.currentBackgroundIndex + 1) % props.media.length;
   return props.media[nextIndex];
 });
 
@@ -91,13 +93,15 @@ const startTimer = () => {
 
 const nextMedia = () => {
   if (props.playbackOrder === "random" && props.media.length > 1) {
-    let nextIndex = currentIndex.value;
-    while (nextIndex === currentIndex.value) {
+    let nextIndex = store.currentBackgroundIndex;
+    while (nextIndex === store.currentBackgroundIndex) {
       nextIndex = Math.floor(Math.random() * props.media.length);
     }
-    currentIndex.value = nextIndex;
+    store.setBackgroundIndex(nextIndex);
   } else {
-    currentIndex.value = (currentIndex.value + 1) % props.media.length;
+    store.setBackgroundIndex(
+      (store.currentBackgroundIndex + 1) % props.media.length
+    );
   }
 };
 

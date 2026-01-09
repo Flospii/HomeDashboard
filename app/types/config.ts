@@ -1,8 +1,24 @@
 export type MediaType = "image" | "video";
 
+export interface GPSLocation {
+  latitude: number;
+  longitude: number;
+  altitude?: number;
+}
+
+export interface MediaMetadata {
+  fileName: string;
+  fileSize: number; // in bytes
+  mimeType: string;
+  createdAt?: string;
+  modifiedAt?: string;
+  gps?: GPSLocation;
+}
+
 export interface BackgroundItem {
   url: string;
   type: MediaType;
+  metadata?: MediaMetadata;
 }
 
 export const MODULE_POSITIONS = [
@@ -55,10 +71,20 @@ export interface NewsModuleConfig {
   showPublishDate: boolean;
 }
 
+export interface BackgroundMetadataModuleConfig {
+  showFileName?: boolean;
+  showFileSize?: boolean;
+  showMimeType?: boolean;
+  showCreatedAt?: boolean;
+  showModifiedAt?: boolean;
+  showGPS?: boolean;
+}
+
 export type AnyModuleConfig =
   | ClockModuleConfig
   | WeatherModuleConfig
   | NewsModuleConfig
+  | BackgroundMetadataModuleConfig
   | Record<string, any>;
 
 export interface ModuleConfig {

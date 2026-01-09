@@ -39,6 +39,7 @@ import DashboardGrid from "~/components/DashboardGrid.vue";
 import ClockModule from "~/components/modules/ClockModule.vue";
 import WeatherModule from "~/components/modules/WeatherModule.vue";
 import NewsFeedModule from "~/components/modules/NewsFeedModule.vue";
+import BackgroundMetadataModule from "~/components/modules/BackgroundMetadataModule.vue";
 import { useConfigStore } from "~~/stores/config";
 
 const store = useConfigStore();
@@ -56,6 +57,7 @@ const moduleMap: Record<string, any> = {
   clock: ClockModule,
   weather: WeatherModule,
   news: NewsFeedModule,
+  "background-metadata": BackgroundMetadataModule,
 };
 
 const positions = [

@@ -1,8 +1,6 @@
 <template>
   <BaseModule class="overflow-hidden !p-0">
-    <div
-      class="flex flex-col justify-center h-full bg-black/40 backdrop-blur-sm border-t border-white/5 px-4 md:px-8"
-    >
+    <div class="flex flex-col justify-center h-full px-4 md:px-8">
       <div v-if="isLoading" class="opacity-50 italic text-[10px] md:text-sm">
         Fetching latest headlines...
       </div>

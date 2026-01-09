@@ -16,34 +16,12 @@ export default defineEventHandler(async (event) => {
     fs.mkdirSync(backgroundsDir, { recursive: true });
   }
 
-  const savedFiles = [];
-
   for (const item of formData) {
     if (item.filename && item.data) {
       const filePath = path.join(backgroundsDir, item.filename);
       fs.writeFileSync(filePath, item.data);
-
-      const ext = path.extname(item.filename).toLowerCase();
-      const mediaExtensions = {
-        image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
-        video: [".mp4", ".webm", ".ogg", ".mov"],
-      };
-
-      let type: "image" | "video" | null = null;
-      if (mediaExtensions.image.includes(ext)) {
-        type = "image";
-      } else if (mediaExtensions.video.includes(ext)) {
-        type = "video";
-      }
-
-      if (type) {
-        savedFiles.push({
-          url: `/backgrounds/${item.filename}`,
-          type,
-        });
-      }
     }
   }
 
-  return savedFiles;
+  return { success: true };
 });

@@ -207,6 +207,33 @@
                   </UFormField>
                 </div>
               </div>
+
+              <!-- Background Metadata Config -->
+              <div
+                v-if="mod.module === 'background-metadata'"
+                class="space-y-6"
+              >
+                <div class="grid grid-cols-2 gap-4">
+                  <UFormField label="Show File Name">
+                    <USwitch v-model="(mod.config as any).showFileName" />
+                  </UFormField>
+                  <UFormField label="Show File Size">
+                    <USwitch v-model="(mod.config as any).showFileSize" />
+                  </UFormField>
+                  <UFormField label="Show Mime Type">
+                    <USwitch v-model="(mod.config as any).showMimeType" />
+                  </UFormField>
+                  <UFormField label="Show GPS">
+                    <USwitch v-model="(mod.config as any).showGPS" />
+                  </UFormField>
+                  <UFormField label="Show Created Date">
+                    <USwitch v-model="(mod.config as any).showCreatedAt" />
+                  </UFormField>
+                  <UFormField label="Show Modified Date">
+                    <USwitch v-model="(mod.config as any).showModifiedAt" />
+                  </UFormField>
+                </div>
+              </div>
             </div>
           </div>
         </Transition>
@@ -232,6 +259,8 @@ const getModuleIcon = (type: string) => {
       return "i-heroicons-cloud";
     case "news":
       return "i-heroicons-newspaper";
+    case "background-metadata":
+      return "i-heroicons-information-circle";
     default:
       return "i-heroicons-cube";
   }

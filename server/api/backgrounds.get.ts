@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { defineEventHandler } from "h3";
+import exifr from "exifr";
+import { mapMetadata } from "../utils/metadata";
 
 export default defineEventHandler(async () => {
   const dataDir = path.resolve(process.cwd(), "data/backgrounds");
@@ -10,32 +12,53 @@ export default defineEventHandler(async () => {
     video: [".mp4", ".webm", ".ogg", ".mov"],
   };
 
-  const scanDir = (dir: string) => {
+  const scanDir = async (dir: string) => {
     if (!fs.existsSync(dir)) return [];
-    return fs
-      .readdirSync(dir)
-      .map((file) => {
-        const ext = path.extname(file).toLowerCase();
-        let type: "image" | "video" | null = null;
+    const files = fs.readdirSync(dir);
+    const results = [];
 
-        if (mediaExtensions.image.includes(ext)) {
-          type = "image";
-        } else if (mediaExtensions.video.includes(ext)) {
-          type = "video";
+    for (const file of files) {
+      const ext = path.extname(file).toLowerCase();
+      let type: "image" | "video" | null = null;
+
+      if (mediaExtensions.image.includes(ext)) {
+        type = "image";
+      } else if (mediaExtensions.video.includes(ext)) {
+        type = "video";
+      }
+
+      if (type) {
+        const filePath = path.join(dir, file);
+        const stats = fs.statSync(filePath);
+        const item: any = {
+          url: `/backgrounds/${file}`,
+          type,
+        };
+
+        let rawMeta = null;
+        if (type === "image") {
+          try {
+            rawMeta = await exifr.parse(filePath, true);
+          } catch (err) {
+            console.error(`Error extracting metadata from ${file}:`, err);
+          }
         }
 
-        if (type) {
-          return {
-            url: `/backgrounds/${file}`,
-            type,
-          };
-        }
-        return null;
-      })
-      .filter(Boolean);
+        // Map metadata for both images and videos
+        // For videos, rawMeta will be null, but mapMetadata will still fill in file info
+        item.metadata = mapMetadata(rawMeta, {
+          fileName: file,
+          fileSize: stats.size,
+          mimeType: `${type}/${ext.slice(1).replace("jpg", "jpeg")}`,
+        });
+
+        results.push(item);
+      }
+    }
+    return results;
   };
 
-  const dataFiles = scanDir(dataDir);
+  const dataFiles = await scanDir(dataDir);
 
   return dataFiles;
 });

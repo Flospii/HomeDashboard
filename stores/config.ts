@@ -10,12 +10,17 @@ export const useConfigStore = defineStore("config", () => {
   const localBackgrounds = ref<BackgroundItem[]>([]);
   const isLoading = ref(true);
   const error = ref<string | null>(null);
+  const currentBackgroundIndex = ref(0);
   let pollingTimer: any = null;
 
   const allBackgrounds = computed(() => {
     if (!config.value) return [];
     const staticMedia = config.value.background.externalMediaUrlList || [];
     return [...staticMedia, ...localBackgrounds.value];
+  });
+
+  const currentBackground = computed(() => {
+    return allBackgrounds.value[currentBackgroundIndex.value] || null;
   });
 
   const fetchLocalBackgrounds = async () => {
@@ -130,11 +135,17 @@ export const useConfigStore = defineStore("config", () => {
     );
   };
 
+  const setBackgroundIndex = (index: number) => {
+    currentBackgroundIndex.value = index;
+  };
+
   return {
     config,
     allBackgrounds,
     isLoading,
     error,
+    currentBackgroundIndex,
+    currentBackground,
     fetchConfig,
     refreshConfig,
     startConfigPolling,
@@ -142,5 +153,6 @@ export const useConfigStore = defineStore("config", () => {
     saveConfig,
     getModulesAtPosition,
     stopPolling,
+    setBackgroundIndex,
   };
 });
