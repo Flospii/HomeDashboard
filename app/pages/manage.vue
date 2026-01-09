@@ -77,6 +77,12 @@
             </div>
           </div>
         </template>
+
+        <template #raw>
+          <div class="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <RawConfigEditor />
+          </div>
+        </template>
       </UTabs>
     </UContainer>
   </div>
@@ -86,6 +92,7 @@
 import BackgroundManager from "~/components/BackgroundManager.vue";
 import DashboardSettings from "~/components/DashboardSettings.vue";
 import ModuleSettings from "~/components/ModuleSettings.vue";
+import RawConfigEditor from "~/components/RawConfigEditor.vue";
 
 const tabs = [
   {
@@ -102,6 +109,11 @@ const tabs = [
     slot: "modules",
     label: "Modules",
     icon: "i-heroicons-squares-2x2",
+  },
+  {
+    slot: "raw",
+    label: "Raw Config",
+    icon: "i-heroicons-code-bracket",
   },
 ];
 import { useConfigStore } from "~~/stores/config";
