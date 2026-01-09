@@ -20,19 +20,6 @@
         >
           Failed to save
         </span>
-        <UDropdown
-          :items="addModuleItems"
-          :popper="{ placement: 'bottom-end' }"
-        >
-          <UButton
-            icon="i-heroicons-plus"
-            color="neutral"
-            variant="ghost"
-            size="lg"
-            label="Add Module"
-            class="px-6"
-          />
-        </UDropdown>
         <UButton
           icon="i-heroicons-check"
           color="primary"
@@ -73,16 +60,7 @@
               </p>
             </div>
           </div>
-          <div class="flex items-center space-x-4">
-            <USwitch v-model="mod.enabled" size="lg" />
-            <UButton
-              icon="i-heroicons-trash"
-              color="error"
-              variant="ghost"
-              size="sm"
-              @click="handleDeleteModule(mod.id)"
-            />
-          </div>
+          <USwitch v-model="mod.enabled" size="lg" />
         </div>
 
         <Transition name="slide-up">
@@ -285,90 +263,6 @@ const getModuleIcon = (type: string) => {
       return "i-heroicons-information-circle";
     default:
       return "i-heroicons-cube";
-  }
-};
-
-const addModuleItems = [
-  [
-    {
-      label: "Clock Module",
-      icon: "i-heroicons-clock",
-      onSelect: () => handleAddModule("clock"),
-    },
-    {
-      label: "Weather Module",
-      icon: "i-heroicons-cloud",
-      onSelect: () => handleAddModule("weather"),
-    },
-    {
-      label: "News Module",
-      icon: "i-heroicons-newspaper",
-      onSelect: () => handleAddModule("news"),
-    },
-    {
-      label: "Background Metadata",
-      icon: "i-heroicons-information-circle",
-      onSelect: () => handleAddModule("background-metadata"),
-    },
-  ],
-];
-
-const handleAddModule = (type: string) => {
-  if (!store.config) return;
-
-  const newId = `${type}-${Date.now()}`;
-  let defaultConfig: any = {};
-
-  switch (type) {
-    case "clock":
-      defaultConfig = { displaySeconds: true };
-      break;
-    case "weather":
-      defaultConfig = {
-        weatherProvider: "openmeteo",
-        type: "current",
-        lat: 48.086,
-        lon: 14.0433,
-        showProvider: true,
-        showWindSpeed: true,
-        showHumidity: true,
-        showSunriseSunset: true,
-        showLocation: true,
-      };
-      break;
-    case "news":
-      defaultConfig = {
-        feeds: [{ title: "New Feed", url: "" }],
-        showSourceTitle: true,
-        showPublishDate: true,
-      };
-      break;
-    case "background-metadata":
-      defaultConfig = {
-        showFileName: true,
-        showFileSize: true,
-        showMimeType: true,
-        showGPS: true,
-        showCreatedAt: true,
-        showModifiedAt: true,
-      };
-      break;
-  }
-
-  store.config.modules.push({
-    id: newId,
-    module: type,
-    position: "top_left",
-    enabled: true,
-    config: defaultConfig,
-  });
-};
-
-const handleDeleteModule = (id: string) => {
-  if (!store.config) return;
-  const index = store.config.modules.findIndex((m) => m.id === id);
-  if (index !== -1) {
-    store.config.modules.splice(index, 1);
   }
 };
 
