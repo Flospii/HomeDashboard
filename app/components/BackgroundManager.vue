@@ -40,7 +40,7 @@
         </div>
 
         <!-- External URL -->
-        <div class="bg-(--ui-bg)/5 p-10 border border-(--ui-border)">
+        <UCard :ui="{ body: 'p-10' }" class="bg-(--ui-bg)/5 shadow-none border border-(--ui-border)">
           <h3 class="text-lg font-semibold text-(--ui-text) mb-4">
             {{ $t("manage.backgrounds.addExternal") }}
           </h3>
@@ -58,7 +58,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </UCard>
       </div>
 
       <!-- Status Messages -->
