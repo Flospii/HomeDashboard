@@ -30,12 +30,9 @@ export const useConfigStore = defineStore("config", () => {
     }
 
     try {
-      const response = await fetch("/api/backgrounds");
-      if (response.ok) {
-        const data = await response.json();
-        if (Array.isArray(data)) {
-          localBackgrounds.value = data;
-        }
+      const data = await $fetch<BackgroundItem[]>("/api/backgrounds");
+      if (Array.isArray(data)) {
+        localBackgrounds.value = data;
       }
     } catch (err) {
       console.error("Error fetching local backgrounds:", err);
@@ -69,15 +66,19 @@ export const useConfigStore = defineStore("config", () => {
 
   const refreshConfig = async () => {
     try {
-      const response = await fetch("/api/config");
-      if (!response.ok) {
-        throw new Error("Failed to load config");
-      }
-      const data = await response.json();
+      const data = await $fetch<DashboardConfig>("/api/config");
 
-      // Only update if data has changed to avoid unnecessary re-renders
+      // Use a cleaner comparison or just update if fetching anyway
+      // For now, simple deep comparison persists to avoid jitter
       if (JSON.stringify(config.value) !== JSON.stringify(data)) {
-        config.value = data;
+        if (!config.value) {
+          config.value = data;
+        } else {
+          // Merge top level properties to preserve object reference if possible
+          // but for DashboardConfig, a replacement is often safer for complex nested items.
+          // Let's at least ensure we don't trigger if it's identical.
+          Object.assign(config.value, data);
+        }
         await fetchLocalBackgrounds();
 
         if (data.background?.useLocalBackgrounds) {
@@ -109,19 +110,12 @@ export const useConfigStore = defineStore("config", () => {
     if (!config.value) return;
 
     try {
-      const response = await fetch("/api/config", {
+      const result = await $fetch("/api/config", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(config.value),
+        body: config.value,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to save config");
-      }
-
-      return await response.json();
+      return result;
     } catch (err) {
       console.error("Error saving dashboard config:", err);
       throw err;

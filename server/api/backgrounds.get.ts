@@ -3,9 +3,10 @@ import path from "node:path";
 import { defineEventHandler } from "h3";
 import exifr from "exifr";
 import { mapMetadata } from "../utils/metadata";
+import { getProjectPaths } from "../utils/paths";
 
 export default defineEventHandler(async () => {
-  const dataDir = path.resolve(process.cwd(), "data/backgrounds");
+  const { backgroundsDir } = getProjectPaths();
 
   const mediaExtensions = {
     image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
@@ -58,7 +59,7 @@ export default defineEventHandler(async () => {
     return results;
   };
 
-  const dataFiles = await scanDir(dataDir);
+  const dataFiles = await scanDir(backgroundsDir);
 
   return dataFiles;
 });

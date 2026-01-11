@@ -1,25 +1,113 @@
 {
-    "input": {
-        "data": "Data (URL/Text)",
-        "placeholder": "https://..."
+    "common": {
+        "loading": "Loading...",
+        "error": "Error: {error}",
+        "save": "Save Changes",
+        "saved": "Saved!",
+        "failed": "Failed to save",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "back": "Back"
     },
-    "button": {
-        "removeLogo": "Remove logo",
-        "download": "Download QR Code"
+    "dashboard": {
+        "loading": "Loading Dashboard...",
+        "exit": "Exit to Dashboard"
     },
-    "label": {
-        "dotColor": "Dot Color",
-        "dotStyle": "Dot Style",
-        "backgroundColor": "Background Color"
+    "manage": {
+        "title": "Control Center",
+        "subtitle": "HomeDashboard v2.0",
+        "tabs": {
+            "backgrounds": "Backgrounds",
+            "preferences": "Preferences",
+            "modules": "Modules",
+            "raw": "Raw Config"
+        },
+        "backgrounds": {
+            "title": "Background Media",
+            "subtitle": "Manage your local and external background resources",
+            "uploadLocal": "Upload Local",
+            "uploadSubtitle": "Drag and drop or click to browse",
+            "addExternal": "Add External",
+            "resourceUrl": "Resource URL",
+            "type": "Type",
+            "addResource": "Add Resource",
+            "uploading": "Uploading your media...",
+            "gallery": "Your Gallery",
+            "exportZip": "Export All (ZIP)",
+            "items": "{count} Items",
+            "noBackgrounds": "No backgrounds found.",
+            "local": "Local",
+            "external": "External",
+            "deleteConfirm": "Are you sure you want to remove this background?"
+        },
+        "preferences": {
+            "title": "Dashboard Settings",
+            "subtitle": "Configure how your dashboard looks and behaves",
+            "visuals": "Visuals & Transitions",
+            "language": "Language",
+            "languageDescription": "Choose your preferred interface language",
+            "transitionMode": "Transition Mode",
+            "transitionDescription": "The animation style between backgrounds",
+            "playbackOrder": "Playback Order",
+            "playbackDescription": "Sequential or random playback",
+            "interval": "Rotation Interval (ms)",
+            "intervalDescription": "Time between background changes",
+            "videoPlayback": "Video Playback",
+            "videoDescription": "Loop video or play once",
+            "localDiscovery": "Local Discovery",
+            "localScanning": "Local Scanning",
+            "localScanningDescription": "Automatically scan backgrounds folder",
+            "enableDiscovery": "Enable Local Discovery",
+            "pollingInterval": "Polling Interval (ms)",
+            "pollingDescription": "How often to check for new local files"
+        },
+        "modules": {
+            "title": "Module Configuration",
+            "subtitle": "Enable and position your dashboard widgets",
+            "screenPosition": "Screen Position",
+            "positionDescription": "Where this module appears on the dashboard",
+            "clock": {
+                "displaySeconds": "Display Seconds",
+                "secondsDescription": "Show or hide the seconds counter"
+            },
+            "weather": {
+                "provider": "Weather Provider",
+                "latitude": "Latitude",
+                "longitude": "Longitude",
+                "showProvider": "Show Provider",
+                "showWindSpeed": "Show Wind Speed",
+                "showHumidity": "Show Humidity",
+                "showSunriseSunset": "Show Sunrise/Sunset",
+                "showLocation": "Show Location"
+            },
+            "news": {
+                "title": "RSS Feeds",
+                "addFeed": "Add Feed",
+                "feedTitle": "Feed Title",
+                "rssUrl": "RSS URL",
+                "showSource": "Show Source",
+                "showDate": "Show Date"
+            },
+            "metadata": {
+                "fileName": "Show File Name",
+                "fileSize": "Show File Size",
+                "mimeType": "Show Mime Type",
+                "gps": "Show GPS",
+                "createdAt": "Show Created Date",
+                "modifiedAt": "Show Modified Date"
+            }
+        }
     },
-    "dotType": {
-        "rounded": "Rounded",
-        "dots": "Dots",
-        "classy": "Classy",
-        "square": "Square",
-        "extra-rounded": "Extra Rounded"
-    },
-    "footer": {
-        "text": "You want a website too? Contact the creator:"
+    "modules": {
+        "weather": {
+            "fetching": "Fetching weather..."
+        },
+        "news": {
+            "fetching": "Fetching latest headlines...",
+            "noFeeds": "No news feeds configured.",
+            "loadError": "Could not load news headlines.",
+            "error": "Error loading news."
+        }
     }
 }

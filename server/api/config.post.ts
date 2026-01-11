@@ -1,6 +1,6 @@
 import fs from "node:fs";
-import path from "node:path";
 import { defineEventHandler, readBody, createError } from "h3";
+import { getProjectPaths } from "../utils/paths";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
@@ -11,8 +11,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const dataDir = path.resolve(process.cwd(), "data");
-  const configPath = path.join(dataDir, "config.json");
+  const { dataDir, configFile } = getProjectPaths();
 
   try {
     // Basic validation: ensure it's an object and has required top-level keys
@@ -25,7 +24,7 @@ export default defineEventHandler(async (event) => {
       fs.mkdirSync(dataDir, { recursive: true });
     }
 
-    fs.writeFileSync(configPath, JSON.stringify(body, null, 2), "utf-8");
+    fs.writeFileSync(configFile, JSON.stringify(body, null, 2), "utf-8");
     return { success: true };
   } catch (error: any) {
     throw createError({

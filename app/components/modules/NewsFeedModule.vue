@@ -2,40 +2,27 @@
   <BaseModule class="overflow-hidden !p-0">
     <div class="flex flex-col justify-center h-full px-4 md:px-8">
       <div v-if="isLoading" class="opacity-50 italic text-[10px] md:text-sm">
-        Fetching latest headlines...
+        {{ $t("modules.news.fetching") }}
       </div>
 
-      <div
-        v-else
-        class="relative h-full flex flex-col justify-center overflow-hidden"
-      >
+      <div v-else class="relative h-full flex flex-col justify-center overflow-hidden">
         <Transition name="fade-slide" mode="out-in">
-          <div
-            :key="currentIndex"
-            class="flex flex-col space-y-0.5 md:space-y-1 py-1 md:py-2"
-          >
+          <div :key="currentIndex" class="flex flex-col space-y-0.5 md:space-y-1 py-1 md:py-2">
             <!-- Row 1: Source, Date and Time -->
-            <div
-              v-if="showSourceTitle || showPublishDate"
-              class="flex items-center space-x-2 md:space-x-3 text-[9px] md:text-xs font-bold uppercase tracking-widest text-white"
-            >
+            <div v-if="showSourceTitle || showPublishDate"
+              class="flex items-center space-x-2 md:space-x-3 text-[9px] md:text-xs font-bold uppercase tracking-widest text-white">
               <span v-if="showSourceTitle">{{ currentItem.source }}</span>
-              <span
-                v-if="showSourceTitle && showPublishDate"
-                class="w-0.5 h-0.5 md:w-1 md:h-1 rounded-full bg-white/20"
-              ></span>
+              <span v-if="showSourceTitle && showPublishDate"
+                class="w-0.5 h-0.5 md:w-1 md:h-1 rounded-full bg-white/20"></span>
               <template v-if="showPublishDate">
                 <span class="text-white/60">{{ formattedDate }}</span>
-                <span
-                  class="w-0.5 h-0.5 md:w-1 md:h-1 rounded-full bg-white/20"
-                ></span>
+                <span class="w-0.5 h-0.5 md:w-1 md:h-1 rounded-full bg-white/20"></span>
                 <span class="text-white/40">{{ formattedTime }}</span>
               </template>
             </div>
             <!-- Row 2: Headline -->
             <div
-              class="text-sm md:text-lg font-medium text-white/90 [text-shadow:0_2_10px_rgba(0,0,0,0.5)] leading-tight"
-            >
+              class="text-sm md:text-lg font-medium text-white/90 [text-shadow:0_2_10px_rgba(0,0,0,0.5)] leading-tight">
               {{ currentItem.title }}
             </div>
           </div>
@@ -48,6 +35,8 @@
 <script setup lang="ts">
 import BaseModule from "./BaseModule.vue";
 import type { NewsFeed } from "../../types/config";
+
+const { t } = useI18n();
 
 interface NewsItem {
   title: string;
@@ -96,7 +85,7 @@ const fetchNews = async () => {
   if (!props.feeds || props.feeds.length === 0) {
     news.value = [
       {
-        title: "No news feeds configured.",
+        title: t("modules.news.noFeeds"),
         source: "System",
         pubDate: "",
         formattedDate: "",
@@ -112,11 +101,10 @@ const fetchNews = async () => {
 
   try {
     for (const feed of props.feeds) {
-      const response = await fetch(
-        `/api/news?url=${encodeURIComponent(feed.url)}`
-      );
-      if (response.ok) {
-        const items = await response.json();
+      try {
+        const items = await $fetch<any[]>(
+          `/api/news?url=${encodeURIComponent(feed.url)}`
+        );
         if (Array.isArray(items)) {
           items.forEach((item: any) => {
             allItems.push({
@@ -128,6 +116,8 @@ const fetchNews = async () => {
             });
           });
         }
+      } catch (e) {
+        console.error(`Failed to fetch feed ${feed.title}:`, e);
       }
     }
 
@@ -137,7 +127,7 @@ const fetchNews = async () => {
     } else {
       news.value = [
         {
-          title: "Could not load news headlines.",
+          title: t("modules.news.loadError"),
           source: "Error",
           pubDate: "",
           formattedDate: "",
@@ -149,7 +139,7 @@ const fetchNews = async () => {
     console.error("Failed to fetch news:", error);
     news.value = [
       {
-        title: "Error loading news.",
+        title: t("modules.news.error"),
         source: "Error",
         pubDate: "",
         formattedDate: "",

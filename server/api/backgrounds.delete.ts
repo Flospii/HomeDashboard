@@ -1,6 +1,7 @@
 import { defineEventHandler, getQuery, createError } from "h3";
 import fs from "fs/promises";
 import path from "path";
+import { getProjectPaths } from "../utils/paths";
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
@@ -13,14 +14,10 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  const { backgroundsDir } = getProjectPaths();
   // Ensure filename is just a name, not a path
   const safeFilename = path.basename(filename);
-  const filePath = path.resolve(
-    process.cwd(),
-    "data",
-    "backgrounds",
-    safeFilename
-  );
+  const filePath = path.join(backgroundsDir, safeFilename);
 
   try {
     await fs.access(filePath);

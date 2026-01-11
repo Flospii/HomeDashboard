@@ -1,51 +1,30 @@
 <template>
-  <UCard
-    v-if="store.config"
-    variant="glassDark"
-    class="!border-0 !shadow-none overflow-hidden"
-    :ui="{
-      body: 'p-8',
-    }"
-  >
+  <UCard v-if="store.config" variant="glassDark" class="!border-0 !shadow-none overflow-hidden" :ui="{
+    body: 'p-8',
+  }">
     <template #header>
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-3xl font-bold text-(--ui-text) tracking-tight">
-            Dashboard Settings
+            {{ $t("manage.preferences.title") }}
           </h2>
           <p class="text-(--ui-text)/50 mt-1">
-            Configure how your dashboard looks and behaves
+            {{ $t("manage.preferences.subtitle") }}
           </p>
         </div>
         <div class="flex items-center space-x-4">
           <Transition name="fade">
-            <span
-              v-if="saveStatus === 'success'"
-              class="text-primary-400 text-sm font-medium flex items-center"
-            >
+            <span v-if="saveStatus === 'success'" class="text-primary-400 text-sm font-medium flex items-center">
               <UIcon name="i-heroicons-check-circle" class="mr-1 w-5 h-5" />
-              Saved
+              {{ $t("common.saved") }}
             </span>
-            <span
-              v-else-if="saveStatus === 'error'"
-              class="text-red-400 text-sm font-medium flex items-center"
-            >
-              <UIcon
-                name="i-heroicons-exclamation-circle"
-                class="mr-1 w-5 h-5"
-              />
-              Error
+            <span v-else-if="saveStatus === 'error'" class="text-red-400 text-sm font-medium flex items-center">
+              <UIcon name="i-heroicons-exclamation-circle" class="mr-1 w-5 h-5" />
+              {{ $t("common.failed") }}
             </span>
           </Transition>
-          <UButton
-            icon="i-heroicons-check"
-            color="primary"
-            size="lg"
-            :loading="isSaving"
-            label="Save Changes"
-            class="px-6"
-            @click="handleSaveSettings"
-          />
+          <UButton icon="i-heroicons-check" color="primary" size="lg" :loading="isSaving" :label="$t('common.save')"
+            class="px-6" @click="handleSaveSettings" />
         </div>
       </div>
     </template>
@@ -53,95 +32,68 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
       <!-- Left Column: Visuals -->
       <div class="space-y-8">
-        <h3
-          class="text-sm font-bold uppercase tracking-widest text-primary-400/80"
-        >
-          Visuals & Transitions
+        <h3 class="text-sm font-bold uppercase tracking-widest text-primary-400/80">
+          {{ $t("manage.preferences.visuals") }}
         </h3>
 
-        <UFormField
-          label="Transition Mode"
-          description="The animation style between backgrounds"
-        >
-          <USelect
-            v-model="store.config.background.transitionMode"
-            :items="[...TRANSITION_MODES]"
-            size="xl"
-            class="w-full"
-          />
+        <UFormField :label="$t('manage.preferences.transitionMode')"
+          :description="$t('manage.preferences.transitionDescription')">
+          <USelect v-model="store.config.background.transitionMode" :items="[...TRANSITION_MODES]" size="xl"
+            class="w-full" />
         </UFormField>
 
-        <UFormField
-          label="Playback Order"
-          description="Sequential or random playback"
-        >
-          <USelect
-            v-model="store.config.background.playbackOrder"
-            :items="[...PLAYBACK_MODES]"
-            size="xl"
-            class="w-full"
-          />
+        <UFormField :label="$t('manage.preferences.playbackOrder')"
+          :description="$t('manage.preferences.playbackDescription')">
+          <USelect v-model="store.config.background.playbackOrder" :items="[...PLAYBACK_MODES]" size="xl"
+            class="w-full" />
         </UFormField>
 
-        <UFormField
-          label="Rotation Interval (ms)"
-          description="Time between background changes"
-        >
-          <UInput
-            v-model.number="store.config.background.interval"
-            type="number"
-            step="1000"
-            min="1000"
-            size="xl"
-            class="w-full"
-          />
+        <UFormField :label="$t('manage.preferences.interval')"
+          :description="$t('manage.preferences.intervalDescription')">
+          <UInput v-model.number="store.config.background.interval" type="number" step="1000" min="1000" size="xl"
+            class="w-full" />
         </UFormField>
 
-        <UFormField
-          label="Video Playback"
-          description="Loop video or play once"
-        >
-          <USelect
-            v-model="store.config.background.videoPlaybackMode"
-            :items="[...VIDEO_PLAYBACK_MODES]"
-            size="xl"
-            class="w-full"
-          />
+        <UFormField :label="$t('manage.preferences.videoPlayback')"
+          :description="$t('manage.preferences.videoDescription')">
+          <USelect v-model="store.config.background.videoPlaybackMode" :items="[...VIDEO_PLAYBACK_MODES]" size="xl"
+            class="w-full" />
+        </UFormField>
+      </div>
+
+      <!-- Center-Right Column (shifted): Language and Global Settings -->
+      <div class="space-y-8">
+        <h3 class="text-sm font-bold uppercase tracking-widest text-primary-400/80">
+          General Settings
+        </h3>
+
+        <UFormField :label="$t('manage.preferences.language')"
+          :description="$t('manage.preferences.languageDescription')">
+          <USelect v-model="selectedLanguage" :items="locales" value-key="code" label-key="name" size="xl"
+            class="w-full" />
         </UFormField>
       </div>
 
       <!-- Right Column: Scanning & Polling -->
       <div class="space-y-8">
-        <h3
-          class="text-sm font-bold uppercase tracking-widest text-primary-400/80"
-        >
-          Local Discovery
+        <h3 class="text-sm font-bold uppercase tracking-widest text-primary-400/80">
+          {{ $t("manage.preferences.localDiscovery") }}
         </h3>
 
-        <UFormField
-          label="Local Scanning"
-          description="Automatically scan public/backgrounds folder"
-        >
-          <span class="text-sm text-(--ui-text)/70"
-            >Enable Local Discovery</span
-          >
+        <UFormField :label="$t('manage.preferences.localScanning')"
+          :description="$t('manage.preferences.localScanningDescription')">
+          <span class="text-sm text-(--ui-text)/70">{{
+            $t("manage.preferences.enableDiscovery")
+          }}</span>
           <USwitch v-model="store.config.background.useLocalBackgrounds" />
         </UFormField>
 
         <Transition name="slide-up">
-          <UFormField
-            v-if="store.config.background.useLocalBackgrounds"
-            label="Polling Interval (ms)"
-            description="How often to check for new local files"
-          >
-            <UInput
-              v-model.number="store.config.background.localPollingInterval"
-              type="number"
-              step="1000"
-              min="5000"
-              size="xl"
-              class="w-full"
-            />
+          <UFormField v-if="store.config.background.useLocalBackgrounds"
+            :label="$t('manage.preferences.pollingInterval')"
+            :description="$t('manage.preferences.pollingDescription')">
+            <UInput v-model.number="store.config.background.localPollingInterval" type="number" step="1000" min="5000"
+              size="xl" class="w-full" />
           </UFormField>
         </Transition>
       </div>
@@ -159,13 +111,36 @@ import {
 import { useConfigStore } from "~~/stores/config";
 
 const store = useConfigStore();
+const { locales: availableLocales, setLocale, locale } = useI18n();
 const isSaving = ref(false);
 const saveStatus = ref<"success" | "error" | null>(null);
+
+const selectedLanguage = ref(store.config?.language || locale.value);
+
+watch(
+  () => store.config?.language,
+  (newLang) => {
+    if (newLang) {
+      selectedLanguage.value = newLang;
+    }
+  },
+  { immediate: true }
+);
+
+const locales = computed(() => {
+  return availableLocales.value.map((l: any) => ({
+    code: l.code,
+    name: l.name,
+  }));
+});
 
 const handleSaveSettings = async () => {
   isSaving.value = true;
   saveStatus.value = null;
   try {
+    if (store.config) {
+      store.config.language = selectedLanguage.value;
+    }
     await store.saveConfig();
     saveStatus.value = "success";
     setTimeout(() => {
@@ -190,6 +165,7 @@ const handleSaveSettings = async () => {
     opacity: 0;
     transform: translateY(-4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

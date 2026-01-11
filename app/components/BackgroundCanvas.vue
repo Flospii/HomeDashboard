@@ -1,26 +1,11 @@
 <template>
   <div class="absolute inset-0 z-0 overflow-hidden">
     <TransitionGroup :name="transitionMode || 'fade'">
-      <div
-        v-for="(item, index) in [currentMedia]"
-        :key="item.url + index"
-        class="absolute inset-0 w-full h-full"
-      >
-        <img
-          v-if="item.type === 'image'"
-          :src="item.url"
-          class="object-cover w-full h-full"
-          alt="Background"
-        />
-        <video
-          v-else-if="item.type === 'video'"
-          :src="item.url"
-          autoplay
-          muted
-          :loop="videoPlaybackMode === 'loop'"
-          playsinline
-          class="object-cover w-full h-full"
-        ></video>
+      <div v-for="(item, index) in [currentMedia]" :key="item.url + index" class="absolute inset-0 w-full h-full">
+        <img v-if="item.type === 'image'" :src="item.url" class="object-cover w-full h-full" alt="Background"
+          @error="handleMediaError" />
+        <video v-else-if="item.type === 'video'" :src="item.url" autoplay muted :loop="videoPlaybackMode === 'loop'"
+          playsinline class="object-cover w-full h-full" @error="handleMediaError"></video>
       </div>
     </TransitionGroup>
     <!-- Overlay for better text readability -->
@@ -29,17 +14,8 @@
     <!-- Preloading Layer (Hidden) -->
     <div class="hidden">
       <template v-if="nextMediaItem">
-        <img
-          v-if="nextMediaItem.type === 'image'"
-          :src="nextMediaItem.url"
-          loading="eager"
-        />
-        <video
-          v-else-if="nextMediaItem.type === 'video'"
-          :src="nextMediaItem.url"
-          preload="auto"
-          muted
-        ></video>
+        <img v-if="nextMediaItem.type === 'image'" :src="nextMediaItem.url" loading="eager" />
+        <video v-else-if="nextMediaItem.type === 'video'" :src="nextMediaItem.url" preload="auto" muted></video>
       </template>
     </div>
   </div>
@@ -105,6 +81,13 @@ const nextMedia = () => {
   }
 };
 
+const handleMediaError = () => {
+  console.error("Media failed to load:", currentMedia.value.url);
+  if (props.media.length > 1) {
+    nextMedia();
+  }
+};
+
 onMounted(() => {
   startTimer();
 });
@@ -128,6 +111,7 @@ watch(
 .fade-leave-active {
   transition: opacity 2s ease-in-out;
 }
+
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
@@ -138,9 +122,11 @@ watch(
 .slide-leave-active {
   transition: transform 1.5s ease-in-out;
 }
+
 .slide-enter-from {
   transform: translateX(100%);
 }
+
 .slide-leave-to {
   transform: translateX(-100%);
 }
@@ -150,10 +136,12 @@ watch(
 .zoom-leave-active {
   transition: transform 2s ease-in-out, opacity 2s ease-in-out;
 }
+
 .zoom-enter-from {
   transform: scale(1.2);
   opacity: 0;
 }
+
 .zoom-leave-to {
   transform: scale(0.8);
   opacity: 0;
@@ -164,10 +152,12 @@ watch(
 .blur-leave-active {
   transition: filter 1.5s ease-in-out, opacity 1.5s ease-in-out;
 }
+
 .blur-enter-from {
   filter: blur(20px);
   opacity: 0;
 }
+
 .blur-leave-to {
   filter: blur(20px);
   opacity: 0;

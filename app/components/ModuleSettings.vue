@@ -1,61 +1,34 @@
 <template>
-  <UCard
-    v-if="store.config"
-    variant="glass"
-    class="w-full max-w-2xl mx-auto !border-0 !shadow-none overflow-hidden"
-    :ui="{ body: 'p-8' }"
-  >
+  <UCard v-if="store.config" variant="glass" class="w-full max-w-2xl mx-auto !border-0 !shadow-none overflow-hidden"
+    :ui="{ body: 'p-8' }">
     <div class="flex items-center justify-between mb-8">
-      <h2 class="text-2xl font-bold text-(--ui-text)">Module Settings</h2>
+      <h2 class="text-2xl font-bold text-(--ui-text)">
+        {{ $t("manage.modules.title") }}
+      </h2>
       <div class="flex items-center space-x-4">
-        <span
-          v-if="saveStatus === 'success'"
-          class="text-green-400 text-sm animate-fade-in"
-        >
-          Settings saved!
+        <span v-if="saveStatus === 'success'" class="text-green-400 text-sm animate-fade-in">
+          {{ $t("common.saved") }}
         </span>
-        <span
-          v-if="saveStatus === 'error'"
-          class="text-red-400 text-sm animate-fade-in"
-        >
-          Failed to save
+        <span v-if="saveStatus === 'error'" class="text-red-400 text-sm animate-fade-in">
+          {{ $t("common.failed") }}
         </span>
-        <UButton
-          icon="i-heroicons-check"
-          color="primary"
-          size="lg"
-          :loading="isSaving"
-          label="Save Changes"
-          class="px-6"
-          @click="handleSaveSettings"
-        />
+        <UButton icon="i-heroicons-check" color="primary" size="lg" :loading="isSaving" :label="$t('common.save')"
+          class="px-6" @click="handleSaveSettings" />
       </div>
     </div>
     <div class="space-y-8">
-      <UCard
-        v-for="mod in store.config?.modules"
-        :key="mod.id"
-        variant="glassDark"
-        class="overflow-hidden border border-(--ui-border)"
-        :ui="{ body: 'p-0' }"
-      >
+      <UCard v-for="mod in store.config?.modules" :key="mod.id" variant="glassDark"
+        class="overflow-hidden border border-(--ui-border)" :ui="{ body: 'p-0' }">
         <div class="p-6 flex items-center justify-between bg-(--ui-bg)/5">
           <div class="flex items-center space-x-4">
-            <div
-              class="w-12 h-12 bg-primary-500/20 flex items-center justify-center"
-            >
-              <UIcon
-                :name="getModuleIcon(mod.module)"
-                class="w-6 h-6 text-primary-400"
-              />
+            <div class="w-12 h-12 bg-primary-500/20 flex items-center justify-center">
+              <UIcon :name="getModuleIcon(mod.module)" class="w-6 h-6 text-primary-400" />
             </div>
             <div>
               <h3 class="text-xl font-bold text-(--ui-text) capitalize">
                 {{ mod.module }} Module
               </h3>
-              <p
-                class="text-xs text-(--ui-text)/40 uppercase tracking-widest font-bold"
-              >
+              <p class="text-xs text-(--ui-text)/40 uppercase tracking-widest font-bold">
                 ID: {{ mod.id }}
               </p>
             </div>
@@ -64,36 +37,20 @@
         </div>
 
         <Transition name="slide-up">
-          <div
-            v-if="mod.enabled"
-            class="p-8 space-y-8 border-t border-(--ui-border)"
-          >
+          <div v-if="mod.enabled" class="p-8 space-y-8 border-t border-(--ui-border)">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <!-- Position -->
-              <UFormField
-                label="Screen Position"
-                description="Where this module appears on the dashboard"
-              >
-                <USelect
-                  v-model="mod.position"
-                  :items="[...MODULE_POSITIONS]"
-                  size="xl"
-                  class="w-full"
-                />
+              <UFormField :label="$t('manage.modules.screenPosition')"
+                :description="$t('manage.modules.positionDescription')">
+                <USelect v-model="mod.position" :items="[...MODULE_POSITIONS]" size="xl" class="w-full" />
               </UFormField>
 
               <!-- Specific Config -->
               <div v-if="mod.module === 'clock'" class="space-y-4">
-                <UFormField
-                  label="Display Seconds"
-                  description="Show or hide the seconds counter"
-                >
-                  <div
-                    class="flex items-center justify-between p-4 bg-(--ui-bg)/5 border border-(--ui-border)"
-                  >
-                    <span class="text-sm text-(--ui-text)/70"
-                      >Enable Seconds</span
-                    >
+                <UFormField :label="$t('manage.modules.clock.displaySeconds')"
+                  :description="$t('manage.modules.clock.secondsDescription')">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-(--ui-text)/70">Enable Seconds</span>
                     <USwitch v-model="(mod.config as any).displaySeconds" />
                   </div>
                 </UFormField>
@@ -102,46 +59,32 @@
               <!-- Weather Config -->
               <div v-if="mod.module === 'weather'" class="space-y-6">
                 <UFormField label="Weather Provider">
-                  <USelect
-                    v-model="(mod.config as any).weatherProvider"
-                    :items="['openmeteo']"
-                    size="xl"
-                    class="w-full"
-                  />
+                  <USelect v-model="(mod.config as any).weatherProvider" :items="['openmeteo']" size="xl"
+                    class="w-full" />
                 </UFormField>
                 <div class="grid grid-cols-2 gap-4">
                   <UFormField label="Latitude">
-                    <UInput
-                      v-model.number="(mod.config as any).lat"
-                      type="number"
-                      size="md"
-                      placeholder="48.0986"
-                    />
+                    <UInput v-model.number="(mod.config as any).lat" type="number" size="md" placeholder="48.0986" />
                   </UFormField>
                   <UFormField label="Longitude">
-                    <UInput
-                      v-model.number="(mod.config as any).lon"
-                      type="number"
-                      size="md"
-                      placeholder="14.0353"
-                    />
+                    <UInput v-model.number="(mod.config as any).lon" type="number" size="md" placeholder="14.0353" />
                   </UFormField>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
-                  <UFormField label="Show Provider">
+                  <UFormField :label="$t('manage.modules.weather.showProvider')">
                     <USwitch v-model="(mod.config as any).showProvider" />
                   </UFormField>
-                  <UFormField label="Show Wind Speed">
+                  <UFormField :label="$t('manage.modules.weather.showWindSpeed')">
                     <USwitch v-model="(mod.config as any).showWindSpeed" />
                   </UFormField>
-                  <UFormField label="Show Humidity">
+                  <UFormField :label="$t('manage.modules.weather.showHumidity')">
                     <USwitch v-model="(mod.config as any).showHumidity" />
                   </UFormField>
-                  <UFormField label="Show Sunrise/Sunset">
+                  <UFormField :label="$t('manage.modules.weather.showSunriseSunset')">
                     <USwitch v-model="(mod.config as any).showSunriseSunset" />
                   </UFormField>
-                  <UFormField label="Show Location">
+                  <UFormField :label="$t('manage.modules.weather.showLocation')">
                     <USwitch v-model="(mod.config as any).showLocation" />
                   </UFormField>
                 </div>
@@ -151,49 +94,25 @@
               <div v-if="mod.module === 'news'" class="space-y-6">
                 <div class="space-y-4">
                   <div class="flex items-center justify-between">
-                    <h4
-                      class="text-sm font-bold text-(--ui-text)/60 uppercase tracking-widest"
-                    >
+                    <h4 class="text-sm font-bold text-(--ui-text)/60 uppercase tracking-widest">
                       RSS Feeds
                     </h4>
-                    <UButton
-                      icon="i-heroicons-plus"
-                      size="xs"
-                      variant="ghost"
-                      label="Add Feed"
-                      @click="
-                        (mod.config as any).feeds.push({ title: '', url: '' })
-                      "
-                    />
+                    <UButton icon="i-heroicons-plus" size="xs" variant="ghost" label="Add Feed" @click="
+                      (mod.config as any).feeds.push({ title: '', url: '' })
+                      " />
                   </div>
 
-                  <div
-                    v-for="(feed, fIdx) in (mod.config as any).feeds"
-                    :key="fIdx"
-                    class="grid grid-cols-12 gap-2 items-start p-4 bg-(--ui-bg)/5 border border-(--ui-border)"
-                  >
+                  <div v-for="(feed, fIdx) in (mod.config as any).feeds" :key="fIdx"
+                    class="grid grid-cols-12 gap-2 items-start p-4 bg-(--ui-bg)/5 border border-(--ui-border)">
                     <div class="col-span-4">
-                      <UInput
-                        v-model="feed.title"
-                        placeholder="Feed Title"
-                        size="md"
-                      />
+                      <UInput v-model="feed.title" placeholder="Feed Title" size="md" />
                     </div>
                     <div class="col-span-7">
-                      <UInput
-                        v-model="feed.url"
-                        placeholder="RSS URL"
-                        size="md"
-                      />
+                      <UInput v-model="feed.url" placeholder="RSS URL" size="md" />
                     </div>
                     <div class="col-span-1 flex justify-end">
-                      <UButton
-                        icon="i-heroicons-trash"
-                        size="xs"
-                        color="error"
-                        variant="ghost"
-                        @click="(mod.config as any).feeds.splice(fIdx, 1)"
-                      />
+                      <UButton icon="i-heroicons-trash" size="xs" color="error" variant="ghost"
+                        @click="(mod.config as any).feeds.splice(fIdx, 1)" />
                     </div>
                   </div>
                 </div>
@@ -209,27 +128,24 @@
               </div>
 
               <!-- Background Metadata Config -->
-              <div
-                v-if="mod.module === 'background-metadata'"
-                class="space-y-6"
-              >
+              <div v-if="mod.module === 'background-metadata'" class="space-y-6">
                 <div class="grid grid-cols-2 gap-4">
-                  <UFormField label="Show File Name">
+                  <UFormField :label="$t('manage.modules.metadata.fileName')">
                     <USwitch v-model="(mod.config as any).showFileName" />
                   </UFormField>
-                  <UFormField label="Show File Size">
+                  <UFormField :label="$t('manage.modules.metadata.fileSize')">
                     <USwitch v-model="(mod.config as any).showFileSize" />
                   </UFormField>
-                  <UFormField label="Show Mime Type">
+                  <UFormField :label="$t('manage.modules.metadata.mimeType')">
                     <USwitch v-model="(mod.config as any).showMimeType" />
                   </UFormField>
-                  <UFormField label="Show GPS">
+                  <UFormField :label="$t('manage.modules.metadata.gps')">
                     <USwitch v-model="(mod.config as any).showGPS" />
                   </UFormField>
-                  <UFormField label="Show Created Date">
+                  <UFormField :label="$t('manage.modules.metadata.createdAt')">
                     <USwitch v-model="(mod.config as any).showCreatedAt" />
                   </UFormField>
-                  <UFormField label="Show Modified Date">
+                  <UFormField :label="$t('manage.modules.metadata.modifiedAt')">
                     <USwitch v-model="(mod.config as any).showModifiedAt" />
                   </UFormField>
                 </div>
@@ -294,6 +210,7 @@ const handleSaveSettings = async () => {
     opacity: 0;
     transform: translateY(-4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

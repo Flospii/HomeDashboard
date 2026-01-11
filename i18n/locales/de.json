@@ -1,25 +1,113 @@
 {
-    "input": {
-        "data": "Daten (URL/Text)",
-        "placeholder": "https://..."
+    "common": {
+        "loading": "Laden...",
+        "error": "Fehler: {error}",
+        "save": "Änderungen speichern",
+        "saved": "Gespeichert!",
+        "failed": "Speichern fehlgeschlagen",
+        "delete": "Löschen",
+        "cancel": "Abbrechen",
+        "confirm": "Bestätigen",
+        "back": "Zurück"
     },
-    "button": {
-        "removeLogo": "Logo entfernen",
-        "download": "QR-Code herunterladen"
+    "dashboard": {
+        "loading": "Dashboard wird geladen...",
+        "exit": "Zurück zum Dashboard"
     },
-    "label": {
-        "dotColor": "Punktfarbe",
-        "dotStyle": "Punktstil",
-        "backgroundColor": "Hintergrundfarbe"
+    "manage": {
+        "title": "Control Center",
+        "subtitle": "HomeDashboard v2.0",
+        "tabs": {
+            "backgrounds": "Hintergründe",
+            "preferences": "Einstellungen",
+            "modules": "Module",
+            "raw": "Rohdaten"
+        },
+        "backgrounds": {
+            "title": "Hintergrundmedien",
+            "subtitle": "Verwalten Sie Ihre lokalen und externen Hintergrundressourcen",
+            "uploadLocal": "Lokal hochladen",
+            "uploadSubtitle": "Drag & Drop oder zum Durchsuchen klicken",
+            "addExternal": "Extern hinzufügen",
+            "resourceUrl": "Ressourcen-URL",
+            "type": "Typ",
+            "addResource": "Ressource hinzufügen",
+            "uploading": "Medien werden hochgeladen...",
+            "gallery": "Ihre Galerie",
+            "exportZip": "Alle exportieren (ZIP)",
+            "items": "{count} Elemente",
+            "noBackgrounds": "Keine Hintergründe gefunden.",
+            "local": "Lokal",
+            "external": "Extern",
+            "deleteConfirm": "Sind Sie sicher, dass Sie diesen Hintergrund entfernen möchten?"
+        },
+        "preferences": {
+            "title": "Dashboard-Einstellungen",
+            "subtitle": "Konfigurieren Sie das Aussehen und Verhalten Ihres Dashboards",
+            "visuals": "Visuals & Übergänge",
+            "language": "Sprache",
+            "languageDescription": "Wählen Sie Ihre bevorzugte Interface-Sprache",
+            "transitionMode": "Übergangsmodus",
+            "transitionDescription": "Der Animationsstil zwischen Hintergründen",
+            "playbackOrder": "Wiedergabereihenfolge",
+            "playbackDescription": "Sequenzielle oder zufällige Wiedergabe",
+            "interval": "Rotationsintervall (ms)",
+            "intervalDescription": "Zeit zwischen Hintergrundwechseln",
+            "videoPlayback": "Videowiedergabe",
+            "videoDescription": "Video schleifen oder einmal abspielen",
+            "localDiscovery": "Lokale Erkennung",
+            "localScanning": "Lokales Scannen",
+            "localScanningDescription": "Hintergrundordner automatisch scannen",
+            "enableDiscovery": "Lokale Erkennung aktivieren",
+            "pollingInterval": "Abfrageintervall (ms)",
+            "pollingDescription": "Wie oft nach neuen lokalen Dateien gesucht wird"
+        },
+        "modules": {
+            "title": "Modulkonfiguration",
+            "subtitle": "Aktivieren und positionieren Sie Ihre Dashboard-Widgets",
+            "screenPosition": "Bildschirmposition",
+            "positionDescription": "Wo dieses Modul auf dem Dashboard erscheint",
+            "clock": {
+                "displaySeconds": "Sekunden anzeigen",
+                "secondsDescription": "Sekundenanzeige ein- oder ausschalten"
+            },
+            "weather": {
+                "provider": "Wetteranbieter",
+                "latitude": "Breitengrad",
+                "longitude": "Längengrad",
+                "showProvider": "Anbieter zeigen",
+                "showWindSpeed": "Windgeschwindigkeit zeigen",
+                "showHumidity": "Luftfeuchtigkeit zeigen",
+                "showSunriseSunset": "Sonnenauf-/untergang zeigen",
+                "showLocation": "Ort zeigen"
+            },
+            "news": {
+                "title": "RSS-Feeds",
+                "addFeed": "Feed hinzufügen",
+                "feedTitle": "Feed-Titel",
+                "rssUrl": "RSS-URL",
+                "showSource": "Quelle zeigen",
+                "showDate": "Datum zeigen"
+            },
+            "metadata": {
+                "fileName": "Dateiname zeigen",
+                "fileSize": "Dateigröße zeigen",
+                "mimeType": "MIME-Typ zeigen",
+                "gps": "GPS zeigen",
+                "createdAt": "Erstellungsdatum zeigen",
+                "modifiedAt": "Änderungsdatum zeigen"
+            }
+        }
     },
-    "dotType": {
-        "rounded": "Abgerundet",
-        "dots": "Punkte",
-        "classy": "Elegant",
-        "square": "Quadratisch",
-        "extra-rounded": "Extra abgerundet"
-    },
-    "footer": {
-        "text": "Du willst auch eine Webseite? Kontaktiere den Ersteller:"
+    "modules": {
+        "weather": {
+            "fetching": "Wetterdaten werden geladen..."
+        },
+        "news": {
+            "fetching": "Schlagzeilen werden geladen...",
+            "noFeeds": "Keine Nachrichtensender konfiguriert.",
+            "loadError": "Schlagzeilen konnten nicht geladen werden.",
+            "error": "Fehler beim Laden der Nachrichten."
+        }
     }
 }

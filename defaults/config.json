@@ -35,6 +35,7 @@
     "playbackOrder": "random",
     "videoPlaybackMode": "once"
   },
+  "language": "en",
   "modules": [
     {
       "id": "clock-1",

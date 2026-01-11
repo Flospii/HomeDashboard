@@ -7,6 +7,7 @@ import {
   setResponseHeader,
   setResponseStatus,
 } from "h3";
+import { getProjectPaths } from "../../utils/paths";
 
 export default defineEventHandler(async (event) => {
   const filename = event.context.params?._;
@@ -18,12 +19,9 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  const { backgroundsDir } = getProjectPaths();
   const safeFilename = path.basename(filename);
-  const dataPath = path.resolve(
-    process.cwd(),
-    "data/backgrounds",
-    safeFilename
-  );
+  const dataPath = path.join(backgroundsDir, safeFilename);
 
   // Try persistent data directory
   if (fs.existsSync(dataPath)) {

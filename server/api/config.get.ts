@@ -1,21 +1,19 @@
 import fs from "node:fs";
-import path from "node:path";
 import { defineEventHandler, createError } from "h3";
+import { getProjectPaths } from "../utils/paths";
 
 export default defineEventHandler(async () => {
-  const dataDir = path.resolve(process.cwd(), "data");
-  const dataPath = path.join(dataDir, "config.json");
-  const defaultPath = path.resolve(process.cwd(), "defaults/config.json");
+  const { configFile, defaultConfigFile, dataDir } = getProjectPaths();
 
   // 1. If data/config.json doesn't exist, try to initialize it from defaults
-  if (!fs.existsSync(dataPath)) {
-    if (fs.existsSync(defaultPath)) {
+  if (!fs.existsSync(configFile)) {
+    if (fs.existsSync(defaultConfigFile)) {
       // Ensure data directory exists
       if (!fs.existsSync(dataDir)) {
         fs.mkdirSync(dataDir, { recursive: true });
       }
       // Copy default config to data directory
-      fs.copyFileSync(defaultPath, dataPath);
+      fs.copyFileSync(defaultConfigFile, configFile);
     } else {
       throw createError({
         statusCode: 404,
@@ -26,7 +24,7 @@ export default defineEventHandler(async () => {
 
   // 2. Read and return the persistent configuration
   try {
-    const config = fs.readFileSync(dataPath, "utf-8");
+    const config = fs.readFileSync(configFile, "utf-8");
     return JSON.parse(config);
   } catch (error: any) {
     throw createError({

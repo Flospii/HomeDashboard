@@ -105,5 +105,6 @@ export interface DashboardConfig {
     playbackOrder?: PlaybackMode;
     videoPlaybackMode?: VideoPlaybackMode;
   };
+  language?: string;
   modules: ModuleConfig[];
 }
