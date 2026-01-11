@@ -103,7 +103,7 @@
                   </div>
 
                   <div v-for="(feed, fIdx) in (mod.config as any).feeds" :key="fIdx"
-                    class="grid grid-cols-12 gap-2 items-start p-4 bg-(--ui-bg)/5 border border-(--ui-border)">
+                    class="grid grid-cols-12 gap-2 items-start">
                     <div class="col-span-4">
                       <UInput v-model="feed.title" placeholder="Feed Title" size="md" />
                     </div>
