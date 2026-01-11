@@ -67,6 +67,10 @@
             "subtitle": "Aktivieren und positionieren Sie Ihre Dashboard-Widgets",
             "screenPosition": "Bildschirmposition",
             "positionDescription": "Wo dieses Modul auf dem Dashboard erscheint",
+            "addModule": "Modul hinzufügen",
+            "deleteModule": "Modul löschen",
+            "deleteConfirm": "Sind Sie sicher, dass Sie dieses Modul entfernen möchten?",
+            "selectType": "Modultyp auswählen",
             "clock": {
                 "displaySeconds": "Sekunden anzeigen",
                 "secondsDescription": "Sekundenanzeige ein- oder ausschalten"
@@ -96,6 +100,16 @@
                 "gps": "GPS zeigen",
                 "createdAt": "Erstellungsdatum zeigen",
                 "modifiedAt": "Änderungsdatum zeigen"
+            },
+            "qrcode": {
+                "type": "QR-Code-Typ",
+                "typeDescription": "Wählen Sie, ob ein benutzerdefinierter Link oder ein Medien-Upload-Link angezeigt werden soll",
+                "custom": "Benutzerdefinierte URL",
+                "mediaUpload": "Medien-Upload-Link",
+                "title": "Modultitel",
+                "titleDescription": "Optionaler Titel über dem QR-Code",
+                "url": "Ziel-URL",
+                "urlDescription": "Die URL, auf die der QR-Code verweisen soll"
             }
         }
     },

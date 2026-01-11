@@ -1,25 +1,16 @@
 <template>
   <div class="relative w-full h-full overflow-hidden">
-    <div
-      v-if="store.isLoading"
-      class="flex items-center justify-center h-full text-(--ui-text) text-2xl"
-    >
+    <div v-if="store.isLoading" class="flex items-center justify-center h-full text-default text-2xl">
       Loading Dashboard...
     </div>
-    <div
-      v-else-if="store.error"
-      class="flex items-center justify-center h-full text-error-500 text-2xl"
-    >
+    <div v-else-if="store.error" class="flex items-center justify-center h-full text-error-500 text-2xl">
       Error: {{ store.error }}
     </div>
     <template v-else-if="store.config">
       <!-- Background Layer -->
-      <BackgroundCanvas
-        :media="store.allBackgrounds"
-        :interval="store.config.background.interval"
+      <BackgroundCanvas :media="store.allBackgrounds" :interval="store.config.background.interval"
         :transition-mode="store.config.background.transitionMode"
-        :playback-order="store.config.background.playbackOrder"
-      />
+        :playback-order="store.config.background.playbackOrder" />
 
       <!-- UI Overlay Grid -->
       <DashboardGrid>
@@ -40,6 +31,7 @@ import ClockModule from "~/components/modules/ClockModule.vue";
 import WeatherModule from "~/components/modules/WeatherModule.vue";
 import NewsFeedModule from "~/components/modules/NewsFeedModule.vue";
 import BackgroundMetadataModule from "~/components/modules/BackgroundMetadataModule.vue";
+import QRCodeModule from "~/components/modules/QRCodeModule.vue";
 import { useConfigStore } from "~~/stores/config";
 
 const store = useConfigStore();
@@ -58,6 +50,7 @@ const moduleMap: Record<string, any> = {
   weather: WeatherModule,
   news: NewsFeedModule,
   "background-metadata": BackgroundMetadataModule,
+  qrcode: QRCodeModule,
 };
 
 const positions = [

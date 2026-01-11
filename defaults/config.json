@@ -92,6 +92,16 @@
         "showCreatedAt": true,
         "showModifiedAt": false
       }
+    },
+    {
+      "id": "qrcode-1",
+      "module": "qrcode",
+      "position": "middle_center",
+      "enabled": false,
+      "config": {
+        "type": "media-upload",
+        "title": "Upload Media"
+      }
     }
   ]
 }

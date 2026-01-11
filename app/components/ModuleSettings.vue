@@ -18,7 +18,7 @@
     </div>
     <div class="space-y-8">
       <UCard v-for="mod in store.config?.modules" :key="mod.id" variant="glassDark"
-        class="overflow-hidden border border-(--ui-border)" :ui="{ body: 'p-0' }">
+        class="overflow-hidden border border-default" :ui="{ body: 'p-0' }">
         <div class="p-6 flex items-center justify-between bg-(--ui-bg)/5">
           <div class="flex items-center space-x-4">
             <div class="w-12 h-12 bg-primary-500/20 flex items-center justify-center">
@@ -33,11 +33,15 @@
               </p>
             </div>
           </div>
-          <USwitch v-model="mod.enabled" size="lg" />
+          <div class="flex items-center space-x-4">
+            <UButton icon="i-heroicons-trash" color="error" variant="ghost" size="sm"
+              @click="handleDeleteModule(mod)" />
+            <USwitch v-model="mod.enabled" size="lg" />
+          </div>
         </div>
 
         <Transition name="slide-up">
-          <div v-if="mod.enabled" class="p-8 space-y-8 border-t border-(--ui-border)">
+          <div v-if="mod.enabled" class="p-8 space-y-8 border-t border-default">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <!-- Position -->
               <UFormField :label="$t('manage.modules.screenPosition')"
@@ -150,10 +154,40 @@
                   </UFormField>
                 </div>
               </div>
+
+              <!-- QR Code Config -->
+              <div v-if="mod.module === 'qrcode'" class="space-y-6">
+                <UFormField :label="$t('manage.modules.qrcode.type')"
+                  :description="$t('manage.modules.qrcode.typeDescription')">
+                  <USelect v-model="(mod.config as any).type" :items="[
+                    { label: $t('manage.modules.qrcode.custom'), value: 'custom' },
+                    { label: $t('manage.modules.qrcode.mediaUpload'), value: 'media-upload' }
+                  ]" size="xl" class="w-full" />
+                </UFormField>
+
+                <UFormField :label="$t('manage.modules.qrcode.title')"
+                  :description="$t('manage.modules.qrcode.titleDescription')">
+                  <UInput v-model="(mod.config as any).title" placeholder="e.g. Scan to Upload" size="xl" />
+                </UFormField>
+
+                <UFormField v-if="(mod.config as any).type === 'custom'" :label="$t('manage.modules.qrcode.url')"
+                  :description="$t('manage.modules.qrcode.urlDescription')">
+                  <UInput v-model="(mod.config as any).customUrl" placeholder="https://..." size="xl" />
+                </UFormField>
+              </div>
             </div>
           </div>
         </Transition>
       </UCard>
+    </div>
+
+    <!-- Add Module Button -->
+    <div class="mt-12 flex justify-center">
+      <UDropdownMenu :items="availableModules" :ui="{ content: 'w-64' }">
+        <UButton icon="i-heroicons-plus" color="neutral" variant="subtle" size="xl"
+          :label="$t('manage.modules.addModule')"
+          class="px-8 border-2 border-dashed border-default hover:border-primary-500/50 hover:bg-primary-500/5 transition-all" />
+      </UDropdownMenu>
     </div>
   </UCard>
 </template>
@@ -163,6 +197,7 @@ import { ref } from "vue";
 import { useConfigStore } from "~~/stores/config";
 import { MODULE_POSITIONS } from "../types/config";
 
+const { t } = useI18n();
 const store = useConfigStore();
 const isSaving = ref(false);
 const saveStatus = ref<"success" | "error" | null>(null);
@@ -177,6 +212,8 @@ const getModuleIcon = (type: string) => {
       return "i-heroicons-newspaper";
     case "background-metadata":
       return "i-heroicons-information-circle";
+    case "qrcode":
+      return "i-heroicons-qr-code";
     default:
       return "i-heroicons-cube";
   }
@@ -196,6 +233,103 @@ const handleSaveSettings = async () => {
     saveStatus.value = "error";
   } finally {
     isSaving.value = false;
+  }
+};
+
+const availableModules = [
+  [
+    {
+      label: "Clock",
+      icon: "i-heroicons-clock",
+      onSelect: () => addModule("clock"),
+    },
+    {
+      label: "Weather",
+      icon: "i-heroicons-cloud",
+      onSelect: () => addModule("weather"),
+    },
+    {
+      label: "News",
+      icon: "i-heroicons-newspaper",
+      onSelect: () => addModule("news"),
+    },
+    {
+      label: "Background Metadata",
+      icon: "i-heroicons-information-circle",
+      onSelect: () => addModule("background-metadata"),
+    },
+    {
+      label: "QR Code",
+      icon: "i-heroicons-qr-code",
+      onSelect: () => addModule("qrcode"),
+    },
+  ],
+];
+
+const addModule = (type: string) => {
+  if (!store.config) return;
+
+  const id = `${type}-${Date.now()}`;
+  const defaultConfig: any = {};
+
+  switch (type) {
+    case "clock":
+      Object.assign(defaultConfig, { displaySeconds: true });
+      break;
+    case "weather":
+      Object.assign(defaultConfig, {
+        weatherProvider: "openmeteo",
+        type: "current",
+        lat: 48.0862,
+        lon: 14.0433,
+        showProvider: true,
+        showWindSpeed: true,
+        showHumidity: true,
+        showSunriseSunset: true,
+        showLocation: true,
+      });
+      break;
+    case "news":
+      Object.assign(defaultConfig, {
+        feeds: [{ title: "Der Standard", url: "https://www.derstandard.at/rss" }],
+        showSourceTitle: true,
+        showPublishDate: true,
+      });
+      break;
+    case "background-metadata":
+      Object.assign(defaultConfig, {
+        showFileName: false,
+        showFileSize: false,
+        showMimeType: false,
+        showGPS: true,
+        showCreatedAt: true,
+        showModifiedAt: false,
+      });
+      break;
+    case "qrcode":
+      Object.assign(defaultConfig, {
+        type: "media-upload",
+        title: "Upload Media",
+      });
+      break;
+  }
+
+  store.config.modules.push({
+    id,
+    module: type,
+    position: "top_left",
+    enabled: true,
+    config: defaultConfig,
+  });
+};
+
+const handleDeleteModule = (mod: any) => {
+  if (!store.config) return;
+  if (confirm(t("manage.modules.deleteConfirm"))) {
+    const index = store.config.modules.findIndex((m) => m.id === mod.id);
+    if (index !== -1) {
+      store.config.modules.splice(index, 1);
+    }
   }
 };
 </script>

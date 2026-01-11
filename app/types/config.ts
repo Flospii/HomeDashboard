@@ -80,11 +80,18 @@ export interface BackgroundMetadataModuleConfig {
   showGPS?: boolean;
 }
 
+export interface QRCodeModuleConfig {
+  type: "custom" | "media-upload";
+  title?: string;
+  customUrl?: string;
+}
+
 export type AnyModuleConfig =
   | ClockModuleConfig
   | WeatherModuleConfig
   | NewsModuleConfig
   | BackgroundMetadataModuleConfig
+  | QRCodeModuleConfig
   | Record<string, any>;
 
 export interface ModuleConfig {

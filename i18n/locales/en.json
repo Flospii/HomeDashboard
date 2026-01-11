@@ -67,6 +67,10 @@
             "subtitle": "Enable and position your dashboard widgets",
             "screenPosition": "Screen Position",
             "positionDescription": "Where this module appears on the dashboard",
+            "addModule": "Add Module",
+            "deleteModule": "Delete Module",
+            "deleteConfirm": "Are you sure you want to remove this module?",
+            "selectType": "Select Module Type",
             "clock": {
                 "displaySeconds": "Display Seconds",
                 "secondsDescription": "Show or hide the seconds counter"
@@ -96,6 +100,16 @@
                 "gps": "Show GPS",
                 "createdAt": "Show Created Date",
                 "modifiedAt": "Show Modified Date"
+            },
+            "qrcode": {
+                "type": "QR Code Type",
+                "typeDescription": "Select whether to show a custom link or a media upload link",
+                "custom": "Custom URL",
+                "mediaUpload": "Media Upload Link",
+                "title": "Module Title",
+                "titleDescription": "Optional title shown above the QR code",
+                "url": "Target URL",
+                "urlDescription": "The URL the QR code should point to"
             }
         }
     },
