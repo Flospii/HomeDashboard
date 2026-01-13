@@ -24,4 +24,9 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: "2024-11-27",
+  nitro: {
+    experimental: {
+      websocket: true,
+    },
+  },
 });

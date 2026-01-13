@@ -111,6 +111,7 @@ export interface DashboardConfig {
     transitionMode?: TransitionMode;
     playbackOrder?: PlaybackMode;
     videoPlaybackMode?: VideoPlaybackMode;
+    waitingList?: BackgroundItem[];
   };
   language?: string;
   modules: ModuleConfig[];

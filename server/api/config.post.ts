@@ -25,6 +25,17 @@ export default defineEventHandler(async (event) => {
     }
 
     fs.writeFileSync(configFile, JSON.stringify(body, null, 2), "utf-8");
+
+    // Notify the background controller that the config (and potentially the waiting list) has changed
+    const { backgroundController } = await import(
+      "../utils/backgroundController"
+    );
+    backgroundController.notifyStateChange();
+
+    // Broadcast the new configuration to all connected WebSocket clients
+    const { broadcastConfig } = await import("./ws");
+    broadcastConfig(body);
+
     return { success: true };
   } catch (error: any) {
     throw createError({
