@@ -8,22 +8,30 @@
       }"
     >
       <template #header>
-        <div class="flex items-center justify-between">
+        <div
+          class="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
           <div>
-            <h2 class="text-3xl font-bold text-default tracking-tight">
-              {{ $t("manage.backgrounds.title") }}
+            <h2
+              class="text-2xl sm:text-3xl font-bold text-default tracking-tight"
+            >
+              {{ $t("manage.modules.title") }}
             </h2>
-            <p class="text-default/50 mt-1">
-              {{ $t("manage.backgrounds.subtitle") }}
+            <p class="text-default/50 mt-1 text-sm sm:text-base">
+              {{ $t("manage.modules.subtitle") }}
             </p>
           </div>
-          <div class="flex items-center space-x-4">
+          <div
+            class="flex items-center space-x-2 sm:space-x-4 overflow-x-auto pb-2 sm:pb-0"
+          >
             <UButton
               icon="i-heroicons-backward"
               color="neutral"
               variant="subtle"
               :label="$t('manage.backgrounds.previous')"
-              size="lg"
+              size="md"
+              sm:size="lg"
+              class="flex-shrink-0"
               @click="store.triggerPreviousBackground"
             />
             <UButton
@@ -31,16 +39,10 @@
               color="neutral"
               variant="subtle"
               :label="$t('manage.backgrounds.next')"
-              size="lg"
+              size="md"
+              sm:size="lg"
+              class="flex-shrink-0"
               @click="store.triggerNextBackground"
-            />
-            <UButton
-              icon="i-heroicons-home"
-              color="neutral"
-              variant="subtle"
-              to="/"
-              :label="$t('dashboard.exit')"
-              size="lg"
             />
           </div>
         </div>
@@ -94,7 +96,7 @@
                 class="w-full"
               />
             </UFormField>
-            <div class="flex space-x-4">
+            <div class="flex flex-col sm:flex-row gap-4">
               <UFormField :label="$t('manage.backgrounds.type')" class="flex-1">
                 <USelect
                   v-model="newExternal.type"
@@ -109,7 +111,7 @@
                   icon="i-heroicons-plus"
                   color="primary"
                   size="xl"
-                  class="px-8"
+                  class="w-full sm:px-8"
                   :disabled="!newExternal.url"
                   @click="addExternalUrl"
                 />
@@ -134,11 +136,11 @@
             size="lg"
           />
         </div>
-        <div class="flex flex-wrap gap-4">
+        <div class="flex overflow-x-auto gap-4 pb-4 scrollbar-hide">
           <div
             v-for="(item, index) in store.waitingList"
             :key="item.url + index"
-            class="relative w-32 aspect-video overflow-hidden border border-default bg-(--ui-bg)/40 group"
+            class="relative flex-shrink-0 w-32 sm:w-40 aspect-video overflow-hidden border border-default bg-(--ui-bg)/40 group"
           >
             <img
               v-if="item.type === 'image'"
@@ -190,13 +192,14 @@
           <h3 class="text-xl font-bold text-default">
             {{ $t("manage.backgrounds.gallery") }}
           </h3>
-          <div class="flex items-center space-x-4">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-4">
             <UButton
               icon="i-heroicons-archive-box-arrow-down"
               color="neutral"
               variant="subtle"
               :label="$t('manage.backgrounds.exportZip')"
               size="sm"
+              class="w-full sm:w-auto"
               @click="downloadZip"
             />
             <UBadge
@@ -208,6 +211,7 @@
               color="neutral"
               variant="subtle"
               size="lg"
+              class="w-full sm:w-auto justify-center"
             />
           </div>
         </div>
@@ -248,14 +252,14 @@
 
             <!-- Overlay Actions -->
             <div
-              class="absolute inset-0 bg-(--ui-bg)/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-sm gap-4"
+              class="absolute inset-0 bg-(--ui-bg)/60 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-sm gap-4"
             >
               <UButton
                 icon="i-heroicons-clock"
                 color="primary"
                 variant="solid"
                 size="xl"
-                class="shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-300"
+                class="shadow-2xl scale-90 sm:scale-75 group-hover:scale-100 transition-transform duration-300"
                 :title="$t('manage.backgrounds.addToWaitingList')"
                 @click="store.addToWaitingList(item)"
               />
@@ -264,7 +268,7 @@
                 color="error"
                 variant="solid"
                 size="xl"
-                class="shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-300"
+                class="shadow-2xl scale-90 sm:scale-75 group-hover:scale-100 transition-transform duration-300"
                 @click="deleteMedia(item)"
               />
             </div>

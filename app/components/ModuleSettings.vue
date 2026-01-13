@@ -1,41 +1,79 @@
 <template>
-  <UCard v-if="store.config" variant="glass" class="w-full max-w-2xl mx-auto !border-0 !shadow-none overflow-hidden"
-    :ui="{ body: 'p-8' }">
-    <div class="flex items-center justify-between mb-8">
-      <h2 class="text-2xl font-bold text-(--ui-text)">
+  <UCard
+    v-if="store.config"
+    variant="glass"
+    class="w-full max-w-2xl mx-auto !border-0 !shadow-none overflow-hidden"
+    :ui="{ body: 'p-8' }"
+  >
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8"
+    >
+      <h2 class="text-2xl font-bold text-default">
         {{ $t("manage.modules.title") }}
       </h2>
-      <div class="flex items-center space-x-4">
-        <span v-if="saveStatus === 'success'" class="text-green-400 text-sm animate-fade-in">
-          {{ $t("common.saved") }}
-        </span>
-        <span v-if="saveStatus === 'error'" class="text-red-400 text-sm animate-fade-in">
-          {{ $t("common.failed") }}
-        </span>
-        <UButton icon="i-heroicons-check" color="primary" size="lg" :loading="isSaving" :label="$t('common.save')"
-          class="px-6" @click="handleSaveSettings" />
+      <div class="flex items-center justify-between sm:justify-end space-x-4">
+        <div class="flex items-center space-x-2">
+          <span
+            v-if="saveStatus === 'success'"
+            class="text-green-400 text-sm animate-fade-in"
+          >
+            {{ $t("common.saved") }}
+          </span>
+          <span
+            v-if="saveStatus === 'error'"
+            class="text-red-400 text-sm animate-fade-in"
+          >
+            {{ $t("common.failed") }}
+          </span>
+        </div>
+        <UButton
+          icon="i-heroicons-check"
+          color="primary"
+          size="lg"
+          :loading="isSaving"
+          :label="$t('common.save')"
+          class="px-6"
+          @click="handleSaveSettings"
+        />
       </div>
     </div>
     <div class="space-y-8">
-      <UCard v-for="mod in store.config?.modules" :key="mod.id" variant="glassDark"
-        class="overflow-hidden border border-default" :ui="{ body: 'p-0' }">
+      <UCard
+        v-for="mod in store.config?.modules"
+        :key="mod.id"
+        variant="glassDark"
+        class="overflow-hidden border border-default"
+        :ui="{ body: 'p-0' }"
+      >
         <div class="p-6 flex items-center justify-between bg-(--ui-bg)/5">
           <div class="flex items-center space-x-4">
-            <div class="w-12 h-12 bg-primary-500/20 flex items-center justify-center">
-              <UIcon :name="getModuleIcon(mod.module)" class="w-6 h-6 text-primary-400" />
+            <div
+              class="w-12 h-12 bg-primary-500/20 flex items-center justify-center"
+            >
+              <UIcon
+                :name="getModuleIcon(mod.module)"
+                class="w-6 h-6 text-primary-400"
+              />
             </div>
             <div>
               <h3 class="text-xl font-bold text-(--ui-text) capitalize">
                 {{ mod.module }} Module
               </h3>
-              <p class="text-xs text-(--ui-text)/40 uppercase tracking-widest font-bold">
+              <p
+                class="text-xs text-default/40 uppercase tracking-widest font-bold"
+              >
                 ID: {{ mod.id }}
               </p>
             </div>
           </div>
           <div class="flex items-center space-x-4">
-            <UButton icon="i-heroicons-trash" color="error" variant="ghost" size="sm"
-              @click="handleDeleteModule(mod)" />
+            <UButton
+              icon="i-heroicons-trash"
+              color="error"
+              variant="ghost"
+              size="sm"
+              @click="handleDeleteModule(mod)"
+            />
             <USwitch v-model="mod.enabled" size="lg" />
           </div>
         </div>
@@ -44,17 +82,28 @@
           <div v-if="mod.enabled" class="p-8 space-y-8 border-t border-default">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <!-- Position -->
-              <UFormField :label="$t('manage.modules.screenPosition')"
-                :description="$t('manage.modules.positionDescription')">
-                <USelect v-model="mod.position" :items="[...MODULE_POSITIONS]" size="xl" class="w-full" />
+              <UFormField
+                :label="$t('manage.modules.screenPosition')"
+                :description="$t('manage.modules.positionDescription')"
+              >
+                <USelect
+                  v-model="mod.position"
+                  :items="[...MODULE_POSITIONS]"
+                  size="xl"
+                  class="w-full"
+                />
               </UFormField>
 
               <!-- Specific Config -->
               <div v-if="mod.module === 'clock'" class="space-y-4">
-                <UFormField :label="$t('manage.modules.clock.displaySeconds')"
-                  :description="$t('manage.modules.clock.secondsDescription')">
+                <UFormField
+                  :label="$t('manage.modules.clock.displaySeconds')"
+                  :description="$t('manage.modules.clock.secondsDescription')"
+                >
                   <div class="flex items-center justify-between">
-                    <span class="text-sm text-(--ui-text)/70">Enable Seconds</span>
+                    <span class="text-sm text-(--ui-text)/70"
+                      >Enable Seconds</span
+                    >
                     <USwitch v-model="(mod.config as any).displaySeconds" />
                   </div>
                 </UFormField>
@@ -63,32 +112,56 @@
               <!-- Weather Config -->
               <div v-if="mod.module === 'weather'" class="space-y-6">
                 <UFormField label="Weather Provider">
-                  <USelect v-model="(mod.config as any).weatherProvider" :items="['openmeteo']" size="xl"
-                    class="w-full" />
+                  <USelect
+                    v-model="(mod.config as any).weatherProvider"
+                    :items="['openmeteo']"
+                    size="xl"
+                    class="w-full"
+                  />
                 </UFormField>
                 <div class="grid grid-cols-2 gap-4">
                   <UFormField label="Latitude">
-                    <UInput v-model.number="(mod.config as any).lat" type="number" size="md" placeholder="48.0986" />
+                    <UInput
+                      v-model.number="(mod.config as any).lat"
+                      type="number"
+                      size="md"
+                      placeholder="48.0986"
+                    />
                   </UFormField>
                   <UFormField label="Longitude">
-                    <UInput v-model.number="(mod.config as any).lon" type="number" size="md" placeholder="14.0353" />
+                    <UInput
+                      v-model.number="(mod.config as any).lon"
+                      type="number"
+                      size="md"
+                      placeholder="14.0353"
+                    />
                   </UFormField>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
-                  <UFormField :label="$t('manage.modules.weather.showProvider')">
+                  <UFormField
+                    :label="$t('manage.modules.weather.showProvider')"
+                  >
                     <USwitch v-model="(mod.config as any).showProvider" />
                   </UFormField>
-                  <UFormField :label="$t('manage.modules.weather.showWindSpeed')">
+                  <UFormField
+                    :label="$t('manage.modules.weather.showWindSpeed')"
+                  >
                     <USwitch v-model="(mod.config as any).showWindSpeed" />
                   </UFormField>
-                  <UFormField :label="$t('manage.modules.weather.showHumidity')">
+                  <UFormField
+                    :label="$t('manage.modules.weather.showHumidity')"
+                  >
                     <USwitch v-model="(mod.config as any).showHumidity" />
                   </UFormField>
-                  <UFormField :label="$t('manage.modules.weather.showSunriseSunset')">
+                  <UFormField
+                    :label="$t('manage.modules.weather.showSunriseSunset')"
+                  >
                     <USwitch v-model="(mod.config as any).showSunriseSunset" />
                   </UFormField>
-                  <UFormField :label="$t('manage.modules.weather.showLocation')">
+                  <UFormField
+                    :label="$t('manage.modules.weather.showLocation')"
+                  >
                     <USwitch v-model="(mod.config as any).showLocation" />
                   </UFormField>
                 </div>
@@ -98,25 +171,61 @@
               <div v-if="mod.module === 'news'" class="space-y-6">
                 <div class="space-y-4">
                   <div class="flex items-center justify-between">
-                    <h4 class="text-sm font-bold text-(--ui-text)/60 uppercase tracking-widest">
+                    <h4
+                      class="text-sm font-bold text-(--ui-text)/60 uppercase tracking-widest"
+                    >
                       RSS Feeds
                     </h4>
-                    <UButton icon="i-heroicons-plus" size="xs" variant="ghost" label="Add Feed" @click="
-                      (mod.config as any).feeds.push({ title: '', url: '' })
-                      " />
+                    <UButton
+                      icon="i-heroicons-plus"
+                      size="xs"
+                      variant="ghost"
+                      label="Add Feed"
+                      @click="
+                        (mod.config as any).feeds.push({ title: '', url: '' })
+                      "
+                    />
                   </div>
 
-                  <div v-for="(feed, fIdx) in (mod.config as any).feeds" :key="fIdx"
-                    class="grid grid-cols-12 gap-2 items-start">
-                    <div class="col-span-4">
-                      <UInput v-model="feed.title" placeholder="Feed Title" size="md" />
+                  <div
+                    v-for="(feed, fIdx) in (mod.config as any).feeds"
+                    :key="fIdx"
+                    class="flex flex-col sm:grid sm:grid-cols-12 gap-3 sm:gap-2 items-start bg-(--ui-bg)/5 p-4 sm:p-0 rounded-lg sm:rounded-none border border-default sm:border-0"
+                  >
+                    <div class="w-full sm:col-span-4">
+                      <UInput
+                        v-model="feed.title"
+                        placeholder="Feed Title"
+                        size="md"
+                        class="w-full"
+                      />
                     </div>
-                    <div class="col-span-7">
-                      <UInput v-model="feed.url" placeholder="RSS URL" size="md" />
+                    <div class="w-full sm:col-span-7">
+                      <UInput
+                        v-model="feed.url"
+                        placeholder="RSS URL"
+                        size="md"
+                        class="w-full"
+                      />
                     </div>
-                    <div class="col-span-1 flex justify-end">
-                      <UButton icon="i-heroicons-trash" size="xs" color="error" variant="ghost"
-                        @click="(mod.config as any).feeds.splice(fIdx, 1)" />
+                    <div class="w-full sm:col-span-1 flex justify-end">
+                      <UButton
+                        icon="i-heroicons-trash"
+                        size="sm"
+                        color="error"
+                        variant="ghost"
+                        :label="$t('common.delete')"
+                        class="sm:hidden w-full"
+                        @click="(mod.config as any).feeds.splice(fIdx, 1)"
+                      />
+                      <UButton
+                        icon="i-heroicons-trash"
+                        size="xs"
+                        color="error"
+                        variant="ghost"
+                        class="hidden sm:flex"
+                        @click="(mod.config as any).feeds.splice(fIdx, 1)"
+                      />
                     </div>
                   </div>
                 </div>
@@ -132,7 +241,10 @@
               </div>
 
               <!-- Background Metadata Config -->
-              <div v-if="mod.module === 'background-metadata'" class="space-y-6">
+              <div
+                v-if="mod.module === 'background-metadata'"
+                class="space-y-6"
+              >
                 <div class="grid grid-cols-2 gap-4">
                   <UFormField :label="$t('manage.modules.metadata.fileName')">
                     <USwitch v-model="(mod.config as any).showFileName" />
@@ -157,22 +269,48 @@
 
               <!-- QR Code Config -->
               <div v-if="mod.module === 'qrcode'" class="space-y-6">
-                <UFormField :label="$t('manage.modules.qrcode.type')"
-                  :description="$t('manage.modules.qrcode.typeDescription')">
-                  <USelect v-model="(mod.config as any).type" :items="[
-                    { label: $t('manage.modules.qrcode.custom'), value: 'custom' },
-                    { label: $t('manage.modules.qrcode.mediaUpload'), value: 'media-upload' }
-                  ]" size="xl" class="w-full" />
+                <UFormField
+                  :label="$t('manage.modules.qrcode.type')"
+                  :description="$t('manage.modules.qrcode.typeDescription')"
+                >
+                  <USelect
+                    v-model="(mod.config as any).type"
+                    :items="[
+                      {
+                        label: $t('manage.modules.qrcode.custom'),
+                        value: 'custom',
+                      },
+                      {
+                        label: $t('manage.modules.qrcode.mediaUpload'),
+                        value: 'media-upload',
+                      },
+                    ]"
+                    size="xl"
+                    class="w-full"
+                  />
                 </UFormField>
 
-                <UFormField :label="$t('manage.modules.qrcode.title')"
-                  :description="$t('manage.modules.qrcode.titleDescription')">
-                  <UInput v-model="(mod.config as any).title" placeholder="e.g. Scan to Upload" size="xl" />
+                <UFormField
+                  :label="$t('manage.modules.qrcode.title')"
+                  :description="$t('manage.modules.qrcode.titleDescription')"
+                >
+                  <UInput
+                    v-model="(mod.config as any).title"
+                    placeholder="e.g. Scan to Upload"
+                    size="xl"
+                  />
                 </UFormField>
 
-                <UFormField v-if="(mod.config as any).type === 'custom'" :label="$t('manage.modules.qrcode.url')"
-                  :description="$t('manage.modules.qrcode.urlDescription')">
-                  <UInput v-model="(mod.config as any).customUrl" placeholder="https://..." size="xl" />
+                <UFormField
+                  v-if="(mod.config as any).type === 'custom'"
+                  :label="$t('manage.modules.qrcode.url')"
+                  :description="$t('manage.modules.qrcode.urlDescription')"
+                >
+                  <UInput
+                    v-model="(mod.config as any).customUrl"
+                    placeholder="https://..."
+                    size="xl"
+                  />
                 </UFormField>
               </div>
             </div>
@@ -184,9 +322,14 @@
     <!-- Add Module Button -->
     <div class="mt-12 flex justify-center">
       <UDropdownMenu :items="availableModules" :ui="{ content: 'w-64' }">
-        <UButton icon="i-heroicons-plus" color="neutral" variant="subtle" size="xl"
+        <UButton
+          icon="i-heroicons-plus"
+          color="neutral"
+          variant="subtle"
+          size="xl"
           :label="$t('manage.modules.addModule')"
-          class="px-8 border-2 border-dashed border-default hover:border-primary-500/50 hover:bg-primary-500/5 transition-all" />
+          class="px-8 border-2 border-dashed border-default hover:border-primary-500/50 hover:bg-primary-500/5 transition-all"
+        />
       </UDropdownMenu>
     </div>
   </UCard>
@@ -291,7 +434,9 @@ const addModule = (type: string) => {
       break;
     case "news":
       Object.assign(defaultConfig, {
-        feeds: [{ title: "Der Standard", url: "https://www.derstandard.at/rss" }],
+        feeds: [
+          { title: "Der Standard", url: "https://www.derstandard.at/rss" },
+        ],
         showSourceTitle: true,
         showPublishDate: true,
       });
