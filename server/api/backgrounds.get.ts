@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { defineEventHandler } from "h3";
-import exifr from "exifr";
+import { exiftool } from "exiftool-vendored";
 import { mapMetadata } from "../utils/metadata";
 import { getProjectPaths } from "../utils/paths";
 
@@ -49,21 +49,23 @@ export default defineEventHandler(async () => {
         };
 
         let rawMeta = null;
-        if (type === "image") {
+        if (type === "image" || type === "video") {
           try {
-            // Extract EXIF metadata from images
-            rawMeta = await exifr.parse(filePath, true);
+            // Extract metadata using exiftool
+            rawMeta = await exiftool.read(filePath);
           } catch (err) {
             console.error(`Error extracting metadata from ${file}:`, err);
           }
         }
 
         // Map metadata for both images and videos
-        // For videos, rawMeta will be null, but mapMetadata will still fill in file info (size, name, etc.)
         item.metadata = mapMetadata(rawMeta, {
           fileName: file,
           fileSize: stats.size,
-          mimeType: `${type}/${ext.slice(1).replace("jpg", "jpeg")}`,
+          mimeType:
+            type === "image"
+              ? `image/${ext.slice(1).replace("jpg", "jpeg")}`
+              : `video/${ext.slice(1)}`,
         });
 
         results.push(item);

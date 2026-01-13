@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import exifr from "exifr";
+import { exiftool } from "exiftool-vendored";
 import { mapMetadata } from "./metadata";
 import { getProjectPaths } from "./paths";
 import type { BackgroundItem, DashboardConfig } from "../../app/types/config";
@@ -63,28 +63,29 @@ class BackgroundController {
             type,
           };
 
-          if (type === "image") {
+          if (type === "image" || type === "video") {
             try {
-              const rawMeta = await exifr.parse(filePath, true);
+              const rawMeta = await exiftool.read(filePath);
               item.metadata = mapMetadata(rawMeta, {
                 fileName: file,
                 fileSize: stats.size,
-                mimeType: `image/${ext.slice(1).replace("jpg", "jpeg")}`,
+                mimeType:
+                  type === "image"
+                    ? `image/${ext.slice(1).replace("jpg", "jpeg")}`
+                    : `video/${ext.slice(1)}`,
               });
             } catch (err) {
+              console.error(`Failed to read metadata for ${file}:`, err);
               // Fallback
               item.metadata = mapMetadata(null, {
                 fileName: file,
                 fileSize: stats.size,
-                mimeType: `image/${ext.slice(1).replace("jpg", "jpeg")}`,
+                mimeType:
+                  type === "image"
+                    ? `image/${ext.slice(1).replace("jpg", "jpeg")}`
+                    : `video/${ext.slice(1)}`,
               });
             }
-          } else {
-            item.metadata = mapMetadata(null, {
-              fileName: file,
-              fileSize: stats.size,
-              mimeType: `video/${ext.slice(1)}`,
-            });
           }
 
           results.push(item);

@@ -26,8 +26,16 @@ export const mapMetadata = (
   // Prioritize EXIF dates if available
   const exifDate = raw.DateTimeOriginal || raw.CreateDate || raw.ModifyDate;
   if (exifDate) {
-    meta.createdAt = exifDate;
-    meta.modifiedAt = exifDate;
+    // exiftool-vendored might return ExifDateTime objects which have a .toDate() or .toString()
+    // but often they are already strings or Date objects depending on config.
+    // We'll handle both.
+    if (typeof exifDate.toDate === "function") {
+      meta.createdAt = exifDate.toDate().toISOString();
+      meta.modifiedAt = exifDate.toDate().toISOString();
+    } else {
+      meta.createdAt = exifDate;
+      meta.modifiedAt = exifDate;
+    }
   }
 
   // Ensure dates are strings for JSON compatibility
@@ -36,12 +44,16 @@ export const mapMetadata = (
   if (meta.modifiedAt instanceof Date)
     meta.modifiedAt = meta.modifiedAt.toISOString();
 
-  // GPS mapping
-  if (raw.latitude !== undefined && raw.longitude !== undefined) {
+  // GPS mapping (exiftool-vendored uses GPSLatitude/GPSLongitude)
+  const lat = raw.GPSLatitude ?? raw.latitude;
+  const lon = raw.GPSLongitude ?? raw.longitude;
+  const alt = raw.GPSAltitude ?? raw.altitude;
+
+  if (lat !== undefined && lon !== undefined) {
     meta.gps = {
-      latitude: raw.latitude,
-      longitude: raw.longitude,
-      altitude: raw.altitude,
+      latitude: lat,
+      longitude: lon,
+      altitude: alt,
     };
   }
 
