@@ -4,7 +4,7 @@
   >
     <!-- Premium Header -->
     <header
-      class="sticky top-0 z-50 backdrop-blur-xl bg-(--ui-bg)/50 border-b border-(--ui-border)"
+      class="sticky top-0 z-50 sm:backdrop-blur-xl bg-(--ui-bg)/50 border-b border-(--ui-border)"
     >
       <UContainer>
         <div class="flex items-center justify-between h-16 sm:h-20">

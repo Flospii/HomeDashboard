@@ -252,7 +252,7 @@
 
             <!-- Overlay Actions -->
             <div
-              class="absolute inset-0 bg-(--ui-bg)/60 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-sm gap-4"
+              class="absolute inset-0 sm:bg-(--ui-bg)/60 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-4"
             >
               <UButton
                 icon="i-heroicons-clock"
@@ -275,7 +275,7 @@
 
             <!-- Type Badge -->
             <div
-              class="absolute top-4 left-4 px-3 py-1 bg-(--ui-bg)/60 backdrop-blur-md text-[10px] font-bold uppercase tracking-widest text-default/80 border border-default"
+              class="absolute top-4 left-4 px-3 py-1 bg-(--ui-bg)/60 text-[10px] font-bold uppercase tracking-widest text-default/80 border border-default"
             >
               {{
                 isLocal(item.url)
