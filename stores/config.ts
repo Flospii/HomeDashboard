@@ -11,7 +11,7 @@ export const useConfigStore = defineStore("config", () => {
   const isLoading = ref(true);
   const error = ref<string | null>(null);
   const currentBackgroundIndex = ref(0);
-  const serverBackground = ref<any>(null);
+  const serverBackground = ref<BackgroundItem | null>(null);
   const serverRemainingTime = ref(0);
   const serverTransitionMode = ref("fade");
   let pollingTimer: any = null;
@@ -148,6 +148,16 @@ export const useConfigStore = defineStore("config", () => {
       serverRemainingTime.value = status.remainingTime;
       serverTransitionMode.value = status.transitionMode;
 
+      // Sync currentBackgroundIndex
+      if (status.currentMedia) {
+        const index = allBackgrounds.value.findIndex(
+          (b) => b.url === status.currentMedia.url
+        );
+        if (index !== -1) {
+          currentBackgroundIndex.value = index;
+        }
+      }
+
       // Update waiting list in config if it exists
       if (config.value && status.waitingList) {
         config.value.background.waitingList = status.waitingList;
@@ -172,6 +182,16 @@ export const useConfigStore = defineStore("config", () => {
           serverBackground.value = status.currentMedia;
           serverRemainingTime.value = status.remainingTime;
           serverTransitionMode.value = status.transitionMode;
+
+          // Sync currentBackgroundIndex if the new background is in allBackgrounds
+          if (status.currentMedia) {
+            const index = allBackgrounds.value.findIndex(
+              (b) => b.url === status.currentMedia.url
+            );
+            if (index !== -1) {
+              currentBackgroundIndex.value = index;
+            }
+          }
 
           if (config.value && status.waitingList) {
             config.value.background.waitingList = status.waitingList;
