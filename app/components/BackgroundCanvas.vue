@@ -1,27 +1,35 @@
 <template>
-  <div class="absolute inset-0 z-0 overflow-hidden">
-    <TransitionGroup :name="effectiveTransitionMode">
+  <div class="absolute inset-0 z-0 overflow-hidden bg-black">
+    <TransitionGroup
+      :name="effectiveTransitionMode"
+      tag="div"
+      class="relative w-full h-full"
+    >
       <div
-        v-for="(item, index) in [currentMedia]"
-        :key="item.url + index"
-        class="absolute inset-0 w-full h-full"
+        v-for="item in displayBackgrounds"
+        :key="item.url + store.serverStateId"
+        class="absolute inset-0 w-full h-full bg-black"
       >
         <img
           v-if="item.type === 'image'"
           :src="item.url"
           class="object-cover w-full h-full"
           alt="Background"
-          @error="handleMediaError"
+          @error="
+            (e) => console.error('BackgroundCanvas: Image error', item.url, e)
+          "
         />
         <video
           v-else-if="item.type === 'video'"
           :src="item.url"
           autoplay
           muted
-          :loop="videoPlaybackMode === 'loop'"
+          loop
           playsinline
           class="object-cover w-full h-full"
-          @error="handleMediaError"
+          @error="
+            (e) => console.error('BackgroundCanvas: Video error', item.url, e)
+          "
         ></video>
       </div>
     </TransitionGroup>
@@ -36,28 +44,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
-import type {
-  BackgroundItem,
-  TransitionMode,
-  PlaybackMode,
-  VideoPlaybackMode,
-} from "../types/config";
+import { computed, watch, onMounted } from "vue";
 import { useConfigStore } from "~~/stores/config";
 
 const props = defineProps<{
-  media: BackgroundItem[];
-  interval?: number;
-  transitionMode?: TransitionMode;
-  playbackOrder?: PlaybackMode;
-  videoPlaybackMode?: VideoPlaybackMode;
+  transitionMode?: string;
 }>();
 
 const store = useConfigStore();
 
-const currentMedia = computed(
-  () => (store.serverBackground || { url: "", type: "image" }) as BackgroundItem
+const displayBackgrounds = computed(() => {
+  return store.serverBackground ? [store.serverBackground] : [];
+});
+
+watch(
+  () => store.serverBackground,
+  (newBg) => {
+    // Background updated
+  }
 );
+
+onMounted(() => {
+  // Component mounted
+});
 
 const effectiveTransitionMode = computed(() => {
   // If low power mode is enabled, always use fade
@@ -68,57 +77,11 @@ const effectiveTransitionMode = computed(() => {
 });
 
 const nextImageUrl = computed(() => {
-  if (!props.media || props.media.length <= 1) return null;
-
-  const currentIndex = props.media.findIndex(
-    (m) => m.url === currentMedia.value.url
-  );
-  if (currentIndex === -1) return null;
-
-  let nextIndex: number;
-  if (props.playbackOrder === "random") {
-    // We don't know the next random one, so we just pick the next one in list
-    nextIndex = (currentIndex + 1) % props.media.length;
-  } else {
-    nextIndex = (currentIndex + 1) % props.media.length;
+  if (store.serverNextBackground?.type === "image") {
+    return store.serverNextBackground.url;
   }
-
-  const nextItem = props.media[nextIndex];
-  return nextItem?.type === "image" ? nextItem.url : null;
+  return null;
 });
-
-const stopTimer = () => {
-  store.stopStatusPolling();
-};
-
-const startTimer = () => {
-  store.startStatusPolling();
-};
-
-const nextMedia = () => {
-  store.triggerNextBackground();
-};
-
-const handleMediaError = () => {
-  console.error("Media failed to load:", currentMedia.value.url);
-  nextMedia();
-};
-
-onMounted(() => {
-  startTimer();
-});
-
-onUnmounted(() => {
-  stopTimer();
-});
-
-// Watch for changes in interval or media list to restart the timer
-watch(
-  () => [props.interval, props.media.length],
-  () => {
-    startTimer();
-  }
-);
 </script>
 
 <style scoped>

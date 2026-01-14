@@ -7,58 +7,15 @@ import type {
 
 export const useConfigStore = defineStore("config", () => {
   const config = ref<DashboardConfig | null>(null);
-  const localBackgrounds = ref<BackgroundItem[]>([]);
   const isLoading = ref(true);
   const error = ref<string | null>(null);
-  const currentBackgroundIndex = ref(0);
   const serverBackground = ref<BackgroundItem | null>(null);
+  const serverNextBackground = ref<BackgroundItem | null>(null);
+  const serverWaitingList = ref<BackgroundItem[]>([]);
   const serverRemainingTime = ref(0);
   const serverTransitionMode = ref("fade");
-  let pollingTimer: any = null;
+  const serverStateId = ref(0);
   let ws: WebSocket | null = null;
-
-  const allBackgrounds = computed(() => {
-    if (!config.value) return [];
-    const staticMedia = config.value.background.externalMediaUrlList || [];
-    return [...staticMedia, ...localBackgrounds.value];
-  });
-
-  const waitingList = computed(() => {
-    return config.value?.background?.waitingList || [];
-  });
-
-  const currentBackground = computed(() => {
-    return allBackgrounds.value[currentBackgroundIndex.value] || null;
-  });
-
-  const fetchLocalBackgrounds = async () => {
-    if (!config.value?.background?.useLocalBackgrounds) {
-      localBackgrounds.value = [];
-      return;
-    }
-
-    try {
-      const data = await $fetch<BackgroundItem[]>("/api/backgrounds");
-      if (Array.isArray(data)) {
-        localBackgrounds.value = data;
-      }
-    } catch (err) {
-      console.error("Error fetching local backgrounds:", err);
-    }
-  };
-
-  const startPolling = () => {
-    stopPolling();
-    const interval = config.value?.background?.localPollingInterval || 30000;
-    pollingTimer = setInterval(fetchLocalBackgrounds, interval);
-  };
-
-  const stopPolling = () => {
-    if (pollingTimer) {
-      clearInterval(pollingTimer);
-      pollingTimer = null;
-    }
-  };
 
   const fetchConfig = async () => {
     try {
@@ -86,13 +43,6 @@ export const useConfigStore = defineStore("config", () => {
           // but for DashboardConfig, a replacement is often safer for complex nested items.
           // Let's at least ensure we don't trigger if it's identical.
           Object.assign(config.value, data);
-        }
-        await fetchLocalBackgrounds();
-
-        if (data.background?.useLocalBackgrounds) {
-          startPolling();
-        } else {
-          stopPolling();
         }
       }
     } catch (err) {
@@ -137,31 +87,15 @@ export const useConfigStore = defineStore("config", () => {
     );
   };
 
-  const setBackgroundIndex = (index: number) => {
-    currentBackgroundIndex.value = index;
-  };
-
   const fetchBackgroundStatus = async () => {
     try {
       const status = await $fetch<any>("/api/background/status");
       serverBackground.value = status.currentMedia;
+      serverNextBackground.value = status.nextMedia;
+      serverWaitingList.value = status.waitingList || [];
       serverRemainingTime.value = status.remainingTime;
       serverTransitionMode.value = status.transitionMode;
-
-      // Sync currentBackgroundIndex
-      if (status.currentMedia) {
-        const index = allBackgrounds.value.findIndex(
-          (b) => b.url === status.currentMedia.url
-        );
-        if (index !== -1) {
-          currentBackgroundIndex.value = index;
-        }
-      }
-
-      // Update waiting list in config if it exists
-      if (config.value && status.waitingList) {
-        config.value.background.waitingList = status.waitingList;
-      }
+      serverStateId.value = status.stateId || 0;
     } catch (err) {
       console.error("Error fetching background status:", err);
     }
@@ -180,27 +114,15 @@ export const useConfigStore = defineStore("config", () => {
         if (message.type === "status") {
           const status = message.data;
           serverBackground.value = status.currentMedia;
+          serverNextBackground.value = status.nextMedia;
+          serverWaitingList.value = status.waitingList || [];
           serverRemainingTime.value = status.remainingTime;
           serverTransitionMode.value = status.transitionMode;
-
-          // Sync currentBackgroundIndex if the new background is in allBackgrounds
-          if (status.currentMedia) {
-            const index = allBackgrounds.value.findIndex(
-              (b) => b.url === status.currentMedia.url
-            );
-            if (index !== -1) {
-              currentBackgroundIndex.value = index;
-            }
-          }
-
-          if (config.value && status.waitingList) {
-            config.value.background.waitingList = status.waitingList;
-          }
+          serverStateId.value = status.stateId || 0;
         } else if (message.type === "config") {
           // Update the configuration instantly when pushed from the server
           if (JSON.stringify(config.value) !== JSON.stringify(message.data)) {
             config.value = message.data;
-            fetchLocalBackgrounds();
           }
         }
       } catch (e) {
@@ -249,69 +171,49 @@ export const useConfigStore = defineStore("config", () => {
     }
   };
 
-  const triggerPreviousBackground = async () => {
-    try {
-      await $fetch<any>("/api/background/previous", {
-        method: "POST",
-      });
-      // WebSocket will handle the state update
-    } catch (err) {
-      console.error("Error triggering previous background:", err);
-    }
-  };
-
   const addToWaitingList = async (item: BackgroundItem) => {
-    if (!config.value) return;
-    if (!config.value.background.waitingList) {
-      config.value.background.waitingList = [];
+    try {
+      await $fetch("/api/background/waiting-list", {
+        method: "POST",
+        body: { action: "add", item },
+      });
+    } catch (err) {
+      console.error("Error adding to waiting list:", err);
     }
-    config.value.background.waitingList.push(item);
-    await saveConfig();
   };
 
   const removeFromWaitingList = async (index: number) => {
-    if (!config.value?.background.waitingList) return;
-    config.value.background.waitingList.splice(index, 1);
-    await saveConfig();
-  };
-
-  const popNextFromWaitingList = async () => {
-    if (
-      !config.value?.background.waitingList ||
-      config.value.background.waitingList.length === 0
-    )
-      return null;
-    const item = config.value.background.waitingList.shift();
-    await saveConfig();
-    return item;
+    try {
+      await $fetch("/api/background/waiting-list", {
+        method: "POST",
+        body: { action: "remove", index },
+      });
+    } catch (err) {
+      console.error("Error removing from waiting list:", err);
+    }
   };
 
   return {
     config,
-    allBackgrounds,
     isLoading,
     error,
-    currentBackgroundIndex,
-    currentBackground,
     fetchConfig,
     refreshConfig,
     startConfigPolling,
     stopConfigPolling,
     saveConfig,
     getModulesAtPosition,
-    stopPolling,
-    setBackgroundIndex,
-    waitingList,
+    serverWaitingList,
     addToWaitingList,
     removeFromWaitingList,
-    popNextFromWaitingList,
     serverBackground,
+    serverNextBackground,
     serverRemainingTime,
     serverTransitionMode,
+    serverStateId,
     fetchBackgroundStatus,
     startStatusPolling,
     stopStatusPolling,
     triggerNextBackground,
-    triggerPreviousBackground,
   };
 });

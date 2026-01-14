@@ -1,16 +1,22 @@
 <template>
   <div class="relative w-full h-full overflow-hidden">
-    <div v-if="store.isLoading" class="flex items-center justify-center h-full text-default text-2xl">
+    <div
+      v-if="store.isLoading"
+      class="flex items-center justify-center h-full text-default text-2xl"
+    >
       Loading Dashboard...
     </div>
-    <div v-else-if="store.error" class="flex items-center justify-center h-full text-error-500 text-2xl">
+    <div
+      v-else-if="store.error"
+      class="flex items-center justify-center h-full text-error-500 text-2xl"
+    >
       Error: {{ store.error }}
     </div>
     <template v-else-if="store.config">
       <!-- Background Layer -->
-      <BackgroundCanvas :media="store.allBackgrounds" :interval="store.config.background.interval"
+      <BackgroundCanvas
         :transition-mode="store.config.background.transitionMode"
-        :playback-order="store.config.background.playbackOrder" />
+      />
 
       <!-- UI Overlay Grid -->
       <DashboardGrid>
@@ -39,10 +45,12 @@ const store = useConfigStore();
 onMounted(() => {
   store.fetchConfig();
   store.startConfigPolling();
+  store.startStatusPolling();
 });
 
 onUnmounted(() => {
   store.stopConfigPolling();
+  store.stopStatusPolling();
 });
 
 const moduleMap: Record<string, any> = {

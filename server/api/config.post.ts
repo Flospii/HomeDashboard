@@ -4,6 +4,7 @@ import { getProjectPaths } from "../utils/paths";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
+  console.log("[Server] API | POST /api/config");
   if (!body) {
     throw createError({
       statusCode: 400,
@@ -30,6 +31,7 @@ export default defineEventHandler(async (event) => {
     const { backgroundController } = await import(
       "../utils/backgroundController"
     );
+    await backgroundController.refreshMedia();
     backgroundController.notifyStateChange();
 
     // Broadcast the new configuration to all connected WebSocket clients

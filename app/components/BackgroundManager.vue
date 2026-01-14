@@ -25,16 +25,6 @@
             class="flex items-center space-x-2 sm:space-x-4 overflow-x-auto pb-2 sm:pb-0"
           >
             <UButton
-              icon="i-heroicons-backward"
-              color="neutral"
-              variant="subtle"
-              :label="$t('manage.backgrounds.previous')"
-              size="md"
-              sm:size="lg"
-              class="flex-shrink-0"
-              @click="store.triggerPreviousBackground"
-            />
-            <UButton
               icon="i-heroicons-forward"
               color="neutral"
               variant="subtle"
@@ -122,7 +112,7 @@
       </div>
 
       <!-- Waiting List Section -->
-      <div v-if="store.waitingList.length > 0" class="mb-12 space-y-4">
+      <div v-if="store.serverWaitingList.length > 0" class="mb-12 space-y-4">
         <div
           class="flex items-center justify-between border-b border-default pb-4"
         >
@@ -130,7 +120,7 @@
             {{ $t("manage.backgrounds.waitingList") }}
           </h3>
           <UBadge
-            :label="store.waitingList.length"
+            :label="store.serverWaitingList.length"
             color="primary"
             variant="subtle"
             size="lg"
@@ -138,7 +128,7 @@
         </div>
         <div class="flex overflow-x-auto gap-4 pb-4 scrollbar-hide">
           <div
-            v-for="(item, index) in store.waitingList"
+            v-for="(item, index) in store.serverWaitingList"
             :key="item.url + index"
             class="relative flex-shrink-0 w-32 sm:w-40 aspect-video overflow-hidden border border-default bg-(--ui-bg)/40 group"
           >
@@ -205,7 +195,7 @@
             <UBadge
               :label="
                 $t('manage.backgrounds.items', {
-                  count: store.allBackgrounds.length,
+                  count: allBackgrounds.length,
                 })
               "
               color="neutral"
@@ -217,7 +207,7 @@
         </div>
 
         <div
-          v-if="store.allBackgrounds.length === 0"
+          v-if="allBackgrounds.length === 0"
           class="text-center py-20 bg-(--ui-bg)/5 border border-default"
         >
           <UIcon
@@ -233,7 +223,7 @@
           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
         >
           <div
-            v-for="(item, index) in store.allBackgrounds"
+            v-for="(item, index) in allBackgrounds"
             :key="item.url"
             class="relative group aspect-video overflow-hidden border border-default bg-(--ui-bg)/40 shadow-xl"
           >
@@ -293,13 +283,27 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted } from "vue";
 import { useConfigStore } from "~~/stores/config";
+import type { BackgroundItem } from "~~/app/types/config";
 
 const { t } = useI18n();
 
 const store = useConfigStore();
+const allBackgrounds = ref<BackgroundItem[]>([]);
+
+const fetchAllBackgrounds = async () => {
+  try {
+    const data = await $fetch<BackgroundItem[]>("/api/backgrounds");
+    if (Array.isArray(data)) {
+      allBackgrounds.value = data;
+    }
+  } catch (err) {
+    console.error("Error fetching backgrounds:", err);
+  }
+};
 
 onMounted(() => {
   store.startStatusPolling();
+  fetchAllBackgrounds();
 });
 
 onUnmounted(() => {
@@ -336,6 +340,7 @@ const handleFileUpload = async (event: Event) => {
       body: formData,
     });
     await store.fetchConfig();
+    await fetchAllBackgrounds();
   } catch (error) {
     console.error("Upload failed:", error);
   } finally {
@@ -353,6 +358,7 @@ const addExternalUrl = async () => {
 
   try {
     await store.saveConfig();
+    await fetchAllBackgrounds();
   } catch (error) {
     console.error("Failed to save external URL:", error);
   }
@@ -373,6 +379,7 @@ const deleteMedia = async (item: any) => {
         method: "DELETE",
       });
       await store.fetchConfig();
+      await fetchAllBackgrounds();
     } catch (error) {
       console.error("Failed to delete local file:", error);
     }
@@ -380,12 +387,13 @@ const deleteMedia = async (item: any) => {
     // Remove external URL
     if (!store.config) return;
     const index = store.config.background.externalMediaUrlList.findIndex(
-      (m) => m.url === item.url
+      (m: any) => m.url === item.url
     );
     if (index !== -1) {
       store.config.background.externalMediaUrlList.splice(index, 1);
       try {
         await store.saveConfig();
+        await fetchAllBackgrounds();
       } catch (error) {
         console.error("Failed to remove external URL:", error);
       }

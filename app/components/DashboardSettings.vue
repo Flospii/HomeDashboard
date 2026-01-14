@@ -2,7 +2,7 @@
   <UCard
     v-if="store.config"
     variant="glassDark"
-    class="!border-0 !shadow-none overflow-hidden"
+    class="border-0! shadow-none! overflow-hidden"
     :ui="{
       body: 'p-8',
     }"

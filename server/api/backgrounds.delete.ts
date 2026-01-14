@@ -2,10 +2,13 @@ import { defineEventHandler, getQuery, createError } from "h3";
 import fs from "fs/promises";
 import path from "path";
 import { getProjectPaths } from "../utils/paths";
+import { backgroundController } from "../utils/backgroundController";
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   const filename = query.filename as string;
+
+  console.log(`[Server] API | DELETE /api/backgrounds | Filename: ${filename}`);
 
   if (!filename) {
     throw createError({
@@ -22,6 +25,11 @@ export default defineEventHandler(async (event) => {
   try {
     await fs.access(filePath);
     await fs.unlink(filePath);
+
+    // Refresh the background controller to reflect the changes
+    await backgroundController.refreshMedia();
+    backgroundController.notifyStateChange();
+
     return { success: true, message: `Deleted ${safeFilename}` };
   } catch (error: any) {
     if (error.code === "ENOENT") {
