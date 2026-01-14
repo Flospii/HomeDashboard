@@ -14,6 +14,7 @@ class BackgroundController {
   private waitingList: BackgroundItem[] = [];
   private onStateChange: (() => void) | null = null;
   private stateId: number = 0;
+  private pollingTimer: NodeJS.Timeout | null = null;
 
   constructor() {
     this.init();
@@ -21,8 +22,7 @@ class BackgroundController {
 
   private async init() {
     console.log("[Server] BackgroundController | Initializing...");
-    await this.refreshMedia();
-    this.startTimer();
+    await this.reconfigure();
   }
 
   public async refreshMedia() {
@@ -78,13 +78,35 @@ class BackgroundController {
       })
     );
 
-    this.allMedia = [...externalMedia, ...localMedia];
-    console.log(
-      `[Server] BackgroundController | Media Refreshed | Total: ${this.allMedia.length} (Local: ${localMedia.length}, External: ${externalMedia.length})`
-    );
+    const newMedia = [...externalMedia, ...localMedia];
 
-    if (!this.currentMedia && this.allMedia.length > 0) {
-      this.currentMedia = this.allMedia[0];
+    // Check if media list actually changed to avoid redundant updates
+    const hasChanged =
+      JSON.stringify(this.allMedia.map((m) => m.url)) !==
+      JSON.stringify(newMedia.map((m) => m.url));
+
+    if (hasChanged) {
+      this.allMedia = newMedia;
+      console.log(
+        `[Server] BackgroundController | Media Refreshed | Total: ${this.allMedia.length} (Local: ${localMedia.length}, External: ${externalMedia.length})`
+      );
+
+      // Ensure currentMedia is still valid
+      if (this.currentMedia) {
+        const stillExists = this.allMedia.some(
+          (m) => m.url === this.currentMedia?.url
+        );
+        if (!stillExists) {
+          console.log(
+            `[Server] BackgroundController | Current media ${this.currentMedia.url} no longer exists, skipping to next.`
+          );
+          this.currentMedia = null;
+          await this.next();
+        }
+      } else if (this.allMedia.length > 0) {
+        this.currentMedia = this.allMedia[0];
+        this.notifyStateChange();
+      }
     }
   }
 
@@ -99,6 +121,29 @@ class BackgroundController {
     } catch (e) {}
 
     this.timer = setInterval(() => this.next(), interval);
+  }
+
+  private startPolling() {
+    if (this.pollingTimer) clearInterval(this.pollingTimer);
+
+    const { configFile } = getProjectPaths();
+    try {
+      const config = JSON.parse(fs.readFileSync(configFile, "utf-8"));
+      if (config.background.useLocalBackgrounds) {
+        const interval = config.background.localPollingInterval || 30000;
+        console.log(
+          `[Server] BackgroundController | Starting local polling (${interval}ms)`
+        );
+        this.pollingTimer = setInterval(() => this.refreshMedia(), interval);
+      }
+    } catch (e) {}
+  }
+
+  public async reconfigure() {
+    console.log("[Server] BackgroundController | Reconfiguring...");
+    await this.refreshMedia();
+    this.startTimer();
+    this.startPolling();
   }
 
   private isNextRunning: boolean = false;

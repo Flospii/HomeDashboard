@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
     const { backgroundController } = await import(
       "../utils/backgroundController"
     );
-    await backgroundController.refreshMedia();
+    await backgroundController.reconfigure();
     backgroundController.notifyStateChange();
 
     // Broadcast the new configuration to all connected WebSocket clients
