@@ -13,6 +13,8 @@ class BackgroundController {
   private allMedia: BackgroundItem[] = [];
   private history: BackgroundItem[] = [];
   private onStateChange: (() => void) | null = null;
+  private metadataCache: Map<string, { metadata: any; mtime: number }> =
+    new Map();
 
   constructor() {
     this.init();
@@ -23,7 +25,7 @@ class BackgroundController {
     this.startTimer();
   }
 
-  private async refreshMedia() {
+  public async refreshMedia() {
     const { backgroundsDir, configFile } = getProjectPaths();
 
     // Load config
@@ -58,33 +60,46 @@ class BackgroundController {
         if (type) {
           const filePath = path.join(dir, file);
           const stats = fs.statSync(filePath);
+          const mtime = stats.mtimeMs;
+
           const item: BackgroundItem = {
             url: `/backgrounds/${file}`,
             type,
           };
 
-          if (type === "image" || type === "video") {
-            try {
-              const rawMeta = await exiftool.read(filePath);
-              item.metadata = mapMetadata(rawMeta, {
-                fileName: file,
-                fileSize: stats.size,
-                mimeType:
-                  type === "image"
-                    ? `image/${ext.slice(1).replace("jpg", "jpeg")}`
-                    : `video/${ext.slice(1)}`,
-              });
-            } catch (err) {
-              console.error(`Failed to read metadata for ${file}:`, err);
-              // Fallback
-              item.metadata = mapMetadata(null, {
-                fileName: file,
-                fileSize: stats.size,
-                mimeType:
-                  type === "image"
-                    ? `image/${ext.slice(1).replace("jpg", "jpeg")}`
-                    : `video/${ext.slice(1)}`,
-              });
+          // Check cache
+          const cached = this.metadataCache.get(file);
+          if (cached && cached.mtime === mtime) {
+            item.metadata = cached.metadata;
+          } else {
+            if (type === "image" || type === "video") {
+              try {
+                const rawMeta = await exiftool.read(filePath);
+                item.metadata = mapMetadata(rawMeta, {
+                  fileName: file,
+                  fileSize: stats.size,
+                  mimeType:
+                    type === "image"
+                      ? `image/${ext.slice(1).replace("jpg", "jpeg")}`
+                      : `video/${ext.slice(1)}`,
+                });
+                // Update cache
+                this.metadataCache.set(file, {
+                  metadata: item.metadata,
+                  mtime,
+                });
+              } catch (err) {
+                console.error(`Failed to read metadata for ${file}:`, err);
+                // Fallback
+                item.metadata = mapMetadata(null, {
+                  fileName: file,
+                  fileSize: stats.size,
+                  mimeType:
+                    type === "image"
+                      ? `image/${ext.slice(1).replace("jpg", "jpeg")}`
+                      : `video/${ext.slice(1)}`,
+                });
+              }
             }
           }
 
@@ -186,6 +201,10 @@ class BackgroundController {
       totalInterval: interval,
       waitingList,
     };
+  }
+
+  public getAllMedia() {
+    return this.allMedia;
   }
 
   public async previous() {

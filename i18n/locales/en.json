@@ -64,7 +64,10 @@
       "localScanningDescription": "Automatically scan backgrounds folder",
       "enableDiscovery": "Enable Local Discovery",
       "pollingInterval": "Polling Interval (ms)",
-      "pollingDescription": "How often to check for new local files"
+      "pollingDescription": "How often to check for new local files",
+      "lowPowerMode": "Low Power Mode",
+      "lowPowerDescription": "Optimizes performance for low-end devices like Raspberry Pi by simplifying transitions and reducing resource usage",
+      "enableLowPower": "Enable Low Power Mode"
     },
     "modules": {
       "title": "Module Configuration",

@@ -1,6 +1,6 @@
 <template>
   <div class="absolute inset-0 z-0 overflow-hidden">
-    <TransitionGroup :name="transitionMode || 'fade'">
+    <TransitionGroup :name="effectiveTransitionMode">
       <div
         v-for="(item, index) in [currentMedia]"
         :key="item.url + index"
@@ -27,11 +27,16 @@
     </TransitionGroup>
     <!-- Overlay for better text readability -->
     <div class="absolute inset-0 bg-black/20 z-10"></div>
+
+    <!-- Preload next image -->
+    <div v-if="nextImageUrl" class="hidden">
+      <img :src="nextImageUrl" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import type {
   BackgroundItem,
   TransitionMode,
@@ -54,8 +59,32 @@ const currentMedia = computed(
   () => (store.serverBackground || { url: "", type: "image" }) as BackgroundItem
 );
 
-const nextMediaItem = computed(() => {
-  return null; // Server handles next media
+const effectiveTransitionMode = computed(() => {
+  // If low power mode is enabled, always use fade
+  if (store.config?.background?.lowPowerMode) {
+    return "fade";
+  }
+  return props.transitionMode || "fade";
+});
+
+const nextImageUrl = computed(() => {
+  if (!props.media || props.media.length <= 1) return null;
+
+  const currentIndex = props.media.findIndex(
+    (m) => m.url === currentMedia.value.url
+  );
+  if (currentIndex === -1) return null;
+
+  let nextIndex: number;
+  if (props.playbackOrder === "random") {
+    // We don't know the next random one, so we just pick the next one in list
+    nextIndex = (currentIndex + 1) % props.media.length;
+  } else {
+    nextIndex = (currentIndex + 1) % props.media.length;
+  }
+
+  const nextItem = props.media[nextIndex];
+  return nextItem?.type === "image" ? nextItem.url : null;
 });
 
 const stopTimer = () => {

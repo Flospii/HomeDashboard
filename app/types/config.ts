@@ -112,6 +112,7 @@ export interface DashboardConfig {
     playbackOrder?: PlaybackMode;
     videoPlaybackMode?: VideoPlaybackMode;
     waitingList?: BackgroundItem[];
+    lowPowerMode?: boolean;
   };
   language?: string;
   modules: ModuleConfig[];

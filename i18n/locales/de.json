@@ -64,7 +64,10 @@
       "localScanningDescription": "Hintergrundordner automatisch scannen",
       "enableDiscovery": "Lokale Erkennung aktivieren",
       "pollingInterval": "Abfrageintervall (ms)",
-      "pollingDescription": "Wie oft nach neuen lokalen Dateien gesucht wird"
+      "pollingDescription": "Wie oft nach neuen lokalen Dateien gesucht wird",
+      "lowPowerMode": "Energiesparmodus",
+      "lowPowerDescription": "Optimiert die Leistung für leistungsschwache Geräte wie den Raspberry Pi durch Vereinfachung der Übergänge und Reduzierung des Ressourcenverbrauchs",
+      "enableLowPower": "Energiesparmodus aktivieren"
     },
     "modules": {
       "title": "Modulkonfiguration",

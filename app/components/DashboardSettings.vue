@@ -112,6 +112,18 @@
             class="w-full"
           />
         </UFormField>
+
+        <UFormField
+          :label="$t('manage.preferences.lowPowerMode')"
+          :description="$t('manage.preferences.lowPowerDescription')"
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-default/70">{{
+              $t("manage.preferences.enableLowPower")
+            }}</span>
+            <USwitch v-model="store.config.background.lowPowerMode" />
+          </div>
+        </UFormField>
       </div>
 
       <!-- Center-Right Column (shifted): Language and Global Settings -->
