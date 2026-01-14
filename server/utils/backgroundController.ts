@@ -3,6 +3,7 @@ import path from "node:path";
 import { exiftool } from "exiftool-vendored";
 import { mapMetadata } from "./metadata";
 import { getProjectPaths } from "./paths";
+import { configManager } from "./config";
 import type { BackgroundItem, DashboardConfig } from "../../app/types/config";
 
 class BackgroundController {
@@ -16,6 +17,11 @@ class BackgroundController {
   private stateId: number = 0;
   private pollingTimer: NodeJS.Timeout | null = null;
 
+  private readonly mediaExtensions = {
+    image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
+    video: [".mp4", ".webm", ".ogg", ".mov"],
+  };
+
   constructor() {
     this.init();
   }
@@ -26,23 +32,10 @@ class BackgroundController {
   }
 
   public async refreshMedia() {
-    const { backgroundsDir, configFile } = getProjectPaths();
+    const { backgroundsDir } = getProjectPaths();
+    const config = configManager.getConfig();
 
-    // Load config
-    let config: DashboardConfig;
-    try {
-      config = JSON.parse(fs.readFileSync(configFile, "utf-8"));
-    } catch (e) {
-      console.error("Failed to load config in BackgroundController", e);
-      return;
-    }
-
-    const mediaExtensions = {
-      image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
-      video: [".mp4", ".webm", ".ogg", ".mov"],
-    };
-
-    const scanDir = async (dir: string) => {
+    const scanDir = (dir: string): BackgroundItem[] => {
       if (!fs.existsSync(dir)) return [];
       const files = fs.readdirSync(dir);
       const results: BackgroundItem[] = [];
@@ -51,14 +44,13 @@ class BackgroundController {
         const ext = path.extname(file).toLowerCase();
         let type: "image" | "video" | null = null;
 
-        if (mediaExtensions.image.includes(ext)) {
+        if (this.mediaExtensions.image.includes(ext)) {
           type = "image";
-        } else if (mediaExtensions.video.includes(ext)) {
+        } else if (this.mediaExtensions.video.includes(ext)) {
           type = "video";
         }
 
         if (type) {
-          // We only store the essential info in memory to save RAM
           results.push({
             url: `/backgrounds/${file}`,
             type,
@@ -69,7 +61,7 @@ class BackgroundController {
     };
 
     const localMedia = config.background.useLocalBackgrounds
-      ? await scanDir(backgroundsDir)
+      ? scanDir(backgroundsDir)
       : [];
     const externalMedia = (config.background.externalMediaUrlList || []).map(
       (m) => ({
@@ -82,8 +74,8 @@ class BackgroundController {
 
     // Check if media list actually changed to avoid redundant updates
     const hasChanged =
-      JSON.stringify(this.allMedia.map((m) => m.url)) !==
-      JSON.stringify(newMedia.map((m) => m.url));
+      this.allMedia.length !== newMedia.length ||
+      this.allMedia.some((m, i) => m.url !== newMedia[i]?.url);
 
     if (hasChanged) {
       this.allMedia = newMedia;
@@ -112,35 +104,26 @@ class BackgroundController {
 
   private startTimer() {
     if (this.timer) clearInterval(this.timer);
-
-    const { configFile } = getProjectPaths();
-    let interval = 30000;
-    try {
-      const config = JSON.parse(fs.readFileSync(configFile, "utf-8"));
-      interval = config.background.interval || 30000;
-    } catch (e) {}
-
+    const config = configManager.getConfig();
+    const interval = config.background.interval || 30000;
     this.timer = setInterval(() => this.next(), interval);
   }
 
   private startPolling() {
     if (this.pollingTimer) clearInterval(this.pollingTimer);
-
-    const { configFile } = getProjectPaths();
-    try {
-      const config = JSON.parse(fs.readFileSync(configFile, "utf-8"));
-      if (config.background.useLocalBackgrounds) {
-        const interval = config.background.localPollingInterval || 30000;
-        console.log(
-          `[Server] BackgroundController | Starting local polling (${interval}ms)`
-        );
-        this.pollingTimer = setInterval(() => this.refreshMedia(), interval);
-      }
-    } catch (e) {}
+    const config = configManager.getConfig();
+    if (config.background.useLocalBackgrounds) {
+      const interval = config.background.localPollingInterval || 30000;
+      console.log(
+        `[Server] BackgroundController | Starting local polling (${interval}ms)`
+      );
+      this.pollingTimer = setInterval(() => this.refreshMedia(), interval);
+    }
   }
 
   public async reconfigure() {
     console.log("[Server] BackgroundController | Reconfiguring...");
+    configManager.loadConfig(); // Ensure fresh config
     await this.refreshMedia();
     this.startTimer();
     this.startPolling();
@@ -153,13 +136,7 @@ class BackgroundController {
     this.isNextRunning = true;
 
     try {
-      const { configFile, backgroundsDir } = getProjectPaths();
-      let config: DashboardConfig;
-      try {
-        config = JSON.parse(fs.readFileSync(configFile, "utf-8"));
-      } catch (e) {
-        return;
-      }
+      const config = configManager.getConfig();
 
       // Check waiting list
       if (this.waitingList.length > 0) {
@@ -184,31 +161,7 @@ class BackgroundController {
         `[Server] BackgroundController | Next | picked ${this.currentMedia?.url} (stateId: ${this.stateId})`
       );
 
-      // Fetch metadata for the new current media and cache it
-      if (
-        this.currentMedia &&
-        this.currentMedia.url &&
-        this.currentMedia.url.startsWith("/backgrounds/") &&
-        !this.currentMedia.metadata // Only fetch if not already cached
-      ) {
-        const fileName = this.currentMedia.url.replace("/backgrounds/", "");
-        const filePath = path.join(backgroundsDir, fileName);
-        try {
-          const stats = fs.statSync(filePath);
-          const rawMeta = await exiftool.read(filePath);
-          const ext = path.extname(fileName).toLowerCase();
-          this.currentMedia.metadata = mapMetadata(rawMeta, {
-            fileName,
-            fileSize: stats.size,
-            mimeType:
-              this.currentMedia.type === "image"
-                ? `image/${ext.slice(1).replace("jpg", "jpeg")}`
-                : `video/${ext.slice(1)}`,
-          });
-        } catch (err) {
-          console.error("Failed to fetch metadata in next():", err);
-        }
-      }
+      await this.fetchMetadataForCurrent();
 
       this.startTime = Date.now();
       this.startTimer(); // Reset timer
@@ -218,16 +171,41 @@ class BackgroundController {
     }
   }
 
-  public async getStatus() {
-    const { configFile } = getProjectPaths();
-    let interval = 30000;
-    let transitionMode = "fade";
+  private async fetchMetadataForCurrent() {
+    if (
+      !this.currentMedia ||
+      !this.currentMedia.url ||
+      !this.currentMedia.url.startsWith("/backgrounds/") ||
+      this.currentMedia.metadata
+    ) {
+      return;
+    }
+
+    const { backgroundsDir } = getProjectPaths();
+    const fileName = this.currentMedia.url.replace("/backgrounds/", "");
+    const filePath = path.join(backgroundsDir, fileName);
 
     try {
-      const config = JSON.parse(fs.readFileSync(configFile, "utf-8"));
-      interval = config.background.interval || 30000;
-      transitionMode = config.background.transitionMode || "fade";
-    } catch (e) {}
+      const stats = fs.statSync(filePath);
+      const rawMeta = await exiftool.read(filePath);
+      const ext = path.extname(fileName).toLowerCase();
+      this.currentMedia.metadata = mapMetadata(rawMeta, {
+        fileName,
+        fileSize: stats.size,
+        mimeType:
+          this.currentMedia.type === "image"
+            ? `image/${ext.slice(1).replace("jpg", "jpeg")}`
+            : `video/${ext.slice(1)}`,
+      });
+    } catch (err) {
+      console.error("Failed to fetch metadata in next():", err);
+    }
+  }
+
+  public async getStatus() {
+    const config = configManager.getConfig();
+    const interval = config.background.interval || 30000;
+    const transitionMode = config.background.transitionMode || "fade";
 
     const elapsed = Date.now() - this.startTime;
     const remaining = Math.max(0, interval - elapsed);
@@ -242,11 +220,7 @@ class BackgroundController {
     if (this.waitingList.length > 0) {
       nextMedia = this.waitingList[0];
     } else if (this.allMedia.length > 0) {
-      let nextIndex = this.currentIndex;
-      try {
-        const config = JSON.parse(fs.readFileSync(configFile, "utf-8"));
-        nextIndex = (this.currentIndex + 1) % this.allMedia.length;
-      } catch (e) {}
+      const nextIndex = (this.currentIndex + 1) % this.allMedia.length;
       nextMedia = this.allMedia[nextIndex];
     }
 
