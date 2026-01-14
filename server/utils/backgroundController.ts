@@ -63,12 +63,12 @@ class BackgroundController {
     const localMedia = config.background.useLocalBackgrounds
       ? scanDir(backgroundsDir)
       : [];
-    const externalMedia = (config.background.externalMediaUrlList || []).map(
-      (m) => ({
-        url: m.url,
-        type: m.type,
-      })
-    );
+    const externalMedia: BackgroundItem[] = (
+      config.background.externalMediaUrlList || []
+    ).map((m) => ({
+      url: m.url,
+      type: m.type,
+    }));
 
     const newMedia = [...externalMedia, ...localMedia];
 
@@ -78,6 +78,14 @@ class BackgroundController {
       this.allMedia.some((m, i) => m.url !== newMedia[i]?.url);
 
     if (hasChanged) {
+      // Preserve metadata for existing items
+      for (const item of newMedia) {
+        const existing = this.allMedia.find((m) => m.url === item.url);
+        if (existing?.metadata) {
+          item.metadata = existing.metadata;
+        }
+      }
+
       this.allMedia = newMedia;
       console.log(
         `[Server] BackgroundController | Media Refreshed | Total: ${this.allMedia.length} (Local: ${localMedia.length}, External: ${externalMedia.length})`
@@ -85,7 +93,7 @@ class BackgroundController {
 
       // Ensure currentMedia is still valid
       if (this.currentMedia) {
-        const stillExists = this.allMedia.some(
+        const stillExists = this.allMedia.find(
           (m) => m.url === this.currentMedia?.url
         );
         if (!stillExists) {
@@ -94,6 +102,9 @@ class BackgroundController {
           );
           this.currentMedia = null;
           await this.next();
+        } else {
+          // Update currentMedia reference to the one in allMedia (which might have metadata now)
+          this.currentMedia = stillExists;
         }
       } else if (this.allMedia.length > 0) {
         this.currentMedia = this.allMedia[0];
@@ -161,8 +172,6 @@ class BackgroundController {
         `[Server] BackgroundController | Next | picked ${this.currentMedia?.url} (stateId: ${this.stateId})`
       );
 
-      await this.fetchMetadataForCurrent();
-
       this.startTime = Date.now();
       this.startTimer(); // Reset timer
       this.notifyStateChange();
@@ -198,7 +207,10 @@ class BackgroundController {
             : `video/${ext.slice(1)}`,
       });
     } catch (err) {
-      console.error("Failed to fetch metadata in next():", err);
+      console.error(
+        "Failed to fetch metadata in fetchMetadataForCurrent():",
+        err
+      );
     }
   }
 
@@ -213,6 +225,11 @@ class BackgroundController {
     // If currentMedia is null but we have media, trigger next()
     if (!this.currentMedia && this.allMedia.length > 0) {
       await this.next();
+    }
+
+    // Lazy load metadata for current media
+    if (this.currentMedia) {
+      await this.fetchMetadataForCurrent();
     }
 
     // Calculate next media for preloading
