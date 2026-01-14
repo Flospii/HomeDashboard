@@ -42,19 +42,63 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
         <!-- Local Upload -->
         <div
-          class="border-2 border-dashed border-default p-10 text-center hover:border-primary-500/50 hover:bg-primary-500/5 transition-all cursor-pointer group flex flex-col justify-center items-center"
+          class="border-2 border-dashed p-10 text-center transition-all cursor-pointer group flex flex-col justify-center items-center relative overflow-hidden"
+          :class="[
+            isDragging
+              ? 'border-primary-500 bg-primary-500/10'
+              : 'border-default hover:border-primary-500/50 hover:bg-primary-500/5',
+            isUploading ? 'pointer-events-none opacity-50' : '',
+          ]"
           @click="triggerFileInput"
+          @dragover.prevent="isDragging = true"
+          @dragleave.prevent="isDragging = false"
+          @drop.prevent="handleDrop"
         >
+          <!-- Loading Overlay -->
           <div
-            class="w-16 h-16 bg-(--ui-bg)/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
+            v-if="isUploading"
+            class="absolute inset-0 bg-(--ui-bg)/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 z-20"
           >
             <UIcon
-              name="i-heroicons-cloud-arrow-up"
-              class="w-8 h-8 text-default/40 group-hover:text-primary-400 transition-colors"
+              name="i-heroicons-arrow-path"
+              class="w-10 h-10 text-primary-500 animate-spin mb-4"
+            />
+            <p
+              class="text-xs font-black text-primary-500 uppercase tracking-[0.2em]"
+            >
+              {{ $t("manage.backgrounds.uploading") }} ({{ uploadProgress }}%)
+            </p>
+            <UProgress
+              v-model="uploadProgress"
+              class="mt-6 w-48"
+              color="primary"
+            />
+          </div>
+
+          <div
+            class="w-16 h-16 bg-(--ui-bg)/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
+            :class="{ 'scale-110': isDragging }"
+          >
+            <UIcon
+              :name="
+                isDragging
+                  ? 'i-heroicons-arrow-down-tray'
+                  : 'i-heroicons-cloud-arrow-up'
+              "
+              class="w-8 h-8 transition-colors"
+              :class="
+                isDragging
+                  ? 'text-primary-500'
+                  : 'text-default/40 group-hover:text-primary-400'
+              "
             />
           </div>
           <h3 class="text-lg font-semibold text-default mb-1">
-            {{ $t("manage.backgrounds.uploadLocal") }}
+            {{
+              isDragging
+                ? $t("manage.backgrounds.dropToUpload")
+                : $t("manage.backgrounds.uploadLocal")
+            }}
           </h3>
           <p class="text-sm text-default/40">
             {{ $t("manage.backgrounds.uploadSubtitle") }}
@@ -163,16 +207,7 @@
         </div>
       </div>
 
-      <!-- Status Messages -->
-      <div
-        v-if="isUploading"
-        class="flex items-center justify-center space-x-3 text-primary-400 animate-pulse mb-8"
-      >
-        <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin" />
-        <span class="font-medium">{{
-          $t("manage.backgrounds.uploading")
-        }}</span>
-      </div>
+      <!-- Status Messages (Legacy, removed in favor of overlay) -->
 
       <!-- Media Gallery -->
       <div class="space-y-8">
@@ -286,6 +321,7 @@ import { useConfigStore } from "~~/stores/config";
 import type { BackgroundItem } from "~~/app/types/config";
 
 const { t } = useI18n();
+const toast = useToast();
 
 const store = useConfigStore();
 const allBackgrounds = ref<BackgroundItem[]>([]);
@@ -310,6 +346,8 @@ onUnmounted(() => {
   store.stopStatusPolling();
 });
 const isUploading = ref(false);
+const isDragging = ref(false);
+const uploadProgress = ref(0);
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const newExternal = reactive({
@@ -323,29 +361,76 @@ const triggerFileInput = () => {
 
 const isLocal = (url: string) => url.startsWith("/backgrounds/");
 
-const handleFileUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  if (!target.files?.length) return;
+const handleFileUpload = async (event: Event | FileList) => {
+  let files: FileList | null = null;
+  if (event instanceof Event) {
+    const target = event.target as HTMLInputElement;
+    files = target.files;
+  } else {
+    files = event;
+  }
+
+  if (!files?.length) return;
 
   isUploading.value = true;
+  uploadProgress.value = 0;
+
   const formData = new FormData();
-  for (let i = 0; i < target.files.length; i++) {
-    const file = target.files[i];
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
     if (file) formData.append("files", file);
   }
 
   try {
-    await $fetch("/api/backgrounds", {
-      method: "POST",
-      body: formData,
+    // Use XMLHttpRequest for progress tracking
+    await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/backgrounds");
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          uploadProgress.value = Math.round((event.loaded / event.total) * 100);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(xhr.response);
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}`));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error("Network error during upload"));
+      xhr.send(formData);
     });
+
     await store.fetchConfig();
     await fetchAllBackgrounds();
+    toast.add({
+      title: t("manage.backgrounds.uploadSuccess"),
+      color: "success",
+      icon: "i-heroicons-check-circle",
+    });
   } catch (error) {
     console.error("Upload failed:", error);
+    toast.add({
+      title: t("manage.backgrounds.uploadError"),
+      color: "error",
+      icon: "i-heroicons-x-circle",
+    });
   } finally {
     isUploading.value = false;
+    uploadProgress.value = 0;
     if (fileInput.value) fileInput.value.value = "";
+  }
+};
+
+const handleDrop = (event: DragEvent) => {
+  isDragging.value = false;
+  const files = event.dataTransfer?.files;
+  if (files) {
+    handleFileUpload(files);
   }
 };
 

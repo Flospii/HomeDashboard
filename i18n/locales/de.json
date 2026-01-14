@@ -43,7 +43,10 @@
       "waitingList": "Warteliste",
       "addToWaitingList": "Zur Warteliste hinzufügen",
       "previous": "Zurück",
-      "next": "Weiter"
+      "next": "Weiter",
+      "uploadSuccess": "Medien erfolgreich hochgeladen",
+      "uploadError": "Upload fehlgeschlagen",
+      "dropToUpload": "Dateien hier ablegen"
     },
     "preferences": {
       "title": "Dashboard-Einstellungen",

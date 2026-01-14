@@ -43,7 +43,10 @@
       "waitingList": "Waiting List",
       "addToWaitingList": "Add to Waiting List",
       "previous": "Previous",
-      "next": "Next"
+      "next": "Next",
+      "uploadSuccess": "Media uploaded successfully",
+      "uploadError": "Failed to upload media",
+      "dropToUpload": "Drop files to upload"
     },
     "preferences": {
       "title": "Dashboard Settings",
