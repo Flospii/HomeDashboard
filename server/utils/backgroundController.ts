@@ -1,14 +1,24 @@
 import fs from "node:fs";
 import path from "node:path";
-import { exiftool } from "exiftool-vendored";
+import { ExifTool } from "exiftool-vendored";
 import { mapMetadata } from "./metadata";
 import { getProjectPaths } from "./paths";
 import { configManager } from "./config";
-import type { BackgroundItem, DashboardConfig } from "../../app/types/config";
+import type {
+  BackgroundItem,
+  DashboardConfig,
+  MediaType,
+} from "../../app/types/config";
+
+// Create a custom ExifTool instance with a timeout to prevent hanging
+const exiftool = new ExifTool({
+  taskTimeoutMillis: 5000,
+  logger: () => console,
+});
 
 class BackgroundController {
   private currentMedia: BackgroundItem | null = null;
-  private currentIndex: number = 0;
+  private currentIndex: number = -1;
   private startTime: number = Date.now();
   private timer: NodeJS.Timeout | null = null;
   private allMedia: BackgroundItem[] = [];
@@ -16,6 +26,7 @@ class BackgroundController {
   private onStateChange: (() => void) | null = null;
   private stateId: number = 0;
   private pollingTimer: NodeJS.Timeout | null = null;
+  private fetchingMetadata: Set<string> = new Set();
 
   private readonly mediaExtensions = {
     image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
@@ -42,7 +53,7 @@ class BackgroundController {
 
       for (const file of files) {
         const ext = path.extname(file).toLowerCase();
-        let type: "image" | "video" | null = null;
+        let type: MediaType | null = null;
 
         if (this.mediaExtensions.image.includes(ext)) {
           type = "image";
@@ -175,6 +186,8 @@ class BackgroundController {
       this.startTime = Date.now();
       this.startTimer(); // Reset timer
       this.notifyStateChange();
+    } catch (err) {
+      console.error("[Server] BackgroundController | Next | Error:", err);
     } finally {
       this.isNextRunning = false;
     }
@@ -185,32 +198,50 @@ class BackgroundController {
       !this.currentMedia ||
       !this.currentMedia.url ||
       !this.currentMedia.url.startsWith("/backgrounds/") ||
-      this.currentMedia.metadata
+      this.currentMedia.metadata ||
+      this.fetchingMetadata.has(this.currentMedia.url)
     ) {
       return;
     }
 
+    const url = this.currentMedia.url;
+    this.fetchingMetadata.add(url);
+
     const { backgroundsDir } = getProjectPaths();
-    const fileName = this.currentMedia.url.replace("/backgrounds/", "");
+    const fileName = url.replace("/backgrounds/", "");
     const filePath = path.join(backgroundsDir, fileName);
 
     try {
+      if (!fs.existsSync(filePath)) {
+        return;
+      }
+
       const stats = fs.statSync(filePath);
       const rawMeta = await exiftool.read(filePath);
       const ext = path.extname(fileName).toLowerCase();
-      this.currentMedia.metadata = mapMetadata(rawMeta, {
-        fileName,
-        fileSize: stats.size,
-        mimeType:
-          this.currentMedia.type === "image"
-            ? `image/${ext.slice(1).replace("jpg", "jpeg")}`
-            : `video/${ext.slice(1)}`,
-      });
+
+      // Check if currentMedia is still the same
+      if (this.currentMedia?.url === url) {
+        this.currentMedia.metadata = mapMetadata(rawMeta, {
+          fileName,
+          fileSize: stats.size,
+          mimeType:
+            this.currentMedia.type === "image"
+              ? `image/${ext.slice(1).replace("jpg", "jpeg")}`
+              : `video/${ext.slice(1)}`,
+        });
+        console.log(
+          `[Server] BackgroundController | Metadata applied for: ${fileName}`
+        );
+        this.notifyStateChange(); // Notify that metadata is now available
+      }
     } catch (err) {
       console.error(
-        "Failed to fetch metadata in fetchMetadataForCurrent():",
+        `[Server] BackgroundController | Error during metadata fetch for ${fileName}:`,
         err
       );
+    } finally {
+      this.fetchingMetadata.delete(url);
     }
   }
 
@@ -227,9 +258,18 @@ class BackgroundController {
       await this.next();
     }
 
-    // Lazy load metadata for current media
-    if (this.currentMedia) {
-      await this.fetchMetadataForCurrent();
+    // Lazy load metadata for current media (non-blocking)
+    if (
+      this.currentMedia &&
+      !this.currentMedia.metadata &&
+      !this.fetchingMetadata.has(this.currentMedia.url)
+    ) {
+      this.fetchMetadataForCurrent().catch((e) => {
+        console.error(
+          "[Server] BackgroundController | getStatus | Metadata error:",
+          e
+        );
+      });
     }
 
     // Calculate next media for preloading

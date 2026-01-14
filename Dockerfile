@@ -19,8 +19,8 @@ RUN npm run build
 # Run stage
 FROM node:20-alpine AS run
 
-# Install perl (required by exiftool-vendored for metadata extraction)
-RUN apk add --no-whiteout perl
+# Install dependencies (required by exiftool-vendored for metadata extraction on Alpine)
+RUN apk add --no-cache perl libc6-compat exiftool
 
 WORKDIR /app
 
