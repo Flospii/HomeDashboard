@@ -91,6 +91,42 @@ docker-compose up -d --build
 
 ---
 
+## Modules & Architecture
+
+The Home Dashboard uses a modular, self-contained architecture. Each module is located in its own directory under `app/components/modules/`.
+
+### Dynamic Module Discovery
+
+Modules are **automatically discovered** and registered. You don't need to manually import new modules into the main application. The system scans the `modules` directory for any folder containing an `index.ts` that exports a `*ModuleDefinition`.
+
+### Module Structure
+
+A typical module folder (e.g., `MyModule`) looks like this:
+
+- `index.ts`: The module definition, configuration interface, and translations.
+- `MyModule.vue`: The main display component.
+- `MyModuleSettings.vue`: The configuration UI for the Control Center.
+
+### Creating a New Module
+
+1. **Create a folder** in `app/components/modules/`.
+2. **Define the Module**: In `index.ts`, export a `ModuleDefinition` object.
+   ```typescript
+   export const MyModuleDefinition: ModuleDefinition = {
+     id: "my-module",
+     name: "My Module",
+     icon: "i-heroicons-star",
+     component: MyModule,
+     settingsComponent: MyModuleSettings,
+     defaultConfig: { ... },
+     translations: { ... }
+   };
+   ```
+3. **Implement the UI**: Create your `.vue` components. Use the `BaseModule` component as a wrapper for consistent styling.
+4. **(Optional) Add an API**: If your module needs server-side data, add a handler in `server/api/my-module-info.get.ts`.
+
+---
+
 ## Persistent Data
 
 Configuration and backgrounds are stored in the `dashboard-data` volume, mapped to `/app/data` in the container.

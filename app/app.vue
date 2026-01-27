@@ -9,9 +9,23 @@
 <script setup lang="ts">
 import * as locales from "@nuxt/ui/locale";
 import { useConfigStore } from "~~/stores/config";
+import { AVAILABLE_MODULES } from "./components/modules";
 
-const { locale, setLocale } = useI18n();
+const { locale, setLocale, mergeLocaleMessage } = useI18n();
 const store = useConfigStore();
+
+// Register module translations
+AVAILABLE_MODULES.forEach((module) => {
+  if (module.translations) {
+    Object.entries(module.translations).forEach(([lang, messages]) => {
+      mergeLocaleMessage(lang, {
+        modules: {
+          [module.id]: messages,
+        },
+      });
+    });
+  }
+});
 
 watch(
   () => store.config?.language,
@@ -20,7 +34,7 @@ watch(
       setLocale(newLang as any);
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 </script>
 

@@ -1,42 +1,58 @@
 <template>
   <UCard
     v-if="store.config"
-    variant="glass"
-    class="w-full max-w-2xl mx-auto !border-0 !shadow-none overflow-hidden"
-    :ui="{ body: 'p-8' }"
+    variant="glassDark"
+    class="w-full max-w-2xl mx-auto border-0! shadow-none! overflow-hidden"
+    :ui="{
+      body: 'p-8',
+    }"
   >
-    <div
-      class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8"
-    >
-      <h2 class="text-2xl font-bold text-default">
-        {{ $t("manage.modules.title") }}
-      </h2>
-      <div class="flex items-center justify-between sm:justify-end space-x-4">
-        <div class="flex items-center space-x-2">
-          <span
-            v-if="saveStatus === 'success'"
-            class="text-green-400 text-sm animate-fade-in"
+    <template #header>
+      <div
+        class="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      >
+        <div>
+          <h2
+            class="text-2xl sm:text-3xl font-bold text-default tracking-tight"
           >
-            {{ $t("common.saved") }}
-          </span>
-          <span
-            v-if="saveStatus === 'error'"
-            class="text-red-400 text-sm animate-fade-in"
-          >
-            {{ $t("common.failed") }}
-          </span>
+            {{ $t("manage.modules.title") }}
+          </h2>
+          <p class="text-default/50 mt-1 text-sm sm:text-base">
+            {{ $t("manage.modules.subtitle") }}
+          </p>
         </div>
-        <UButton
-          icon="i-heroicons-check"
-          color="primary"
-          size="lg"
-          :loading="isSaving"
-          :label="$t('common.save')"
-          class="px-6"
-          @click="handleSaveSettings"
-        />
+        <div class="flex items-center justify-between sm:justify-end space-x-4">
+          <Transition name="fade">
+            <span
+              v-if="saveStatus === 'success'"
+              class="text-primary-400 text-sm font-medium flex items-center"
+            >
+              <UIcon name="i-heroicons-check-circle" class="mr-1 w-5 h-5" />
+              {{ $t("common.saved") }}
+            </span>
+            <span
+              v-else-if="saveStatus === 'error'"
+              class="text-red-400 text-sm font-medium flex items-center"
+            >
+              <UIcon
+                name="i-heroicons-exclamation-circle"
+                class="mr-1 w-5 h-5"
+              />
+              {{ $t("common.failed") }}
+            </span>
+          </Transition>
+          <UButton
+            icon="i-heroicons-check"
+            color="primary"
+            size="lg"
+            :loading="isSaving"
+            :label="$t('common.save')"
+            class="px-6"
+            @click="handleSaveSettings"
+          />
+        </div>
       </div>
-    </div>
+    </template>
     <div class="space-y-8">
       <UCard
         v-for="mod in store.config?.modules"
@@ -56,8 +72,8 @@
               />
             </div>
             <div>
-              <h3 class="text-xl font-bold text-(--ui-text) capitalize">
-                {{ mod.module }} Module
+              <h3 class="text-xl font-bold text-default">
+                {{ $t(`modules.${mod.module}.name`) }}
               </h3>
               <p
                 class="text-xs text-default/40 uppercase tracking-widest font-bold"
@@ -94,225 +110,12 @@
                 />
               </UFormField>
 
-              <!-- Specific Config -->
-              <div v-if="mod.module === 'clock'" class="space-y-4">
-                <UFormField
-                  :label="$t('manage.modules.clock.displaySeconds')"
-                  :description="$t('manage.modules.clock.secondsDescription')"
-                >
-                  <div class="flex items-center justify-between">
-                    <span class="text-sm text-(--ui-text)/70"
-                      >Enable Seconds</span
-                    >
-                    <USwitch v-model="(mod.config as any).displaySeconds" />
-                  </div>
-                </UFormField>
-              </div>
-
-              <!-- Weather Config -->
-              <div v-if="mod.module === 'weather'" class="space-y-6">
-                <UFormField label="Weather Provider">
-                  <USelect
-                    v-model="(mod.config as any).weatherProvider"
-                    :items="['openmeteo']"
-                    size="xl"
-                    class="w-full"
-                  />
-                </UFormField>
-                <div class="grid grid-cols-2 gap-4">
-                  <UFormField label="Latitude">
-                    <UInput
-                      v-model.number="(mod.config as any).lat"
-                      type="number"
-                      size="md"
-                      placeholder="48.0986"
-                    />
-                  </UFormField>
-                  <UFormField label="Longitude">
-                    <UInput
-                      v-model.number="(mod.config as any).lon"
-                      type="number"
-                      size="md"
-                      placeholder="14.0353"
-                    />
-                  </UFormField>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                  <UFormField
-                    :label="$t('manage.modules.weather.showProvider')"
-                  >
-                    <USwitch v-model="(mod.config as any).showProvider" />
-                  </UFormField>
-                  <UFormField
-                    :label="$t('manage.modules.weather.showWindSpeed')"
-                  >
-                    <USwitch v-model="(mod.config as any).showWindSpeed" />
-                  </UFormField>
-                  <UFormField
-                    :label="$t('manage.modules.weather.showHumidity')"
-                  >
-                    <USwitch v-model="(mod.config as any).showHumidity" />
-                  </UFormField>
-                  <UFormField
-                    :label="$t('manage.modules.weather.showSunriseSunset')"
-                  >
-                    <USwitch v-model="(mod.config as any).showSunriseSunset" />
-                  </UFormField>
-                  <UFormField
-                    :label="$t('manage.modules.weather.showLocation')"
-                  >
-                    <USwitch v-model="(mod.config as any).showLocation" />
-                  </UFormField>
-                </div>
-              </div>
-
-              <!-- News Config -->
-              <div v-if="mod.module === 'news'" class="space-y-6">
-                <div class="space-y-4">
-                  <div class="flex items-center justify-between">
-                    <h4
-                      class="text-sm font-bold text-(--ui-text)/60 uppercase tracking-widest"
-                    >
-                      RSS Feeds
-                    </h4>
-                    <UButton
-                      icon="i-heroicons-plus"
-                      size="xs"
-                      variant="ghost"
-                      label="Add Feed"
-                      @click="
-                        (mod.config as any).feeds.push({ title: '', url: '' })
-                      "
-                    />
-                  </div>
-
-                  <div
-                    v-for="(feed, fIdx) in (mod.config as any).feeds"
-                    :key="fIdx"
-                    class="flex flex-col sm:grid sm:grid-cols-12 gap-3 sm:gap-2 items-start bg-(--ui-bg)/5 p-4 sm:p-0 rounded-lg sm:rounded-none border border-default sm:border-0"
-                  >
-                    <div class="w-full sm:col-span-4">
-                      <UInput
-                        v-model="feed.title"
-                        placeholder="Feed Title"
-                        size="md"
-                        class="w-full"
-                      />
-                    </div>
-                    <div class="w-full sm:col-span-7">
-                      <UInput
-                        v-model="feed.url"
-                        placeholder="RSS URL"
-                        size="md"
-                        class="w-full"
-                      />
-                    </div>
-                    <div class="w-full sm:col-span-1 flex justify-end">
-                      <UButton
-                        icon="i-heroicons-trash"
-                        size="sm"
-                        color="error"
-                        variant="ghost"
-                        :label="$t('common.delete')"
-                        class="sm:hidden w-full"
-                        @click="(mod.config as any).feeds.splice(fIdx, 1)"
-                      />
-                      <UButton
-                        icon="i-heroicons-trash"
-                        size="xs"
-                        color="error"
-                        variant="ghost"
-                        class="hidden sm:flex"
-                        @click="(mod.config as any).feeds.splice(fIdx, 1)"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                  <UFormField label="Show Source">
-                    <USwitch v-model="(mod.config as any).showSourceTitle" />
-                  </UFormField>
-                  <UFormField label="Show Date">
-                    <USwitch v-model="(mod.config as any).showPublishDate" />
-                  </UFormField>
-                </div>
-              </div>
-
-              <!-- Background Metadata Config -->
-              <div
-                v-if="mod.module === 'background-metadata'"
-                class="space-y-6"
-              >
-                <div class="grid grid-cols-2 gap-4">
-                  <UFormField :label="$t('manage.modules.metadata.fileName')">
-                    <USwitch v-model="(mod.config as any).showFileName" />
-                  </UFormField>
-                  <UFormField :label="$t('manage.modules.metadata.fileSize')">
-                    <USwitch v-model="(mod.config as any).showFileSize" />
-                  </UFormField>
-                  <UFormField :label="$t('manage.modules.metadata.mimeType')">
-                    <USwitch v-model="(mod.config as any).showMimeType" />
-                  </UFormField>
-                  <UFormField :label="$t('manage.modules.metadata.gps')">
-                    <USwitch v-model="(mod.config as any).showGPS" />
-                  </UFormField>
-                  <UFormField :label="$t('manage.modules.metadata.createdAt')">
-                    <USwitch v-model="(mod.config as any).showCreatedAt" />
-                  </UFormField>
-                  <UFormField :label="$t('manage.modules.metadata.modifiedAt')">
-                    <USwitch v-model="(mod.config as any).showModifiedAt" />
-                  </UFormField>
-                </div>
-              </div>
-
-              <!-- QR Code Config -->
-              <div v-if="mod.module === 'qrcode'" class="space-y-6">
-                <UFormField
-                  :label="$t('manage.modules.qrcode.type')"
-                  :description="$t('manage.modules.qrcode.typeDescription')"
-                >
-                  <USelect
-                    v-model="(mod.config as any).type"
-                    :items="[
-                      {
-                        label: $t('manage.modules.qrcode.custom'),
-                        value: 'custom',
-                      },
-                      {
-                        label: $t('manage.modules.qrcode.mediaUpload'),
-                        value: 'media-upload',
-                      },
-                    ]"
-                    size="xl"
-                    class="w-full"
-                  />
-                </UFormField>
-
-                <UFormField
-                  :label="$t('manage.modules.qrcode.title')"
-                  :description="$t('manage.modules.qrcode.titleDescription')"
-                >
-                  <UInput
-                    v-model="(mod.config as any).title"
-                    placeholder="e.g. Scan to Upload"
-                    size="xl"
-                  />
-                </UFormField>
-
-                <UFormField
-                  v-if="(mod.config as any).type === 'custom'"
-                  :label="$t('manage.modules.qrcode.url')"
-                  :description="$t('manage.modules.qrcode.urlDescription')"
-                >
-                  <UInput
-                    v-model="(mod.config as any).customUrl"
-                    placeholder="https://..."
-                    size="xl"
-                  />
-                </UFormField>
-              </div>
+              <!-- Dynamic Settings Component -->
+              <component
+                :is="getSettingsComponent(mod.module)"
+                v-if="getSettingsComponent(mod.module)"
+                v-model="mod.config"
+              />
             </div>
           </div>
         </Transition>
@@ -336,9 +139,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useConfigStore } from "~~/stores/config";
 import { MODULE_POSITIONS } from "../types/config";
+import { AVAILABLE_MODULES, getModuleDefinition } from "./modules/index";
 
 const { t } = useI18n();
 const store = useConfigStore();
@@ -346,20 +150,15 @@ const isSaving = ref(false);
 const saveStatus = ref<"success" | "error" | null>(null);
 
 const getModuleIcon = (type: string) => {
-  switch (type) {
-    case "clock":
-      return "i-heroicons-clock";
-    case "weather":
-      return "i-heroicons-cloud";
-    case "news":
-      return "i-heroicons-newspaper";
-    case "background-metadata":
-      return "i-heroicons-information-circle";
-    case "qrcode":
-      return "i-heroicons-qr-code";
-    default:
-      return "i-heroicons-cube";
-  }
+  return getModuleDefinition(type)?.icon || "i-heroicons-cube";
+};
+
+const getModuleName = (type: string) => {
+  return getModuleDefinition(type)?.name || type;
+};
+
+const getSettingsComponent = (type: string) => {
+  return getModuleDefinition(type)?.settingsComponent;
 };
 
 const handleSaveSettings = async () => {
@@ -379,85 +178,22 @@ const handleSaveSettings = async () => {
   }
 };
 
-const availableModules = [
-  [
-    {
-      label: "Clock",
-      icon: "i-heroicons-clock",
-      onSelect: () => addModule("clock"),
-    },
-    {
-      label: "Weather",
-      icon: "i-heroicons-cloud",
-      onSelect: () => addModule("weather"),
-    },
-    {
-      label: "News",
-      icon: "i-heroicons-newspaper",
-      onSelect: () => addModule("news"),
-    },
-    {
-      label: "Background Metadata",
-      icon: "i-heroicons-information-circle",
-      onSelect: () => addModule("background-metadata"),
-    },
-    {
-      label: "QR Code",
-      icon: "i-heroicons-qr-code",
-      onSelect: () => addModule("qrcode"),
-    },
-  ],
-];
+const availableModules = computed(() => [
+  AVAILABLE_MODULES.map((m) => ({
+    label: t(`modules.${m.id}.name`),
+    icon: m.icon,
+    onSelect: () => addModule(m.id),
+  })),
+]);
 
 const addModule = (type: string) => {
   if (!store.config) return;
 
-  const id = `${type}-${Date.now()}`;
-  const defaultConfig: any = {};
+  const definition = getModuleDefinition(type);
+  if (!definition) return;
 
-  switch (type) {
-    case "clock":
-      Object.assign(defaultConfig, { displaySeconds: true });
-      break;
-    case "weather":
-      Object.assign(defaultConfig, {
-        weatherProvider: "openmeteo",
-        type: "current",
-        lat: 48.0862,
-        lon: 14.0433,
-        showProvider: true,
-        showWindSpeed: true,
-        showHumidity: true,
-        showSunriseSunset: true,
-        showLocation: true,
-      });
-      break;
-    case "news":
-      Object.assign(defaultConfig, {
-        feeds: [
-          { title: "Der Standard", url: "https://www.derstandard.at/rss" },
-        ],
-        showSourceTitle: true,
-        showPublishDate: true,
-      });
-      break;
-    case "background-metadata":
-      Object.assign(defaultConfig, {
-        showFileName: false,
-        showFileSize: false,
-        showMimeType: false,
-        showGPS: true,
-        showCreatedAt: true,
-        showModifiedAt: false,
-      });
-      break;
-    case "qrcode":
-      Object.assign(defaultConfig, {
-        type: "media-upload",
-        title: "Upload Media",
-      });
-      break;
-  }
+  const id = `${type}-${Date.now()}`;
+  const defaultConfig = JSON.parse(JSON.stringify(definition.defaultConfig));
 
   store.config.modules.push({
     id,

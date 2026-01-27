@@ -70,7 +70,8 @@
       "pollingDescription": "Wie oft nach neuen lokalen Dateien gesucht wird",
       "lowPowerMode": "Energiesparmodus",
       "lowPowerDescription": "Optimiert die Leistung für leistungsschwache Geräte wie den Raspberry Pi durch Vereinfachung der Übergänge und Reduzierung des Ressourcenverbrauchs",
-      "enableLowPower": "Energiesparmodus aktivieren"
+      "enableLowPower": "Energiesparmodus aktivieren",
+      "selectType": "Modultyp auswählen"
     },
     "modules": {
       "title": "Modulkonfiguration",
@@ -80,58 +81,7 @@
       "addModule": "Modul hinzufügen",
       "deleteModule": "Modul löschen",
       "deleteConfirm": "Sind Sie sicher, dass Sie dieses Modul entfernen möchten?",
-      "selectType": "Modultyp auswählen",
-      "clock": {
-        "displaySeconds": "Sekunden anzeigen",
-        "secondsDescription": "Sekundenanzeige ein- oder ausschalten"
-      },
-      "weather": {
-        "provider": "Wetteranbieter",
-        "latitude": "Breitengrad",
-        "longitude": "Längengrad",
-        "showProvider": "Anbieter zeigen",
-        "showWindSpeed": "Windgeschwindigkeit zeigen",
-        "showHumidity": "Luftfeuchtigkeit zeigen",
-        "showSunriseSunset": "Sonnenauf-/untergang zeigen",
-        "showLocation": "Ort zeigen"
-      },
-      "news": {
-        "title": "RSS-Feeds",
-        "addFeed": "Feed hinzufügen",
-        "feedTitle": "Feed-Titel",
-        "rssUrl": "RSS-URL",
-        "showSource": "Quelle zeigen",
-        "showDate": "Datum zeigen"
-      },
-      "metadata": {
-        "fileName": "Dateiname zeigen",
-        "fileSize": "Dateigröße zeigen",
-        "mimeType": "MIME-Typ zeigen",
-        "gps": "GPS zeigen",
-        "createdAt": "Erstellungsdatum zeigen",
-        "modifiedAt": "Änderungsdatum zeigen"
-      },
-      "qrcode": {
-        "type": "QR-Code-Typ",
-        "typeDescription": "Wählen Sie, ob ein benutzerdefinierter Link oder ein Medien-Upload-Link angezeigt werden soll",
-        "custom": "Benutzerdefinierte URL",
-        "mediaUpload": "Medien-Upload-Link",
-        "title": "Modultitel",
-        "titleDescription": "Optionaler Titel über dem QR-Code",
-        "url": "Ziel-URL",
-        "urlDescription": "Die URL, auf die der QR-Code verweisen soll"
-      }
-    }
-  },
-  "modules": {
-    "weather": {
-      "fetching": "Wetterdaten werden geladen..."
-    },
-    "news": {
-      "fetching": "Schlagzeilen werden geladen...",
-      "noFeeds": "Keine Nachrichtensender konfiguriert.",
-      "loadError": "Schlagzeilen konnten nicht geladen werden.",
-      "error": "Fehler beim Laden der Nachrichten."
+      "selectType": "Modultyp auswählen"
     }
   }
 }

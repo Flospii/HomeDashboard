@@ -1,24 +1,11 @@
 export type MediaType = "image" | "video";
 
-export interface GPSLocation {
-  latitude: number;
-  longitude: number;
-  altitude?: number;
-}
-
-export interface MediaMetadata {
-  fileName: string;
-  fileSize: number; // in bytes
-  mimeType: string;
-  createdAt?: string;
-  modifiedAt?: string;
-  gps?: GPSLocation;
-}
+import type { BackgroundMediaMetadata } from "../components/modules/BackgroundMetadata";
 
 export interface BackgroundItem {
   url: string;
   type: MediaType;
-  metadata?: MediaMetadata;
+  metadata?: BackgroundMediaMetadata;
 }
 
 export const MODULE_POSITIONS = [
@@ -44,55 +31,7 @@ export type PlaybackMode = (typeof PLAYBACK_MODES)[number];
 export const VIDEO_PLAYBACK_MODES = ["loop", "once"] as const;
 export type VideoPlaybackMode = (typeof VIDEO_PLAYBACK_MODES)[number];
 
-export interface ClockModuleConfig {
-  displaySeconds: boolean;
-}
-
-export interface WeatherModuleConfig {
-  weatherProvider: "openmeteo";
-  type: "current";
-  lat: number;
-  lon: number;
-  showProvider?: boolean;
-  showWindSpeed?: boolean;
-  showHumidity?: boolean;
-  showSunriseSunset?: boolean;
-  showLocation?: boolean;
-}
-
-export interface NewsFeed {
-  title: string;
-  url: string;
-}
-
-export interface NewsModuleConfig {
-  feeds: NewsFeed[];
-  showSourceTitle: boolean;
-  showPublishDate: boolean;
-}
-
-export interface BackgroundMetadataModuleConfig {
-  showFileName?: boolean;
-  showFileSize?: boolean;
-  showMimeType?: boolean;
-  showCreatedAt?: boolean;
-  showModifiedAt?: boolean;
-  showGPS?: boolean;
-}
-
-export interface QRCodeModuleConfig {
-  type: "custom" | "media-upload";
-  title?: string;
-  customUrl?: string;
-}
-
-export type AnyModuleConfig =
-  | ClockModuleConfig
-  | WeatherModuleConfig
-  | NewsModuleConfig
-  | BackgroundMetadataModuleConfig
-  | QRCodeModuleConfig
-  | Record<string, any>;
+export type AnyModuleConfig = Record<string, any>;
 
 export interface ModuleConfig {
   id: string;

@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   try {
     // 1. Fetch Weather Data
     const weatherPromise = fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset&hourly=relativehumidity_2m,windspeed_10m&timezone=auto`
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset&hourly=relativehumidity_2m,windspeed_10m&timezone=auto`,
     );
 
     // 2. Fetch Location Name (Reverse Geocoding)
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
           "User-Agent":
             "HomeDashboard/2.0 (https://github.com/flospii/HomeDashboard)",
         },
-      }
+      },
     );
 
     const [weatherRes, locationRes] = await Promise.all([
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
 
     if (!weatherRes.ok) {
       throw new Error(
-        `Weather API responded with status: ${weatherRes.status}`
+        `Weather API responded with status: ${weatherRes.status}`,
       );
     }
 
@@ -61,6 +61,7 @@ export default defineEventHandler(async (event) => {
         temp: Math.round(weatherData.current_weather.temperature),
         windSpeed: weatherData.current_weather.windspeed,
         weatherCode: weatherData.current_weather.weathercode,
+        isDay: !!weatherData.current_weather.is_day,
         humidity: weatherData.hourly.relativehumidity_2m[currentHourIndex],
         sunrise: weatherData.daily.sunrise[0],
         sunset: weatherData.daily.sunset[0],

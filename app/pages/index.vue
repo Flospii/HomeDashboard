@@ -22,7 +22,10 @@
       <DashboardGrid>
         <template v-for="pos in positions" :key="pos" #[pos]>
           <div v-for="mod in store.getModulesAtPosition(pos)" :key="mod.id">
-            <component :is="moduleMap[mod.module]" v-bind="mod.config" />
+            <component
+              :is="getModuleComponent(mod.module)"
+              v-bind="mod.config"
+            />
           </div>
         </template>
       </DashboardGrid>
@@ -33,12 +36,8 @@
 <script setup lang="ts">
 import BackgroundCanvas from "~/components/BackgroundCanvas.vue";
 import DashboardGrid from "~/components/DashboardGrid.vue";
-import ClockModule from "~/components/modules/ClockModule.vue";
-import WeatherModule from "~/components/modules/WeatherModule.vue";
-import NewsFeedModule from "~/components/modules/NewsFeedModule.vue";
-import BackgroundMetadataModule from "~/components/modules/BackgroundMetadataModule.vue";
-import QRCodeModule from "~/components/modules/QRCodeModule.vue";
 import { useConfigStore } from "~~/stores/config";
+import { getModuleDefinition } from "~/components/modules/index";
 
 const store = useConfigStore();
 
@@ -53,12 +52,8 @@ onUnmounted(() => {
   store.stopStatusPolling();
 });
 
-const moduleMap: Record<string, any> = {
-  clock: ClockModule,
-  weather: WeatherModule,
-  news: NewsFeedModule,
-  "background-metadata": BackgroundMetadataModule,
-  qrcode: QRCodeModule,
+const getModuleComponent = (type: string) => {
+  return getModuleDefinition(type)?.component;
 };
 
 const positions = [

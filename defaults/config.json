@@ -60,7 +60,8 @@
         "showWindSpeed": true,
         "showHumidity": true,
         "showSunriseSunset": true,
-        "showLocation": true
+        "showLocation": true,
+        "showForecast": true
       }
     },
     {
@@ -76,7 +77,8 @@
           }
         ],
         "showSourceTitle": true,
-        "showPublishDate": true
+        "showPublishDate": true,
+        "rotationInterval": 15000
       }
     },
     {
@@ -100,7 +102,21 @@
       "enabled": false,
       "config": {
         "type": "media-upload",
-        "title": "Upload Media"
+        "title": "Upload Media",
+        "showUrl": true
+      }
+    },
+    {
+      "id": "system-1",
+      "module": "system-status",
+      "position": "bottom_left",
+      "enabled": false,
+      "config": {
+        "showCPU": true,
+        "showMemory": true,
+        "showUptime": true,
+        "showOSInfo": false,
+        "updateInterval": 5000
       }
     }
   ]

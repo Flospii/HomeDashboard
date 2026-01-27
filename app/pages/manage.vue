@@ -81,16 +81,6 @@
         <template #modules>
           <div class="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div class="max-w-4xl mx-auto">
-              <div class="mb-10">
-                <h2
-                  class="text-2xl sm:text-3xl font-bold text-(--ui-text) tracking-tight"
-                >
-                  {{ $t("manage.modules.title") }}
-                </h2>
-                <p class="text-(--ui-text)/50 mt-1 text-sm sm:text-base">
-                  {{ $t("manage.modules.subtitle") }}
-                </p>
-              </div>
               <ModuleSettings />
             </div>
           </div>

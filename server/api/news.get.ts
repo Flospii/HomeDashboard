@@ -22,6 +22,7 @@ export default defineEventHandler(async (event) => {
     // This is a basic implementation to avoid adding dependencies
     const items: {
       title: string;
+      description: string;
       pubDate: string;
       formattedDate: string;
       formattedTime: string;
@@ -33,22 +34,31 @@ export default defineEventHandler(async (event) => {
       const itemContent = match[1];
       if (!itemContent) continue;
 
-      // Handle both plain text and CDATA titles
+      // Handle both plain text and CDATA titles/descriptions
       const titleMatch =
         /<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/.exec(
-          itemContent
+          itemContent,
+        );
+      const descMatch =
+        /<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/.exec(
+          itemContent,
         );
       const pubDateMatch = /<pubDate>([\s\S]*?)<\/pubDate>/.exec(itemContent);
 
       if (titleMatch && titleMatch[1]) {
         // Basic HTML entity decoding for common entities
-        let title = titleMatch[1]
-          .replace(/&amp;/g, "&")
-          .replace(/&lt;/g, "<")
-          .replace(/&gt;/g, ">")
-          .replace(/&quot;/g, '"')
-          .replace(/&#039;/g, "'")
-          .trim();
+        const decode = (str: string) =>
+          str
+            .replace(/&amp;/g, "&")
+            .replace(/&lt;/g, "<")
+            .replace(/&gt;/g, ">")
+            .replace(/&quot;/g, '"')
+            .replace(/&#039;/g, "'")
+            .replace(/<[^>]*>/g, "") // Strip HTML tags
+            .trim();
+
+        let title = decode(titleMatch[1]);
+        let description = descMatch ? decode(descMatch[1]) : "";
 
         if (title) {
           const rawPubDate = (pubDateMatch && pubDateMatch[1]) || "";
@@ -76,6 +86,7 @@ export default defineEventHandler(async (event) => {
 
           items.push({
             title,
+            description,
             pubDate: rawPubDate,
             formattedDate,
             formattedTime,
