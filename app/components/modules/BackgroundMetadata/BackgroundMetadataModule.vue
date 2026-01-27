@@ -2,8 +2,8 @@
   <BaseModule v-if="metadata">
     <div class="flex flex-col space-y-3 text-white">
       <div v-if="showFileName" class="flex items-center space-x-2">
-        <UIcon name="i-heroicons-document" class="w-4 h-4 text-primary-400" />
-        <span class="text-xs font-bold truncate max-w-[200px]">{{
+        <UIcon name="i-heroicons-document" class="w-4 h-4 text-white" />
+        <span class="text-xs font-bold truncate max-w-[160px]">{{
           metadata.fileName
         }}</span>
       </div>
@@ -18,7 +18,7 @@
 
       <div
         v-if="showGPS && metadata.gps"
-        class="flex items-center space-x-2 text-[10px] text-primary-300 font-bold"
+        class="flex items-center space-x-2 text-[10px] text-white font-bold"
       >
         <UIcon name="i-heroicons-map-pin" class="w-3 h-3" />
         <span

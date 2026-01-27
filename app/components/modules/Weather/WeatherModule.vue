@@ -5,29 +5,29 @@
       class="flex flex-col items-center justify-center text-white"
     >
       <!-- Current Weather -->
-      <div class="flex items-center space-x-6">
+      <div class="flex flex-col items-center space-y-2">
         <div class="flex items-center space-x-4">
           <UIcon
             :name="
               getWeatherIcon(weather.current.weatherCode, weather.current.isDay)
             "
-            class="w-16 h-16 md:w-24 md:h-24 text-primary-400"
+            class="w-16 h-16 md:w-24 md:h-24 text-white"
           />
           <div class="text-5xl md:text-7xl font-bold tabular-nums">
             {{ weather.current.temp }}°
           </div>
         </div>
 
-        <!-- Details next to temp -->
-        <div class="flex flex-col justify-center border-l border-white/10 pl-6">
+        <!-- Details below temp -->
+        <div class="flex flex-col items-center text-center">
           <div
             v-if="showLocation"
-            class="text-sm md:text-lg font-bold opacity-90 uppercase tracking-widest mb-1"
+            class="text-sm md:text-lg font-bold opacity-90 uppercase tracking-widest"
           >
             {{ weather.location }}
           </div>
           <div
-            class="flex items-center space-x-4 opacity-60 text-xs md:text-sm font-bold"
+            class="flex items-center space-x-4 opacity-60 text-xs md:text-sm font-bold mt-1"
           >
             <div v-if="showWindSpeed" class="flex items-center">
               <UIcon name="i-heroicons-wind-power" class="mr-1.5 w-4 h-4" />
@@ -59,25 +59,29 @@
       <!-- Forecast -->
       <div
         v-if="showForecast && weather.daily"
-        class="mt-8 grid grid-cols-5 gap-4 w-full pt-6 border-t border-white/10"
+        class="mt-8 flex flex-col w-full max-w-[280px] mx-auto pt-6 border-t border-white/10 space-y-2"
       >
         <div
           v-for="day in weather.daily"
           :key="day.date"
-          class="flex flex-col items-center space-y-2"
+          class="flex items-center justify-between"
         >
           <div
-            class="text-[10px] uppercase font-black opacity-40 tracking-widest"
+            class="w-12 text-[10px] uppercase font-black opacity-40 tracking-widest"
           >
             {{ formatDay(day.date) }}
           </div>
-          <UIcon
-            :name="getWeatherIcon(day.weatherCode, true)"
-            class="w-8 h-8 text-primary-400/80"
-          />
-          <div class="flex items-center space-x-2 text-xs font-bold">
-            <span class="text-white">{{ day.tempMax }}°</span>
-            <span class="text-white/30">{{ day.tempMin }}°</span>
+          <div class="flex-1 flex justify-center">
+            <UIcon
+              :name="getWeatherIcon(day.weatherCode, true)"
+              class="w-6 h-6 text-white"
+            />
+          </div>
+          <div
+            class="w-16 flex items-center justify-end space-x-3 text-xs font-bold"
+          >
+            <span class="text-white w-7 text-right">{{ day.tempMax }}°</span>
+            <span class="text-white/30 w-7 text-right">{{ day.tempMin }}°</span>
           </div>
         </div>
       </div>

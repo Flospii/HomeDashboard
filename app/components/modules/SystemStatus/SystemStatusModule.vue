@@ -1,6 +1,9 @@
 <template>
   <BaseModule>
-    <div v-if="stats" class="flex flex-col space-y-4 min-w-[200px] text-white">
+    <div
+      v-if="stats"
+      class="flex flex-col space-y-4 min-w-[160px] max-w-[200px] text-white"
+    >
       <!-- CPU Usage -->
       <div v-if="showCPU" class="space-y-1.5">
         <div class="flex justify-between items-end">
