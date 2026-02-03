@@ -11,13 +11,13 @@
             class="text-[10px] font-black uppercase tracking-[0.2em] opacity-40"
             >{{ $t("modules.system-status.cpu") }}</span
           >
-          <span class="text-xs font-bold tabular-nums text-primary-400"
+          <span class="text-xs font-bold tabular-nums text-white"
             >{{ stats.cpu.usage }}%</span
           >
         </div>
         <div class="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
           <div
-            class="h-full bg-primary-500 transition-all duration-1000 ease-out"
+            class="h-full bg-white transition-all duration-1000 ease-out"
             :style="{ width: `${stats.cpu.usage}%` }"
           ></div>
         </div>
@@ -30,13 +30,13 @@
             class="text-[10px] font-black uppercase tracking-[0.2em] opacity-40"
             >{{ $t("modules.system-status.memory") }}</span
           >
-          <span class="text-xs font-bold tabular-nums text-primary-400"
+          <span class="text-xs font-bold tabular-nums text-white"
             >{{ stats.memory.percentage }}%</span
           >
         </div>
         <div class="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
           <div
-            class="h-full bg-primary-500 transition-all duration-1000 ease-out"
+            class="h-full bg-white transition-all duration-1000 ease-out"
             :style="{ width: `${stats.memory.percentage}%` }"
           ></div>
         </div>
