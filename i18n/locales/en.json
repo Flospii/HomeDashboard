@@ -44,6 +44,8 @@
       "addToWaitingList": "Add to Waiting List",
       "previous": "Previous",
       "next": "Next",
+      "pause": "Pause",
+      "resume": "Resume",
       "uploadSuccess": "Media uploaded successfully",
       "uploadError": "Failed to upload media",
       "dropToUpload": "Drop files to upload"
@@ -82,6 +84,13 @@
       "deleteModule": "Delete Module",
       "deleteConfirm": "Are you sure you want to remove this module?",
       "selectType": "Select Module Type"
+    },
+    "raw": {
+      "title": "Raw Configuration",
+      "subtitle": "Edit the dashboard configuration directly as JSON. Be careful!",
+      "save": "Save Config",
+      "saved": "Config saved!",
+      "invalidJson": "Invalid JSON: {error}"
     }
   }
 }

@@ -44,6 +44,8 @@
       "addToWaitingList": "Zur Warteliste hinzufügen",
       "previous": "Zurück",
       "next": "Weiter",
+      "pause": "Pause",
+      "resume": "Wiedergabe",
       "uploadSuccess": "Medien erfolgreich hochgeladen",
       "uploadError": "Upload fehlgeschlagen",
       "dropToUpload": "Dateien hier ablegen"
@@ -82,6 +84,13 @@
       "deleteModule": "Modul löschen",
       "deleteConfirm": "Sind Sie sicher, dass Sie dieses Modul entfernen möchten?",
       "selectType": "Modultyp auswählen"
+    },
+    "raw": {
+      "title": "Rohdaten-Konfiguration",
+      "subtitle": "Bearbeiten Sie die Dashboard-Konfiguration direkt als JSON. Vorsicht geboten!",
+      "save": "Konfiguration speichern",
+      "saved": "Konfiguration gespeichert!",
+      "invalidJson": "Ungültiges JSON: {error}"
     }
   }
 }

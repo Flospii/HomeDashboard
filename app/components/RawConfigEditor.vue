@@ -9,10 +9,10 @@
     >
       <div>
         <h2 class="text-2xl sm:text-3xl font-bold text-default tracking-tight">
-          Raw Configuration
+          {{ $t("manage.raw.title") }}
         </h2>
         <p class="text-sm text-(--ui-text)/50 mt-1">
-          Edit the dashboard configuration directly as JSON. Be careful!
+          {{ $t("manage.raw.subtitle") }}
         </p>
       </div>
       <div class="flex items-center space-x-4">
@@ -20,20 +20,20 @@
           v-if="saveStatus === 'success'"
           class="text-green-400 text-sm animate-fade-in"
         >
-          Config saved!
+          {{ $t("manage.raw.saved") }}
         </span>
         <span
           v-if="saveStatus === 'error'"
           class="text-red-400 text-sm animate-fade-in"
         >
-          {{ errorMessage || "Failed to save" }}
+          {{ errorMessage || $t("common.failed") }}
         </span>
         <UButton
           icon="i-heroicons-check"
           color="primary"
           size="lg"
           :loading="isSaving"
-          label="Save Config"
+          :label="$t('manage.raw.save')"
           class="px-6"
           @click="handleSaveConfig"
         />
@@ -55,9 +55,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useConfigStore } from "~~/stores/config";
 
 const store = useConfigStore();
+const { t } = useI18n();
 const isSaving = ref(false);
 const saveStatus = ref<"success" | "error" | null>(null);
 const errorMessage = ref("");
@@ -95,7 +97,11 @@ const handleSaveConfig = async () => {
     try {
       parsedConfig = JSON.parse(jsonContent.value);
     } catch (e: any) {
-      throw new Error(`Invalid JSON: ${e.message}`);
+      throw new Error(
+        t("manage.raw.invalidJson", {
+          error: e.message,
+        }),
+      );
     }
 
     // Update store

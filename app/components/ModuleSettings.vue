@@ -96,20 +96,19 @@
 
         <Transition name="slide-up">
           <div v-if="mod.enabled" class="p-8 space-y-8 border-t border-default">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <!-- Position -->
-              <UFormField
-                :label="$t('manage.modules.screenPosition')"
-                :description="$t('manage.modules.positionDescription')"
-              >
-                <USelect
-                  v-model="mod.position"
-                  :items="[...MODULE_POSITIONS]"
-                  size="xl"
-                  class="w-full"
-                />
-              </UFormField>
-
+            <!-- Position -->
+            <UFormField
+              :label="$t('manage.modules.screenPosition')"
+              :description="$t('manage.modules.positionDescription')"
+            >
+              <USelect
+                v-model="mod.position"
+                :items="[...MODULE_POSITIONS]"
+                size="xl"
+                class="w-full"
+              />
+            </UFormField>
+            <div class="gap-8">
               <!-- Dynamic Settings Component -->
               <component
                 :is="getSettingsComponent(mod.module)"

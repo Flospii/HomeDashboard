@@ -18,13 +18,29 @@
           class="flex items-center space-x-2 sm:space-x-4 overflow-x-auto pb-2 sm:pb-0"
         >
           <UButton
+            :icon="
+              store.serverIsPaused ? 'i-heroicons-play' : 'i-heroicons-pause'
+            "
+            color="neutral"
+            variant="subtle"
+            :label="
+              store.serverIsPaused
+                ? $t('manage.backgrounds.resume')
+                : $t('manage.backgrounds.pause')
+            "
+            size="md"
+            sm:size="lg"
+            class="shrink-0"
+            @click="store.togglePause"
+          />
+          <UButton
             icon="i-heroicons-forward"
             color="neutral"
             variant="subtle"
             :label="$t('manage.backgrounds.next')"
             size="md"
             sm:size="lg"
-            class="flex-shrink-0"
+            class="shrink-0"
             @click="store.triggerNextBackground"
           />
         </div>

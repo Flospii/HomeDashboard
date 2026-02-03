@@ -15,6 +15,7 @@ export const useConfigStore = defineStore("config", () => {
   const serverRemainingTime = ref(0);
   const serverTransitionMode = ref("fade");
   const serverStateId = ref(0);
+  const serverIsPaused = ref(false);
   let ws: WebSocket | null = null;
 
   const fetchConfig = async () => {
@@ -83,7 +84,7 @@ export const useConfigStore = defineStore("config", () => {
   const getModulesAtPosition = (position: ModulePosition) => {
     if (!config.value) return [];
     return config.value.modules.filter(
-      (m) => m.position === position && m.enabled
+      (m) => m.position === position && m.enabled,
     );
   };
 
@@ -96,6 +97,7 @@ export const useConfigStore = defineStore("config", () => {
       serverRemainingTime.value = status.remainingTime;
       serverTransitionMode.value = status.transitionMode;
       serverStateId.value = status.stateId || 0;
+      serverIsPaused.value = status.isPaused || false;
     } catch (err) {
       console.error("Error fetching background status:", err);
     }
@@ -119,6 +121,7 @@ export const useConfigStore = defineStore("config", () => {
           serverRemainingTime.value = status.remainingTime;
           serverTransitionMode.value = status.transitionMode;
           serverStateId.value = status.stateId || 0;
+          serverIsPaused.value = status.isPaused || false;
         } else if (message.type === "config") {
           // Update the configuration instantly when pushed from the server
           if (JSON.stringify(config.value) !== JSON.stringify(message.data)) {
@@ -171,6 +174,16 @@ export const useConfigStore = defineStore("config", () => {
     }
   };
 
+  const togglePause = async () => {
+    try {
+      await $fetch<any>("/api/background/pause", {
+        method: "POST",
+      });
+    } catch (err) {
+      console.error("Error toggling pause:", err);
+    }
+  };
+
   const addToWaitingList = async (item: BackgroundItem) => {
     try {
       await $fetch("/api/background/waiting-list", {
@@ -215,5 +228,7 @@ export const useConfigStore = defineStore("config", () => {
     startStatusPolling,
     stopStatusPolling,
     triggerNextBackground,
+    togglePause,
+    serverIsPaused,
   };
 });

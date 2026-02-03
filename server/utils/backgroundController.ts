@@ -27,6 +27,7 @@ class BackgroundController {
   private stateId: number = 0;
   private pollingTimer: NodeJS.Timeout | null = null;
   private fetchingMetadata: Set<string> = new Set();
+  private isPaused: boolean = false;
 
   private readonly mediaExtensions = {
     image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
@@ -99,17 +100,17 @@ class BackgroundController {
 
       this.allMedia = newMedia;
       console.log(
-        `[Server] BackgroundController | Media Refreshed | Total: ${this.allMedia.length} (Local: ${localMedia.length}, External: ${externalMedia.length})`
+        `[Server] BackgroundController | Media Refreshed | Total: ${this.allMedia.length} (Local: ${localMedia.length}, External: ${externalMedia.length})`,
       );
 
       // Ensure currentMedia is still valid
       if (this.currentMedia) {
         const stillExists = this.allMedia.find(
-          (m) => m.url === this.currentMedia?.url
+          (m) => m.url === this.currentMedia?.url,
         );
         if (!stillExists) {
           console.log(
-            `[Server] BackgroundController | Current media ${this.currentMedia.url} no longer exists, skipping to next.`
+            `[Server] BackgroundController | Current media ${this.currentMedia.url} no longer exists, skipping to next.`,
           );
           this.currentMedia = null;
           await this.next();
@@ -126,6 +127,8 @@ class BackgroundController {
 
   private startTimer() {
     if (this.timer) clearInterval(this.timer);
+    if (this.isPaused) return;
+
     const config = configManager.getConfig();
     const interval = config.background.interval || 30000;
     this.timer = setInterval(() => this.next(), interval);
@@ -137,7 +140,7 @@ class BackgroundController {
     if (config.background.useLocalBackgrounds) {
       const interval = config.background.localPollingInterval || 30000;
       console.log(
-        `[Server] BackgroundController | Starting local polling (${interval}ms)`
+        `[Server] BackgroundController | Starting local polling (${interval}ms)`,
       );
       this.pollingTimer = setInterval(() => this.refreshMedia(), interval);
     }
@@ -180,7 +183,7 @@ class BackgroundController {
 
       this.stateId++;
       console.log(
-        `[Server] BackgroundController | Next | picked ${this.currentMedia?.url} (stateId: ${this.stateId})`
+        `[Server] BackgroundController | Next | picked ${this.currentMedia?.url} (stateId: ${this.stateId})`,
       );
 
       this.startTime = Date.now();
@@ -231,14 +234,14 @@ class BackgroundController {
               : `video/${ext.slice(1)}`,
         });
         console.log(
-          `[Server] BackgroundController | Metadata applied for: ${fileName}`
+          `[Server] BackgroundController | Metadata applied for: ${fileName}`,
         );
         this.notifyStateChange(); // Notify that metadata is now available
       }
     } catch (err) {
       console.error(
         `[Server] BackgroundController | Error during metadata fetch for ${fileName}:`,
-        err
+        err,
       );
     } finally {
       this.fetchingMetadata.delete(url);
@@ -267,7 +270,7 @@ class BackgroundController {
       this.fetchMetadataForCurrent().catch((e) => {
         console.error(
           "[Server] BackgroundController | getStatus | Metadata error:",
-          e
+          e,
         );
       });
     }
@@ -291,13 +294,14 @@ class BackgroundController {
       totalInterval: interval,
       waitingList: this.waitingList,
       stateId: this.stateId,
+      isPaused: this.isPaused,
     };
   }
 
   public addToWaitingList(item: BackgroundItem) {
     this.waitingList.push(item);
     console.log(
-      `[Server] BackgroundController | Waiting List | Added: ${item.url} (Total: ${this.waitingList.length})`
+      `[Server] BackgroundController | Waiting List | Added: ${item.url} (Total: ${this.waitingList.length})`,
     );
     this.notifyStateChange();
   }
@@ -306,10 +310,30 @@ class BackgroundController {
     if (index >= 0 && index < this.waitingList.length) {
       const removed = this.waitingList.splice(index, 1)[0];
       console.log(
-        `[Server] BackgroundController | Waiting List | Removed: ${removed.url} (Total: ${this.waitingList.length})`
+        `[Server] BackgroundController | Waiting List | Removed: ${removed.url} (Total: ${this.waitingList.length})`,
       );
       this.notifyStateChange();
     }
+  }
+
+  public togglePause() {
+    this.isPaused = !this.isPaused;
+    console.log(
+      `[Server] BackgroundController | ${this.isPaused ? "Paused" : "Resumed"}`,
+    );
+
+    if (this.isPaused) {
+      if (this.timer) {
+        clearInterval(this.timer);
+        this.timer = null;
+      }
+    } else {
+      this.startTime = Date.now();
+      this.startTimer();
+    }
+
+    this.notifyStateChange();
+    return this.isPaused;
   }
 
   public getAllMedia() {
