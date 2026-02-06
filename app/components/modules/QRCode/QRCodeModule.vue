@@ -14,7 +14,7 @@
 
       <div
         v-if="showUrl"
-        class="text-[10px] md:text-xs text-primary-300 font-bold opacity-60 truncate max-w-[150px]"
+        class="text-[10px] md:text-xs text-white font-bold opacity-60 truncate max-w-[150px]"
       >
         {{ displayUrl }}
       </div>
@@ -39,8 +39,8 @@ const updateQR = async () => {
     // Get server IP or hostname
     const host = window.location.hostname;
     const port = window.location.port;
-    url = `http://${host}:${port}/manage`;
-    displayUrl.value = `${host}/manage`;
+    url = `http://${host}:${port}/manage/backgrounds`;
+    displayUrl.value = `${host}/manage/backgrounds`;
   } else {
     url = props.customUrl || "";
     displayUrl.value = url.replace(/^https?:\/\//, "");

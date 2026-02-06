@@ -4,7 +4,7 @@
       <div v-if="currentFeed" class="space-y-2">
         <div
           v-if="showSourceTitle"
-          class="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-primary-400 opacity-80"
+          class="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-white opacity-80"
         >
           {{ currentFeed.source }}
         </div>

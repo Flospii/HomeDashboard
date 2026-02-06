@@ -23,6 +23,16 @@
       "modules": "Module",
       "raw": "Rohdaten"
     },
+    "controlCenter": "Control Center",
+    "overview": {
+      "welcome": "Willkommen im Control Center",
+      "description": "Verwalte deine Dashboard-Konfiguration, Hintergründe und Module an einem zentralen Ort.",
+      "quickActions": "Quick Actions",
+      "backgroundsDesc": "Hintergrundressourcen verwalten",
+      "preferencesDesc": "Erscheinungsbild & Verhalten",
+      "modulesDesc": "Aktivierte Module konfigurieren",
+      "rawDesc": "Konfigurationsdatei direkt editieren"
+    },
     "backgrounds": {
       "title": "Hintergrundmedien",
       "subtitle": "Verwalten Sie Ihre lokalen und externen Hintergrundressourcen",
@@ -48,7 +58,8 @@
       "resume": "Wiedergabe",
       "uploadSuccess": "Medien erfolgreich hochgeladen",
       "uploadError": "Upload fehlgeschlagen",
-      "dropToUpload": "Dateien hier ablegen"
+      "dropToUpload": "Dateien hier ablegen",
+      "waitingListEmpty": "Keine Medien in der Warteliste"
     },
     "preferences": {
       "title": "Dashboard-Einstellungen",

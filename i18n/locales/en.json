@@ -23,6 +23,16 @@
       "modules": "Modules",
       "raw": "Raw Config"
     },
+    "controlCenter": "Control Center",
+    "overview": {
+      "welcome": "Welcome to the Control Center",
+      "description": "Manage your dashboard configuration, backgrounds, and modules from a central location.",
+      "quickActions": "Quick Actions",
+      "backgroundsDesc": "Manage background resources",
+      "preferencesDesc": "Customize appearance & behavior",
+      "modulesDesc": "Configure active dashboard widgets",
+      "rawDesc": "Edit configuration file directly"
+    },
     "backgrounds": {
       "title": "Background Media",
       "subtitle": "Manage your local and external background resources",
@@ -48,7 +58,8 @@
       "resume": "Resume",
       "uploadSuccess": "Media uploaded successfully",
       "uploadError": "Failed to upload media",
-      "dropToUpload": "Drop files to upload"
+      "dropToUpload": "Drop files to upload",
+      "waitingListEmpty": "No media in the waiting list"
     },
     "preferences": {
       "title": "Dashboard Settings",

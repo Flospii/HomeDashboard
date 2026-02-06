@@ -165,7 +165,7 @@
     </div>
 
     <!-- Waiting List Section -->
-    <div v-if="store.serverWaitingList.length > 0" class="mb-12 space-y-4">
+    <div class="mb-12 space-y-4">
       <div
         class="flex items-center justify-between border-b border-default pb-4"
       >
@@ -179,39 +179,59 @@
           size="lg"
         />
       </div>
-      <div class="flex overflow-x-auto gap-4 pb-4 scrollbar-hide">
-        <div
-          v-for="(item, index) in store.serverWaitingList"
-          :key="item.url + index"
-          class="relative flex-shrink-0 w-32 sm:w-40 aspect-video overflow-hidden border border-default bg-(--ui-bg)/40 group"
-        >
-          <img
-            v-if="item.type === 'image'"
-            :src="item.url"
-            class="w-full h-full object-cover"
-          />
-          <video
-            v-else
-            :src="item.url"
-            class="w-full h-full object-cover"
-            muted
-          />
+      <div
+        class="flex overflow-x-auto gap-4 pb-4 scrollbar-hide min-h-[90px] sm:min-h-[110px]"
+      >
+        <TransitionGroup name="list" tag="div" class="flex gap-4">
           <div
-            class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+            v-for="(item, index) in store.serverWaitingList"
+            :key="item.url + '-' + index"
+            class="relative flex-shrink-0 w-32 sm:w-40 aspect-video overflow-hidden border border-default bg-(--ui-bg)/40 group"
           >
-            <UButton
-              icon="i-heroicons-x-mark"
-              color="error"
-              variant="ghost"
-              size="xs"
-              @click="store.removeFromWaitingList(index)"
+            <img
+              v-if="item.type === 'image'"
+              :src="item.url"
+              class="w-full h-full object-cover"
             />
+            <video
+              v-else
+              :src="item.url"
+              class="w-full h-full object-cover"
+              muted
+            />
+            <div
+              class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+            >
+              <UButton
+                icon="i-heroicons-x-mark"
+                color="error"
+                variant="ghost"
+                size="xs"
+                @click="store.removeFromWaitingList(index)"
+              />
+            </div>
+            <div
+              class="absolute top-0 left-0 bg-primary-500 text-white text-[8px] px-1 font-bold"
+            >
+              #{{ index + 1 }}
+            </div>
           </div>
-          <div
-            class="absolute top-0 left-0 bg-primary-500 text-white text-[8px] px-1 font-bold"
+        </TransitionGroup>
+
+        <!-- Placeholder when empty -->
+        <div
+          v-if="store.serverWaitingList.length === 0"
+          class="flex-shrink-0 w-32 sm:w-40 aspect-video flex flex-col items-center justify-center border border-dashed border-default/30 bg-default/5 opacity-50 rounded-xs"
+        >
+          <UIcon
+            name="i-heroicons-clock"
+            class="w-6 h-6 mb-2 text-default/20"
+          />
+          <span
+            class="text-[9px] uppercase tracking-wider font-black text-center px-4 text-default/30 leading-tight"
           >
-            #{{ index + 1 }}
-          </div>
+            {{ $t("manage.backgrounds.waitingListEmpty") }}
+          </span>
         </div>
       </div>
     </div>
@@ -498,5 +518,15 @@ const deleteMedia = async (item: any) => {
 <style scoped>
 .glass-module {
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s ease;
+}
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
 }
 </style>
