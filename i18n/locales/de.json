@@ -59,7 +59,24 @@
       "uploadSuccess": "Medien erfolgreich hochgeladen",
       "uploadError": "Upload fehlgeschlagen",
       "dropToUpload": "Dateien hier ablegen",
-      "waitingListEmpty": "Keine Medien in der Warteliste"
+      "waitingListEmpty": "Keine Medien in der Warteliste",
+      "uploadQueue": "Upload-Warteschlange",
+      "uploadTo": "Hochladen in",
+      "newFolder": "Neuer Ordner",
+      "folders": "Ordner",
+      "selectFolders": "Inhalte für Dashboard-Rotation",
+      "allFolders": "Alle verfügbaren Medien anzeigen",
+      "distinctFolders": "Nur ausgewählte Medien anzeigen",
+      "status": {
+        "pending": "Wartend",
+        "uploading": "Lädt hoch...",
+        "success": "Abgeschlossen",
+        "error": "Fehler"
+      },
+      "renameFolder": "Ordner umbenennen",
+      "newName": "Neuer Name",
+      "renameSuccess": "Ordner erfolgreich umbenannt",
+      "renameError": "Fehler beim Umbenennen des Ordners"
     },
     "preferences": {
       "title": "Dashboard-Einstellungen",

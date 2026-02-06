@@ -18,9 +18,7 @@
           class="flex items-center space-x-2 sm:space-x-4 overflow-x-auto pb-2 sm:pb-0"
         >
           <UButton
-            :icon="
-              store.serverIsPaused ? 'i-heroicons-play' : 'i-heroicons-pause'
-            "
+            :icon="store.serverIsPaused ? 'i-lucide-play' : 'i-lucide-pause'"
             color="neutral"
             variant="subtle"
             :label="
@@ -34,7 +32,7 @@
             @click="store.togglePause"
           />
           <UButton
-            icon="i-heroicons-forward"
+            icon="i-lucide-skip-forward"
             color="neutral"
             variant="subtle"
             :label="$t('manage.backgrounds.next')"
@@ -50,82 +48,86 @@
     <!-- Add Section -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
       <!-- Local Upload -->
-      <div
-        class="border-2 border-dashed p-10 text-center transition-all cursor-pointer group flex flex-col justify-center items-center relative overflow-hidden"
-        :class="[
-          isDragging
-            ? 'border-primary-500 bg-primary-500/10'
-            : 'border-default hover:border-primary-500/50 hover:bg-primary-500/5',
-          isUploading ? 'pointer-events-none opacity-50' : '',
-        ]"
-        @click="triggerFileInput"
-        @dragover.prevent="isDragging = true"
-        @dragleave.prevent="isDragging = false"
-        @drop.prevent="handleDrop"
-      >
-        <!-- Loading Overlay -->
-        <div
-          v-if="isUploading"
-          class="absolute inset-0 bg-(--ui-bg)/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 z-20"
-        >
-          <UIcon
-            name="i-heroicons-arrow-path"
-            class="w-10 h-10 text-primary-500 animate-spin mb-4"
-          />
-          <p
-            class="text-xs font-black text-primary-500 uppercase tracking-[0.2em]"
+      <div class="space-y-4">
+        <div class="flex flex-col sm:flex-row gap-4">
+          <UFormField :label="$t('manage.backgrounds.uploadTo')" class="flex-1">
+            <USelect
+              v-model="selectedUploadFolder"
+              :items="availableFolders"
+              size="xl"
+              class="w-full"
+            />
+          </UFormField>
+          <UFormField
+            :label="$t('manage.backgrounds.newFolder')"
+            class="flex-1"
           >
-            {{ $t("manage.backgrounds.uploading") }} ({{ uploadProgress }}%)
-          </p>
-          <UProgress
-            v-model="uploadProgress"
-            class="mt-6 w-48"
-            color="primary"
-          />
+            <UInput
+              v-model="newFolderName"
+              placeholder="e.g. Urlaub 2024"
+              size="xl"
+              class="w-full"
+            />
+          </UFormField>
         </div>
 
         <div
-          class="w-16 h-16 bg-(--ui-bg)/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
-          :class="{ 'scale-110': isDragging }"
+          class="border-2 border-dashed p-10 text-center transition-all cursor-pointer group flex flex-col justify-center items-center relative overflow-hidden h-64"
+          :class="[
+            isDragging
+              ? 'border-primary-500 bg-primary-500/10'
+              : 'border-default hover:border-primary-500/50 hover:bg-primary-500/5',
+          ]"
+          @click="triggerFileInput"
+          @dragover.prevent="isDragging = true"
+          @dragleave.prevent="isDragging = false"
+          @drop.prevent="handleDrop"
         >
-          <UIcon
-            :name="
+          <div
+            class="w-16 h-16 bg-default/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
+            :class="{ 'scale-110': isDragging }"
+          >
+            <UIcon
+              :name="isDragging ? 'i-lucide-download' : 'i-lucide-upload'"
+              class="w-8 h-8 transition-colors"
+              :class="
+                isDragging
+                  ? 'text-primary-500'
+                  : 'text-default/40 group-hover:text-primary-400'
+              "
+            />
+          </div>
+          <h3 class="text-lg font-semibold text-default mb-1">
+            {{
               isDragging
-                ? 'i-heroicons-arrow-down-tray'
-                : 'i-heroicons-cloud-arrow-up'
-            "
-            class="w-8 h-8 transition-colors"
-            :class="
-              isDragging
-                ? 'text-primary-500'
-                : 'text-default/40 group-hover:text-primary-400'
-            "
+                ? $t("manage.backgrounds.dropToUpload")
+                : $t("manage.backgrounds.uploadLocal")
+            }}
+          </h3>
+          <p class="text-sm text-default/40 mb-2">
+            {{ $t("manage.backgrounds.uploadSubtitle") }}
+          </p>
+          <div
+            class="text-[10px] uppercase tracking-widest font-black text-primary-500 bg-primary-500/10 px-3 py-1 rounded-full"
+          >
+            {{ $t("manage.backgrounds.uploadTo") }}:
+            {{ newFolderName || selectedUploadFolder }}
+          </div>
+          <input
+            ref="fileInput"
+            type="file"
+            class="hidden"
+            accept="image/*,video/*"
+            multiple
+            @change="handleFileUpload"
           />
         </div>
-        <h3 class="text-lg font-semibold text-default mb-1">
-          {{
-            isDragging
-              ? $t("manage.backgrounds.dropToUpload")
-              : $t("manage.backgrounds.uploadLocal")
-          }}
-        </h3>
-        <p class="text-sm text-default/40">
-          {{ $t("manage.backgrounds.uploadSubtitle") }}
-        </p>
-        <input
-          ref="fileInput"
-          type="file"
-          class="hidden"
-          accept="image/*,video/*"
-          multiple
-          @change="handleFileUpload"
-        />
       </div>
 
       <!-- External URL -->
       <UCard
         :ui="{ body: 'p-10' }"
-        class="bg-(--ui-bg)/5 shadow-none border border-default"
+        class="bg-default/5 shadow-none border border-default"
       >
         <h3 class="text-lg font-semibold text-default mb-4">
           {{ $t("manage.backgrounds.addExternal") }}
@@ -151,7 +153,7 @@
             <div class="flex items-end">
               <UButton
                 :label="$t('manage.backgrounds.addResource')"
-                icon="i-heroicons-plus"
+                icon="i-lucide-plus"
                 color="primary"
                 size="xl"
                 class="w-full sm:px-8"
@@ -186,7 +188,7 @@
           <div
             v-for="(item, index) in store.serverWaitingList"
             :key="item.url + '-' + index"
-            class="relative flex-shrink-0 w-32 sm:w-40 aspect-video overflow-hidden border border-default bg-(--ui-bg)/40 group"
+            class="relative flex-shrink-0 w-32 sm:w-40 aspect-video overflow-hidden border border-default bg-default/40 group"
           >
             <img
               v-if="item.type === 'image'"
@@ -203,7 +205,7 @@
               class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
             >
               <UButton
-                icon="i-heroicons-x-mark"
+                icon="i-lucide-x"
                 color="error"
                 variant="ghost"
                 size="xs"
@@ -223,10 +225,7 @@
           v-if="store.serverWaitingList.length === 0"
           class="flex-shrink-0 w-32 sm:w-40 aspect-video flex flex-col items-center justify-center border border-dashed border-default/30 bg-default/5 opacity-50 rounded-xs"
         >
-          <UIcon
-            name="i-heroicons-clock"
-            class="w-6 h-6 mb-2 text-default/20"
-          />
+          <UIcon name="i-lucide-clock" class="w-6 h-6 mb-2 text-default/20" />
           <span
             class="text-[9px] uppercase tracking-wider font-black text-center px-4 text-default/30 leading-tight"
           >
@@ -238,17 +237,170 @@
 
     <!-- Status Messages (Legacy, removed in favor of overlay) -->
 
+    <!-- Folder Selection Settings -->
+    <div
+      v-if="store.config"
+      class="mb-12 p-6 bg-default/5 border border-default rounded-lg"
+    >
+      <div class="flex items-center space-x-3 mb-6">
+        <UIcon name="i-lucide-folder-open" class="w-6 h-6 text-primary-500" />
+        <h3 class="text-xl font-bold text-default">
+          {{ $t("manage.backgrounds.selectFolders") }}
+        </h3>
+      </div>
+
+      <div class="space-y-6">
+        <URadioGroup
+          v-model="store.config.background.useAllFolders"
+          :items="[
+            { label: $t('manage.backgrounds.allFolders'), value: true },
+            { label: $t('manage.backgrounds.distinctFolders'), value: false },
+          ]"
+          @change="store.saveConfig"
+        />
+
+        <div
+          v-if="store.config.background.useAllFolders === false"
+          class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 pl-6 border-l-2 border-primary-500/20"
+        >
+          <div
+            v-for="folder in availableFolders"
+            :key="folder"
+            class="flex items-center space-x-2"
+          >
+            <UCheckbox
+              :label="folder"
+              :model-value="
+                store.config.background.enabledFolders?.includes(folder)
+              "
+              @update:model-value="
+                (val) => {
+                  if (!store.config) return;
+                  if (!store.config.background.enabledFolders)
+                    store.config.background.enabledFolders = [];
+                  if (val) {
+                    store.config.background.enabledFolders.push(folder);
+                  } else {
+                    store.config.background.enabledFolders =
+                      store.config.background.enabledFolders.filter(
+                        (f) => f !== folder,
+                      );
+                  }
+                  store.saveConfig();
+                }
+              "
+            />
+          </div>
+        </div>
+
+        <!-- External Media Selection -->
+        <div
+          v-if="
+            store.config.background.useAllFolders === false &&
+            externalBackgrounds.length > 0
+          "
+          class="space-y-4 pt-6 border-t border-default/10"
+        >
+          <div class="flex items-center space-x-2 text-default/50">
+            <UIcon name="i-lucide-link" class="w-4 h-4" />
+            <span class="text-xs font-bold uppercase tracking-widest">{{
+              $t("manage.backgrounds.external")
+            }}</span>
+          </div>
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pl-6 border-l-2 border-primary-500/20"
+          >
+            <div
+              v-for="item in externalBackgrounds"
+              :key="item.url"
+              class="flex items-center space-x-3 p-2 bg-default/5 border border-default rounded-lg hover:border-primary-500/30 transition-colors"
+            >
+              <UCheckbox
+                :model-value="
+                  store.config.background.enabledExternalUrls?.includes(
+                    item.url,
+                  )
+                "
+                @update:model-value="
+                  (val) => {
+                    if (!store.config) return;
+                    if (!store.config.background.enabledExternalUrls)
+                      store.config.background.enabledExternalUrls = [];
+                    if (val) {
+                      store.config.background.enabledExternalUrls.push(
+                        item.url,
+                      );
+                    } else {
+                      store.config.background.enabledExternalUrls =
+                        store.config.background.enabledExternalUrls.filter(
+                          (u) => u !== item.url,
+                        );
+                    }
+                    store.saveConfig();
+                  }
+                "
+              />
+              <div class="flex items-center space-x-2 truncate flex-1">
+                <img
+                  v-if="item.type === 'image'"
+                  :src="item.url"
+                  class="w-8 h-8 object-cover rounded shadow-sm"
+                />
+                <UIcon
+                  v-else
+                  name="i-lucide-video"
+                  class="w-5 h-5 text-default/40"
+                />
+                <span class="text-xs truncate text-default">{{
+                  item.url.split("/").pop() || item.url
+                }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Media Gallery -->
     <div class="space-y-8">
       <div
-        class="flex items-center justify-between border-b border-default pb-4"
+        class="flex flex-col md:flex-row md:items-center justify-between border-b border-default pb-6 gap-6"
       >
-        <h3 class="text-xl font-bold text-default">
-          {{ $t("manage.backgrounds.gallery") }}
-        </h3>
+        <div class="space-y-4">
+          <h3 class="text-xl font-bold text-default">
+            {{ $t("manage.backgrounds.gallery") }}
+          </h3>
+          <!-- Browser / Breadcrumbs -->
+          <div class="flex items-center space-x-2">
+            <UButton
+              icon="i-lucide-home"
+              color="neutral"
+              variant="subtle"
+              size="xs"
+              @click="currentGalleryFolder = null"
+            />
+            <UIcon
+              v-if="currentGalleryFolder"
+              name="i-heroicons-chevron-right"
+              class="w-4 h-4 text-default/30"
+            />
+            <UBadge
+              v-if="currentGalleryFolder"
+              :label="
+                currentGalleryFolder === 'external'
+                  ? $t('manage.backgrounds.external')
+                  : currentGalleryFolder
+              "
+              color="primary"
+              variant="subtle"
+              size="sm"
+              class="capitalize"
+            />
+          </div>
+        </div>
         <div class="flex flex-col sm:flex-row sm:items-center gap-4">
           <UButton
-            icon="i-heroicons-archive-box-arrow-down"
+            icon="i-lucide-archive"
             color="neutral"
             variant="subtle"
             :label="$t('manage.backgrounds.exportZip')"
@@ -259,7 +411,7 @@
           <UBadge
             :label="
               $t('manage.backgrounds.items', {
-                count: allBackgrounds.length,
+                count: displayedMedia.length,
               })
             "
             color="neutral"
@@ -270,12 +422,69 @@
         </div>
       </div>
 
+      <!-- Folder View / Gallery Grid -->
       <div
-        v-if="allBackgrounds.length === 0"
-        class="text-center py-20 bg-(--ui-bg)/5 border border-default"
+        v-if="currentGalleryFolder === null"
+        class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"
+      >
+        <!-- Folder Cards -->
+        <div
+          v-for="folder in galleryFolders"
+          :key="folder"
+          class="relative aspect-square bg-default/5 border border-default hover:border-primary-500/50 hover:bg-primary-500/5 transition-all cursor-pointer group flex flex-col items-center justify-center space-y-3"
+          @click="currentGalleryFolder = folder"
+        >
+          <div
+            class="w-12 h-12 bg-default/5 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform"
+          >
+            <UIcon
+              :name="
+                folder === 'external' ? 'i-lucide-globe' : 'i-lucide-folder'
+              "
+              class="w-6 h-6 text-primary-500"
+            />
+          </div>
+          <div class="text-center px-4">
+            <p class="text-sm font-bold text-default truncate capitalize">
+              {{
+                folder === "external"
+                  ? $t("manage.backgrounds.external")
+                  : folder
+              }}
+            </p>
+            <p class="text-[10px] text-default/40 uppercase tracking-widest">
+              {{ getFolderItemCount(folder) }}
+              {{
+                $t("manage.backgrounds.items", { count: "" }).replace("{}", "")
+              }}
+            </p>
+          </div>
+
+          <!-- Folder Actions -->
+          <div
+            v-if="folder !== 'external'"
+            class="absolute top-2 right-2 opacity-40 group-hover:opacity-100 transition-opacity"
+          >
+            <UButton
+              icon="i-lucide-pencil"
+              color="neutral"
+              variant="soft"
+              size="xs"
+              @click.stop="openRenameModal(folder)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div
+        v-if="
+          displayedMedia.length === 0 &&
+          (currentGalleryFolder !== null || galleryFolders.length === 0)
+        "
+        class="text-center py-20 bg-default/5 border border-default"
       >
         <UIcon
-          name="i-heroicons-photo"
+          name="i-lucide-image"
           class="w-16 h-16 mx-auto mb-4 opacity-10"
         />
         <p class="text-default/30 text-lg">
@@ -284,12 +493,13 @@
       </div>
 
       <div
+        v-if="displayedMedia.length > 0"
         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
       >
         <div
-          v-for="(item, index) in allBackgrounds"
+          v-for="(item, index) in displayedMedia"
           :key="item.url"
-          class="relative group aspect-video overflow-hidden border border-default bg-(--ui-bg)/40 shadow-xl"
+          class="relative group aspect-video overflow-hidden border border-default bg-default/40 shadow-xl"
         >
           <!-- Preview -->
           <img
@@ -306,10 +516,10 @@
 
           <!-- Overlay Actions -->
           <div
-            class="absolute inset-0 sm:bg-(--ui-bg)/60 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-4"
+            class="absolute inset-0 sm:bg-default/60 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-4"
           >
             <UButton
-              icon="i-heroicons-clock"
+              icon="i-lucide-clock"
               color="primary"
               variant="solid"
               size="xl"
@@ -329,7 +539,7 @@
 
           <!-- Type Badge -->
           <div
-            class="absolute top-4 left-4 px-3 py-1 bg-(--ui-bg)/60 text-[10px] font-bold uppercase tracking-widest text-default/80 border border-default"
+            class="absolute top-4 left-4 px-3 py-1 bg-default/60 text-[10px] font-bold uppercase tracking-widest text-default/80 border border-default"
           >
             {{
               isLocal(item.url)
@@ -340,11 +550,147 @@
         </div>
       </div>
     </div>
+
+    <!-- Upload Progress Modal -->
+    <UModal
+      v-model="showUploadModal"
+      :title="$t('manage.backgrounds.uploadQueue')"
+      class="max-w-2xl"
+    >
+      <template #body>
+        <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+          <div
+            v-for="item in uploadQueue"
+            :key="item.id"
+            class="flex flex-col p-4 bg-default/5 border border-default rounded-lg"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center space-x-3 truncate">
+                <UIcon
+                  :name="
+                    item.file.type.startsWith('video')
+                      ? 'i-lucide-video'
+                      : 'i-lucide-image'
+                  "
+                  class="w-5 h-5 text-default/40 shrink-0"
+                />
+                <span class="text-sm font-bold truncate">{{
+                  item.file.name
+                }}</span>
+              </div>
+              <div class="flex items-center space-x-2 shrink-0">
+                <span
+                  class="text-[10px] font-black uppercase tracking-wider"
+                  :class="{
+                    'text-primary-500': item.status === 'uploading',
+                    'text-success-500': item.status === 'success',
+                    'text-error-500': item.status === 'error',
+                    'text-default/30': item.status === 'pending',
+                  }"
+                >
+                  {{ $t(`manage.backgrounds.status.${item.status}`) }}
+                </span>
+                <UIcon
+                  v-if="item.status === 'success'"
+                  name="i-lucide-check-circle"
+                  class="w-5 h-5 text-success-500"
+                />
+                <UIcon
+                  v-else-if="item.status === 'error'"
+                  name="i-lucide-alert-circle"
+                  class="w-5 h-5 text-error-500"
+                />
+                <UIcon
+                  v-else-if="item.status === 'uploading'"
+                  name="i-lucide-refresh-cw"
+                  class="w-5 h-5 text-primary-500 animate-spin"
+                />
+              </div>
+            </div>
+            <UProgress
+              v-if="item.status === 'uploading' || item.progress > 0"
+              v-model="item.progress"
+              size="xs"
+              :color="
+                item.status === 'error'
+                  ? 'error'
+                  : item.status === 'success'
+                    ? 'success'
+                    : 'primary'
+              "
+            />
+            <p v-if="item.error" class="text-[10px] text-error-500 mt-1">
+              {{ item.error }}
+            </p>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <UButton
+            v-if="!isUploading"
+            :label="$t('common.cancel')"
+            variant="ghost"
+            color="neutral"
+            @click="
+              showUploadModal = false;
+              uploadQueue = [];
+            "
+          />
+          <UButton
+            v-if="!isUploading && uploadQueue.length > 0"
+            :label="$t('common.saved')"
+            color="primary"
+            @click="
+              showUploadModal = false;
+              uploadQueue = [];
+            "
+          />
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Rename Folder Modal -->
+    <UModal
+      v-model:open="showRenameModal"
+      :title="$t('manage.backgrounds.renameFolder')"
+    >
+      <UButton v-show="false" label="Hidden Trigger" />
+
+      <template #body>
+        <UFormField :label="$t('manage.backgrounds.newName')">
+          <UInput
+            v-model="renameValue"
+            :placeholder="folderToRename"
+            class="w-full"
+            autofocus
+            @keyup.enter="renameFolder"
+          />
+        </UFormField>
+      </template>
+
+      <template #footer="{ close }">
+        <div class="flex justify-end gap-3 w-full">
+          <UButton
+            :label="$t('common.cancel')"
+            color="neutral"
+            variant="ghost"
+            @click="close"
+          />
+          <UButton
+            :label="$t('common.save')"
+            color="primary"
+            :loading="isRenaming"
+            @click="renameFolder"
+          />
+        </div>
+      </template>
+    </UModal>
   </UCard>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted } from "vue";
+import { ref, reactive, onMounted, onUnmounted, computed } from "vue";
 import { useConfigStore } from "~~/stores/config";
 import type { BackgroundItem } from "~~/app/types/config";
 
@@ -353,6 +699,122 @@ const toast = useToast();
 
 const store = useConfigStore();
 const allBackgrounds = ref<BackgroundItem[]>([]);
+const availableFolders = ref<string[]>([]);
+const isUploading = ref(false);
+const isDragging = ref(false);
+const fileInput = ref<HTMLInputElement | null>(null);
+
+interface UploadItem {
+  id: string;
+  file: File;
+  status: "pending" | "uploading" | "success" | "error";
+  progress: number;
+  error?: string;
+}
+
+const uploadQueue = ref<UploadItem[]>([]);
+const showUploadModal = ref(false);
+const selectedUploadFolder = ref("root");
+const newFolderName = ref("");
+
+const showRenameModal = ref(false);
+const folderToRename = ref("");
+const renameValue = ref("");
+const isRenaming = ref(false);
+
+const openRenameModal = (folder: string) => {
+  folderToRename.value = folder;
+  renameValue.value = folder;
+  showRenameModal.value = true;
+};
+
+const renameFolder = async () => {
+  if (!renameValue.value || renameValue.value === folderToRename.value) {
+    showRenameModal.value = false;
+    return;
+  }
+
+  isRenaming.value = true;
+  try {
+    const response = await $fetch<{ success: boolean; message: string }>(
+      "/api/backgrounds/folders",
+      {
+        method: "PUT",
+        body: { oldName: folderToRename.value, newName: renameValue.value },
+      },
+    );
+
+    if (response.success) {
+      toast.add({
+        title: t("manage.backgrounds.renameSuccess"),
+        color: "success",
+      });
+
+      // Update config if folder was enabled
+      if (store.config?.background.enabledFolders) {
+        const index = store.config.background.enabledFolders.indexOf(
+          folderToRename.value,
+        );
+        if (index !== -1) {
+          store.config.background.enabledFolders[index] = renameValue.value;
+          store.saveConfig();
+        }
+      }
+
+      await fetchAllBackgrounds();
+      await fetchFolders();
+    }
+  } catch (err: any) {
+    toast.add({
+      title: t("manage.backgrounds.renameError"),
+      description: err.statusMessage || err.message,
+      color: "error",
+    });
+  } finally {
+    isRenaming.value = false;
+    showRenameModal.value = false;
+  }
+};
+
+const currentGalleryFolder = ref<string | null>(null);
+
+const galleryFolders = computed(() => {
+  // Only show folders if we are at root
+  if (currentGalleryFolder.value !== null) return [];
+
+  // Get unique folders from all backgrounds, excluding "root" for now as we show files in /
+  const folders = new Set<string>();
+  allBackgrounds.value.forEach((item) => {
+    if (item.url.startsWith("http")) {
+      folders.add("external");
+    } else if (item.folder && item.folder !== "root") {
+      folders.add(item.folder);
+    }
+  });
+  return Array.from(folders).sort();
+});
+
+const displayedMedia = computed(() => {
+  if (currentGalleryFolder.value === "external") {
+    return allBackgrounds.value.filter((item) => item.url.startsWith("http"));
+  }
+
+  const target = currentGalleryFolder.value || "root";
+  return allBackgrounds.value.filter(
+    (item) => !item.url.startsWith("http") && item.folder === target,
+  );
+});
+
+const getFolderItemCount = (folder: string) => {
+  if (folder === "external")
+    return allBackgrounds.value.filter((item) => item.url.startsWith("http"))
+      .length;
+  return allBackgrounds.value.filter((item) => item.folder === folder).length;
+};
+
+const externalBackgrounds = computed(() => {
+  return allBackgrounds.value.filter((item) => item.url.startsWith("http"));
+});
 
 const fetchAllBackgrounds = async () => {
   try {
@@ -365,18 +827,26 @@ const fetchAllBackgrounds = async () => {
   }
 };
 
+const fetchFolders = async () => {
+  try {
+    const data = await $fetch<string[]>("/api/backgrounds/folders");
+    if (Array.isArray(data)) {
+      availableFolders.value = data;
+    }
+  } catch (err) {
+    console.error("Error fetching folders:", err);
+  }
+};
+
 onMounted(() => {
   store.startStatusPolling();
   fetchAllBackgrounds();
+  fetchFolders();
 });
 
 onUnmounted(() => {
   store.stopStatusPolling();
 });
-const isUploading = ref(false);
-const isDragging = ref(false);
-const uploadProgress = ref(0);
-const fileInput = ref<HTMLInputElement | null>(null);
 
 const newExternal = reactive({
   url: "",
@@ -400,24 +870,53 @@ const handleFileUpload = async (event: Event | FileList) => {
 
   if (!files?.length) return;
 
-  isUploading.value = true;
-  uploadProgress.value = 0;
-
-  const formData = new FormData();
+  // Initialize queue
+  const newItems: UploadItem[] = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    if (file) formData.append("files", file);
+    if (file) {
+      newItems.push({
+        id: Math.random().toString(36).substr(2, 9),
+        file,
+        status: "pending",
+        progress: 0,
+      });
+    }
   }
 
+  uploadQueue.value = [...uploadQueue.value, ...newItems];
+  showUploadModal.value = true;
+  processQueue();
+};
+
+const processQueue = async () => {
+  if (isUploading.value) return;
+
+  const pending = uploadQueue.value.find((item) => item.status === "pending");
+  if (!pending) {
+    if (uploadQueue.value.some((i) => i.status === "success")) {
+      await store.fetchConfig();
+      await fetchAllBackgrounds();
+      await fetchFolders();
+    }
+    return;
+  }
+
+  isUploading.value = true;
+  pending.status = "uploading";
+
+  const formData = new FormData();
+  formData.append("files", pending.file);
+  formData.append("folder", newFolderName.value || selectedUploadFolder.value);
+
   try {
-    // Use XMLHttpRequest for progress tracking
     await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open("POST", "/api/backgrounds");
 
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
-          uploadProgress.value = Math.round((event.loaded / event.total) * 100);
+          pending.progress = Math.round((event.loaded / event.total) * 100);
         }
       };
 
@@ -425,32 +924,23 @@ const handleFileUpload = async (event: Event | FileList) => {
         if (xhr.status >= 200 && xhr.status < 300) {
           resolve(xhr.response);
         } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`));
+          reject(new Error(`Upload failed: ${xhr.status}`));
         }
       };
 
-      xhr.onerror = () => reject(new Error("Network error during upload"));
+      xhr.onerror = () => reject(new Error("Network error"));
       xhr.send(formData);
     });
 
-    await store.fetchConfig();
-    await fetchAllBackgrounds();
-    toast.add({
-      title: t("manage.backgrounds.uploadSuccess"),
-      color: "success",
-      icon: "i-heroicons-check-circle",
-    });
-  } catch (error) {
-    console.error("Upload failed:", error);
-    toast.add({
-      title: t("manage.backgrounds.uploadError"),
-      color: "error",
-      icon: "i-heroicons-x-circle",
-    });
+    pending.status = "success";
+    pending.progress = 100;
+  } catch (error: any) {
+    pending.status = "error";
+    pending.error = error.message || "Unknown error";
   } finally {
     isUploading.value = false;
-    uploadProgress.value = 0;
-    if (fileInput.value) fileInput.value.value = "";
+    newFolderName.value = ""; // Clear new folder name after first upload if multiple
+    processQueue();
   }
 };
 
@@ -493,6 +983,7 @@ const deleteMedia = async (item: any) => {
       });
       await store.fetchConfig();
       await fetchAllBackgrounds();
+      await fetchFolders();
     } catch (error) {
       console.error("Failed to delete local file:", error);
     }

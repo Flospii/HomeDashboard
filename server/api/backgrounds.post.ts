@@ -7,7 +7,7 @@ import { backgroundController } from "../utils/backgroundController";
 export default defineEventHandler(async (event) => {
   const formData = await readMultipartFormData(event);
   console.log(
-    `[Server] API | POST /api/backgrounds | Files: ${formData?.length || 0}`
+    `[Server] API | POST /api/backgrounds | Files: ${formData?.length || 0}`,
   );
   if (!formData) {
     throw createError({
@@ -21,9 +21,20 @@ export default defineEventHandler(async (event) => {
     fs.mkdirSync(backgroundsDir, { recursive: true });
   }
 
+  const folderItem = formData.find((item) => item.name === "folder");
+  const subFolder = folderItem?.data?.toString() || "";
+  const targetDir =
+    subFolder && subFolder !== "root"
+      ? path.join(backgroundsDir, subFolder)
+      : backgroundsDir;
+
+  if (subFolder && subFolder !== "root" && !fs.existsSync(targetDir)) {
+    fs.mkdirSync(targetDir, { recursive: true });
+  }
+
   for (const item of formData) {
     if (item.filename && item.data) {
-      const filePath = path.join(backgroundsDir, item.filename);
+      const filePath = path.join(targetDir, item.filename);
       fs.writeFileSync(filePath, item.data);
     }
   }

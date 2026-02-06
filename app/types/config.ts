@@ -5,6 +5,7 @@ import type { BackgroundMediaMetadata } from "../components/modules/BackgroundMe
 export interface BackgroundItem {
   url: string;
   type: MediaType;
+  folder?: string;
   metadata?: BackgroundMediaMetadata;
 }
 
@@ -51,6 +52,9 @@ export interface DashboardConfig {
     playbackOrder?: PlaybackMode;
     videoPlaybackMode?: VideoPlaybackMode;
     lowPowerMode?: boolean;
+    enabledFolders?: string[];
+    enabledExternalUrls?: string[];
+    useAllFolders?: boolean;
   };
   language?: string;
   modules: ModuleConfig[];

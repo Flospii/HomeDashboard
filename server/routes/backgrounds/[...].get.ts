@@ -16,7 +16,7 @@ import { getProjectPaths } from "../../utils/paths";
  */
 export default defineEventHandler(async (event) => {
   // Extract the filename from the wildcard parameter
-  const filename = event.context.params?._;
+  let filename = event.context.params?._;
 
   if (!filename) {
     throw createError({
@@ -25,10 +25,12 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  filename = decodeURIComponent(filename);
+
   const { backgroundsDir } = getProjectPaths();
   // Ensure the filename is safe (prevents directory traversal attacks)
-  const safeFilename = path.basename(filename);
-  const dataPath = path.join(backgroundsDir, safeFilename);
+  const normalizedPath = filename.replace(/\.\./g, "");
+  const dataPath = path.join(backgroundsDir, normalizedPath);
 
   // Check if the file exists in the backgrounds directory
   if (fs.existsSync(dataPath)) {
@@ -41,7 +43,7 @@ export default defineEventHandler(async (event) => {
     setResponseHeader(
       event,
       "Cache-Control",
-      "public, max-age=31536000, immutable" // Cache for 1 year
+      "public, max-age=31536000, immutable", // Cache for 1 year
     );
 
     // Handle HTTP Range requests (crucial for video streaming/seeking)
@@ -64,16 +66,16 @@ export default defineEventHandler(async (event) => {
       setResponseHeader(
         event,
         "Content-Range",
-        `bytes ${start}-${end}/${fileSize}`
+        `bytes ${start}-${end}/${fileSize}`,
       );
       setResponseHeader(event, "Content-Length", chunksize);
-      setResponseHeader(event, "Content-Type", getContentType(safeFilename));
+      setResponseHeader(event, "Content-Type", getContentType(normalizedPath));
 
       return sendStream(event, file);
     } else {
       // Standard request (full file)
       setResponseHeader(event, "Content-Length", fileSize);
-      setResponseHeader(event, "Content-Type", getContentType(safeFilename));
+      setResponseHeader(event, "Content-Type", getContentType(normalizedPath));
       return sendStream(event, fs.createReadStream(dataPath));
     }
   }

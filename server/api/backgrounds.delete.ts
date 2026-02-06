@@ -18,9 +18,10 @@ export default defineEventHandler(async (event) => {
   }
 
   const { backgroundsDir } = getProjectPaths();
-  // Ensure filename is just a name, not a path
-  const safeFilename = path.basename(filename);
-  const filePath = path.join(backgroundsDir, safeFilename);
+  // Decode and sanitize path
+  const decodedFilename = decodeURIComponent(filename);
+  const normalizedPath = decodedFilename.replace(/\.\./g, "");
+  const filePath = path.join(backgroundsDir, normalizedPath);
 
   try {
     await fs.access(filePath);
@@ -30,7 +31,7 @@ export default defineEventHandler(async (event) => {
     await backgroundController.refreshMedia();
     backgroundController.notifyStateChange();
 
-    return { success: true, message: `Deleted ${safeFilename}` };
+    return { success: true, message: `Deleted ${normalizedPath}` };
   } catch (error: any) {
     if (error.code === "ENOENT") {
       throw createError({

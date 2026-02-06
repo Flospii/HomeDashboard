@@ -22,12 +22,19 @@ class BackgroundController {
   private startTime: number = Date.now();
   private timer: NodeJS.Timeout | null = null;
   private allMedia: BackgroundItem[] = [];
+  private rotationMedia: BackgroundItem[] = [];
   private waitingList: BackgroundItem[] = [];
   private onStateChange: (() => void) | null = null;
   private stateId: number = 0;
   private pollingTimer: NodeJS.Timeout | null = null;
   private fetchingMetadata: Set<string> = new Set();
   private isPaused: boolean = false;
+
+  // Performance: Map-based metadata cache for O(1) lookups
+  private metadataCache = new Map<string, BackgroundItem["metadata"]>();
+
+  // Performance: Debounce timer for refreshMedia
+  private refreshDebounceTimer: NodeJS.Timeout | null = null;
 
   private readonly mediaExtensions = {
     image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
@@ -43,38 +50,65 @@ class BackgroundController {
     await this.reconfigure();
   }
 
+  // Public debounced version for external calls (e.g., after file uploads)
+  public debouncedRefreshMedia(delayMs: number = 300) {
+    if (this.refreshDebounceTimer) clearTimeout(this.refreshDebounceTimer);
+    this.refreshDebounceTimer = setTimeout(() => this.refreshMedia(), delayMs);
+  }
+
   public async refreshMedia() {
     const { backgroundsDir } = getProjectPaths();
     const config = configManager.getConfig();
 
-    const scanDir = (dir: string): BackgroundItem[] => {
-      if (!fs.existsSync(dir)) return [];
-      const files = fs.readdirSync(dir);
-      const results: BackgroundItem[] = [];
+    // Performance: Async directory scanning
+    const scanDirAsync = async (
+      dir: string,
+      relativePath: string = "",
+    ): Promise<BackgroundItem[]> => {
+      const { promises: fsPromises } = await import("node:fs");
 
-      for (const file of files) {
-        const ext = path.extname(file).toLowerCase();
-        let type: MediaType | null = null;
+      try {
+        await fsPromises.access(dir);
+      } catch {
+        return [];
+      }
 
-        if (this.mediaExtensions.image.includes(ext)) {
-          type = "image";
-        } else if (this.mediaExtensions.video.includes(ext)) {
-          type = "video";
-        }
+      const entries = await fsPromises.readdir(dir, { withFileTypes: true });
+      let results: BackgroundItem[] = [];
 
-        if (type) {
-          results.push({
-            url: `/backgrounds/${file}`,
-            type,
-          });
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        const folderName = relativePath || "root";
+
+        if (entry.isDirectory()) {
+          // One level deep is enough for now as requested
+          if (!relativePath) {
+            const subItems = await scanDirAsync(fullPath, entry.name);
+            results = [...results, ...subItems];
+          }
+        } else {
+          const ext = path.extname(entry.name).toLowerCase();
+          let type: MediaType | null = null;
+
+          if (this.mediaExtensions.image.includes(ext)) {
+            type = "image";
+          } else if (this.mediaExtensions.video.includes(ext)) {
+            type = "video";
+          }
+
+          if (type) {
+            results.push({
+              url: `/backgrounds/${relativePath ? relativePath + "/" : ""}${entry.name}`,
+              type,
+              folder: folderName,
+            });
+          }
         }
       }
       return results;
     };
 
-    const localMedia = config.background.useLocalBackgrounds
-      ? scanDir(backgroundsDir)
-      : [];
+    const scannedMedia = await scanDirAsync(backgroundsDir);
     const externalMedia: BackgroundItem[] = (
       config.background.externalMediaUrlList || []
     ).map((m) => ({
@@ -82,45 +116,65 @@ class BackgroundController {
       type: m.type,
     }));
 
-    const newMedia = [...externalMedia, ...localMedia];
+    const newAllMedia = [...externalMedia, ...scannedMedia];
+
+    // Filter for rotation
+    const newRotationMedia = newAllMedia.filter((item) => {
+      // If using all folders, include everything
+      if (config.background.useAllFolders !== false) return true;
+
+      const isExternal = item.url.startsWith("http");
+
+      if (isExternal) {
+        // Strict: only include if explicitly enabled in the list
+        if (!config.background.enabledExternalUrls) return false;
+        return config.background.enabledExternalUrls.includes(item.url);
+      }
+
+      // Local media filtered by folder settings
+      if (!config.background.enabledFolders) return false;
+      return config.background.enabledFolders.includes(item.folder || "root");
+    });
 
     // Check if media list actually changed to avoid redundant updates
     const hasChanged =
-      this.allMedia.length !== newMedia.length ||
-      this.allMedia.some((m, i) => m.url !== newMedia[i]?.url);
+      this.allMedia.length !== newAllMedia.length ||
+      this.allMedia.some((m, i) => m.url !== newAllMedia[i]?.url) ||
+      this.rotationMedia.length !== newRotationMedia.length;
 
     if (hasChanged) {
-      // Preserve metadata for existing items
-      for (const item of newMedia) {
-        const existing = this.allMedia.find((m) => m.url === item.url);
-        if (existing?.metadata) {
-          item.metadata = existing.metadata;
+      // Performance: Use Map cache for O(1) metadata lookups
+      for (const item of newAllMedia) {
+        const cachedMetadata = this.metadataCache.get(item.url);
+        if (cachedMetadata) {
+          item.metadata = cachedMetadata;
         }
       }
 
-      this.allMedia = newMedia;
+      this.allMedia = newAllMedia;
+      this.rotationMedia = newRotationMedia;
+
       console.log(
-        `[Server] BackgroundController | Media Refreshed | Total: ${this.allMedia.length} (Local: ${localMedia.length}, External: ${externalMedia.length})`,
+        `[Server] BackgroundController | Media Refreshed | Total: ${this.allMedia.length}, Rotation: ${this.rotationMedia.length}`,
       );
 
-      // Ensure currentMedia is still valid
+      // Ensure currentMedia is still valid (must be in rotation)
       if (this.currentMedia) {
-        const stillExists = this.allMedia.find(
+        const stillInRotation = this.rotationMedia.find(
           (m) => m.url === this.currentMedia?.url,
         );
-        if (!stillExists) {
+        if (!stillInRotation) {
           console.log(
-            `[Server] BackgroundController | Current media ${this.currentMedia.url} no longer exists, skipping to next.`,
+            `[Server] BackgroundController | Current media ${this.currentMedia.url} no longer in rotation, skipping to next.`,
           );
           this.currentMedia = null;
           await this.next();
         } else {
-          // Update currentMedia reference to the one in allMedia (which might have metadata now)
-          this.currentMedia = stillExists;
+          // Update reference
+          this.currentMedia = stillInRotation;
         }
-      } else if (this.allMedia.length > 0) {
-        this.currentMedia = this.allMedia[0];
-        this.notifyStateChange();
+      } else if (this.rotationMedia.length > 0) {
+        await this.next();
       }
     }
   }
@@ -167,18 +221,21 @@ class BackgroundController {
       if (this.waitingList.length > 0) {
         this.currentMedia = this.waitingList.shift()!;
       } else {
-        if (this.allMedia.length === 0) {
+        if (this.rotationMedia.length === 0) {
           await this.refreshMedia();
         }
 
-        if (this.allMedia.length === 0) return;
+        if (this.rotationMedia.length === 0) return;
 
         if (config.background.playbackOrder === "random") {
-          this.currentIndex = Math.floor(Math.random() * this.allMedia.length);
+          this.currentIndex = Math.floor(
+            Math.random() * this.rotationMedia.length,
+          );
         } else {
-          this.currentIndex = (this.currentIndex + 1) % this.allMedia.length;
+          this.currentIndex =
+            (this.currentIndex + 1) % this.rotationMedia.length;
         }
-        this.currentMedia = this.allMedia[this.currentIndex];
+        this.currentMedia = this.rotationMedia[this.currentIndex];
       }
 
       this.stateId++;
@@ -211,8 +268,8 @@ class BackgroundController {
     this.fetchingMetadata.add(url);
 
     const { backgroundsDir } = getProjectPaths();
-    const fileName = url.replace("/backgrounds/", "");
-    const filePath = path.join(backgroundsDir, fileName);
+    const relativePath = decodeURIComponent(url.replace("/backgrounds/", ""));
+    const filePath = path.join(backgroundsDir, relativePath);
 
     try {
       if (!fs.existsSync(filePath)) {
@@ -221,26 +278,31 @@ class BackgroundController {
 
       const stats = fs.statSync(filePath);
       const rawMeta = await exiftool.read(filePath);
-      const ext = path.extname(fileName).toLowerCase();
+      const ext = path.extname(relativePath).toLowerCase();
 
       // Check if currentMedia is still the same
       if (this.currentMedia?.url === url) {
-        this.currentMedia.metadata = mapMetadata(rawMeta, {
-          fileName,
+        const metadata = mapMetadata(rawMeta, {
+          fileName: relativePath,
           fileSize: stats.size,
           mimeType:
             this.currentMedia.type === "image"
               ? `image/${ext.slice(1).replace("jpg", "jpeg")}`
               : `video/${ext.slice(1)}`,
         });
+        this.currentMedia.metadata = metadata;
+
+        // Performance: Cache metadata for O(1) lookups on refresh
+        this.metadataCache.set(url, metadata);
+
         console.log(
-          `[Server] BackgroundController | Metadata applied for: ${fileName}`,
+          `[Server] BackgroundController | Metadata cached for: ${relativePath}`,
         );
         this.notifyStateChange(); // Notify that metadata is now available
       }
     } catch (err) {
       console.error(
-        `[Server] BackgroundController | Error during metadata fetch for ${fileName}:`,
+        `[Server] BackgroundController | Error during metadata fetch for ${relativePath}:`,
         err,
       );
     } finally {
@@ -257,7 +319,7 @@ class BackgroundController {
     const remaining = Math.max(0, interval - elapsed);
 
     // If currentMedia is null but we have media, trigger next()
-    if (!this.currentMedia && this.allMedia.length > 0) {
+    if (!this.currentMedia && this.rotationMedia.length > 0) {
       await this.next();
     }
 
@@ -279,9 +341,9 @@ class BackgroundController {
     let nextMedia: BackgroundItem | null = null;
     if (this.waitingList.length > 0) {
       nextMedia = this.waitingList[0];
-    } else if (this.allMedia.length > 0) {
-      const nextIndex = (this.currentIndex + 1) % this.allMedia.length;
-      nextMedia = this.allMedia[nextIndex];
+    } else if (this.rotationMedia.length > 0) {
+      const nextIndex = (this.currentIndex + 1) % this.rotationMedia.length;
+      nextMedia = this.rotationMedia[nextIndex];
     }
 
     return {
@@ -338,6 +400,18 @@ class BackgroundController {
 
   public getAllMedia() {
     return this.allMedia;
+  }
+
+  public getFolders() {
+    const { backgroundsDir } = getProjectPaths();
+    if (!fs.existsSync(backgroundsDir)) return ["root"];
+
+    const folders = fs
+      .readdirSync(backgroundsDir, { withFileTypes: true })
+      .filter((dirent) => dirent.isDirectory())
+      .map((dirent) => dirent.name);
+
+    return ["root", ...folders];
   }
 
   public setOnStateChange(cb: () => void) {

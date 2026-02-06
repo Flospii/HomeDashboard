@@ -59,7 +59,24 @@
       "uploadSuccess": "Media uploaded successfully",
       "uploadError": "Failed to upload media",
       "dropToUpload": "Drop files to upload",
-      "waitingListEmpty": "No media in the waiting list"
+      "waitingListEmpty": "No media in the waiting list",
+      "uploadQueue": "Upload Queue",
+      "uploadTo": "Upload to",
+      "newFolder": "New Folder",
+      "folders": "Folders",
+      "selectFolders": "Dashboard Rotation Content",
+      "allFolders": "Show all available media",
+      "distinctFolders": "Show only selected media",
+      "status": {
+        "pending": "Pending",
+        "uploading": "Uploading...",
+        "success": "Success",
+        "error": "Error"
+      },
+      "renameFolder": "Rename Folder",
+      "newName": "New Name",
+      "renameSuccess": "Folder renamed successfully",
+      "renameError": "Failed to rename folder"
     },
     "preferences": {
       "title": "Dashboard Settings",
