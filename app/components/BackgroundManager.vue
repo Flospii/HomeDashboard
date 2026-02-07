@@ -655,8 +655,6 @@
       v-model:open="showRenameModal"
       :title="$t('manage.backgrounds.renameFolder')"
     >
-      <UButton v-show="false" label="Hidden Trigger" />
-
       <template #body>
         <UFormField :label="$t('manage.backgrounds.newName')">
           <UInput
