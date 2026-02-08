@@ -111,7 +111,9 @@
       "addModule": "Add Module",
       "deleteModule": "Delete Module",
       "deleteConfirm": "Are you sure you want to remove this module?",
-      "selectType": "Select Module Type"
+      "selectType": "Select Module Type",
+      "baseSettings": "Base Settings",
+      "moduleSettings": "Module-specific Settings"
     },
     "raw": {
       "title": "Raw Configuration",

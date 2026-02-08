@@ -111,7 +111,9 @@
       "addModule": "Modul hinzufügen",
       "deleteModule": "Modul löschen",
       "deleteConfirm": "Sind Sie sicher, dass Sie dieses Modul entfernen möchten?",
-      "selectType": "Modultyp auswählen"
+      "selectType": "Modultyp auswählen",
+      "baseSettings": "Grundeinstellungen",
+      "moduleSettings": "Modulspezifische Einstellungen"
     },
     "raw": {
       "title": "Rohdaten-Konfiguration",

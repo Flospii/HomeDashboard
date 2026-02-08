@@ -53,6 +53,20 @@
         </div>
       </div>
     </template>
+    <!-- Add Module Button - Top Position -->
+    <div class="mb-8 flex justify-center">
+      <UDropdownMenu :items="availableModules" :ui="{ content: 'w-64' }">
+        <UButton
+          icon="i-heroicons-plus"
+          color="primary"
+          variant="subtle"
+          size="xl"
+          :label="$t('manage.modules.addModule')"
+          class="px-8 border-2 border-dashed border-primary-500/30 hover:border-primary-500/50 hover:bg-primary-500/10 transition-all"
+        />
+      </UDropdownMenu>
+    </div>
+
     <div class="space-y-8">
       <UCard
         v-for="mod in store.config?.modules"
@@ -61,6 +75,7 @@
         class="overflow-hidden border border-default"
         :ui="{ body: 'p-0' }"
       >
+        <!-- Module Header -->
         <div class="p-6 flex items-center justify-between bg-(--ui-bg)/5">
           <div class="flex items-center space-x-4">
             <div
@@ -82,57 +97,67 @@
               </p>
             </div>
           </div>
-          <div class="flex items-center space-x-4">
-            <UButton
-              icon="i-heroicons-trash"
-              color="error"
-              variant="ghost"
-              size="sm"
-              @click="handleDeleteModule(mod)"
-            />
-            <USwitch v-model="mod.enabled" size="lg" />
-          </div>
+          <USwitch v-model="mod.enabled" size="lg" />
         </div>
 
         <Transition name="slide-up">
-          <div v-if="mod.enabled" class="p-8 space-y-8 border-t border-default">
-            <!-- Position -->
-            <UFormField
-              :label="$t('manage.modules.screenPosition')"
-              :description="$t('manage.modules.positionDescription')"
+          <div v-if="mod.enabled" class="border-t border-default">
+            <!-- Base Module Settings Section -->
+            <div class="p-6 space-y-6 bg-(--ui-bg)/3">
+              <div class="flex items-center justify-between">
+                <span
+                  class="text-xs text-default/50 uppercase tracking-widest font-bold"
+                >
+                  {{ $t("manage.modules.baseSettings") }}
+                </span>
+              </div>
+
+              <!-- Position -->
+              <UFormField
+                :label="$t('manage.modules.screenPosition')"
+                :description="$t('manage.modules.positionDescription')"
+              >
+                <USelect
+                  v-model="mod.position"
+                  :items="[...MODULE_POSITIONS]"
+                  size="xl"
+                  class="w-full"
+                />
+              </UFormField>
+
+              <!-- Delete Module -->
+              <div class="pt-2">
+                <UButton
+                  icon="i-heroicons-trash"
+                  color="error"
+                  variant="soft"
+                  size="sm"
+                  :label="$t('manage.modules.deleteModule')"
+                  @click="handleDeleteModule(mod)"
+                />
+              </div>
+            </div>
+
+            <!-- Module-Specific Settings Section -->
+            <div
+              v-if="getSettingsComponent(mod.module)"
+              class="p-6 space-y-6 border-t border-default"
             >
-              <USelect
-                v-model="mod.position"
-                :items="[...MODULE_POSITIONS]"
-                size="xl"
-                class="w-full"
-              />
-            </UFormField>
-            <div class="gap-8">
-              <!-- Dynamic Settings Component -->
+              <div class="flex items-center justify-between">
+                <span
+                  class="text-xs text-default/50 uppercase tracking-widest font-bold"
+                >
+                  {{ $t("manage.modules.moduleSettings") }}
+                </span>
+              </div>
               <component
                 :is="getSettingsComponent(mod.module)"
-                v-if="getSettingsComponent(mod.module)"
                 v-model="mod.config"
               />
             </div>
           </div>
         </Transition>
       </UCard>
-    </div>
-
-    <!-- Add Module Button -->
-    <div class="mt-12 flex justify-center">
-      <UDropdownMenu :items="availableModules" :ui="{ content: 'w-64' }">
-        <UButton
-          icon="i-heroicons-plus"
-          color="neutral"
-          variant="subtle"
-          size="xl"
-          :label="$t('manage.modules.addModule')"
-          class="px-8 border-2 border-dashed border-default hover:border-primary-500/50 hover:bg-primary-500/5 transition-all"
-        />
-      </UDropdownMenu>
     </div>
   </UCard>
 </template>
