@@ -1,4 +1,4 @@
-import type { ModuleDefinition } from "../BaseModule";
+import type { ModuleDefinition } from "../BaseModule/types";
 import WeatherModule from "./WeatherModule.vue";
 import WeatherSettings from "./WeatherSettings.vue";
 

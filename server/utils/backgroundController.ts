@@ -78,14 +78,12 @@ class BackgroundController {
 
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
-        const folderName = relativePath || "root";
+        const currentRelative = relativePath ? `${relativePath}/${entry.name}` : entry.name;
 
         if (entry.isDirectory()) {
-          // One level deep is enough for now as requested
-          if (!relativePath) {
-            const subItems = await scanDirAsync(fullPath, entry.name);
-            results = [...results, ...subItems];
-          }
+          // Recursively scan all subdirectories
+          const subItems = await scanDirAsync(fullPath, currentRelative);
+          results = [...results, ...subItems];
         } else {
           const ext = path.extname(entry.name).toLowerCase();
           let type: MediaType | null = null;
@@ -98,9 +96,9 @@ class BackgroundController {
 
           if (type) {
             results.push({
-              url: `/backgrounds/${relativePath ? relativePath + "/" : ""}${entry.name}`,
+              url: `/backgrounds/${currentRelative}`,
               type,
-              folder: folderName,
+              folder: relativePath || "root",
             });
           }
         }
@@ -109,27 +107,14 @@ class BackgroundController {
     };
 
     const scannedMedia = await scanDirAsync(backgroundsDir);
-    const externalMedia: BackgroundItem[] = (
-      config.background.externalMediaUrlList || []
-    ).map((m) => ({
-      url: m.url,
-      type: m.type,
-    }));
-
-    const newAllMedia = [...externalMedia, ...scannedMedia];
+    const newAllMedia = scannedMedia;
 
     // Filter for rotation
     const newRotationMedia = newAllMedia.filter((item) => {
       // If using all folders, include everything
       if (config.background.useAllFolders !== false) return true;
 
-      const isExternal = item.url.startsWith("http");
 
-      if (isExternal) {
-        // Strict: only include if explicitly enabled in the list
-        if (!config.background.enabledExternalUrls) return false;
-        return config.background.enabledExternalUrls.includes(item.url);
-      }
 
       // Local media filtered by folder settings
       if (!config.background.enabledFolders) return false;
@@ -406,11 +391,22 @@ class BackgroundController {
     const { backgroundsDir } = getProjectPaths();
     if (!fs.existsSync(backgroundsDir)) return ["root"];
 
-    const folders = fs
-      .readdirSync(backgroundsDir, { withFileTypes: true })
-      .filter((dirent) => dirent.isDirectory())
-      .map((dirent) => dirent.name);
+    const getSubFolders = (dir: string, relativePath: string = ""): string[] => {
+      let folders: string[] = [];
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
 
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          const fullPath = path.join(dir, entry.name);
+          const currentRelative = relativePath ? `${relativePath}/${entry.name}` : entry.name;
+          folders.push(currentRelative);
+          folders = [...folders, ...getSubFolders(fullPath, currentRelative)];
+        }
+      }
+      return folders;
+    };
+
+    const folders = getSubFolders(backgroundsDir);
     return ["root", ...folders];
   }
 

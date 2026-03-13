@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { BaseModule } from "../BaseModule";
+import { BaseModule } from "../BaseModule/types";
 import type { QRCodeModuleConfig } from "./index";
 import QRCode from "qrcode";
 

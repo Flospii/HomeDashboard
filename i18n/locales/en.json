@@ -8,7 +8,9 @@
     "delete": "Delete",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "back": "Back"
+    "back": "Back",
+    "share": "Share Folder",
+    "download": "Download"
   },
   "dashboard": {
     "loading": "Loading Dashboard...",
@@ -36,7 +38,7 @@
     "backgrounds": {
       "title": "Background Media",
       "subtitle": "Manage your local and external background resources",
-      "uploadLocal": "Upload Local",
+      "uploadLocal": "Upload Image or Video to this folder",
       "uploadSubtitle": "Drag and drop or click to browse",
       "addExternal": "Add External",
       "resourceUrl": "Resource URL",
@@ -76,7 +78,18 @@
       "renameFolder": "Rename Folder",
       "newName": "New Name",
       "renameSuccess": "Folder renamed successfully",
-      "renameError": "Failed to rename folder"
+      "renameError": "Failed to rename folder",
+      "uploadProgress": "Uploading {current} of {total} files",
+      "uploadComplete": "All {total} files uploaded successfully",
+      "uploadPartialComplete": "{success} of {total} files uploaded",
+      "clearCompleted": "Clear Completed",
+      "cancelAll": "Cancel All",
+      "retryFailed": "Retry Failed",
+      "retry": "Retry",
+      "fileCount": "{count} files selected",
+      "deleteFolderConfirm": "Are you sure you want to delete the folder '{folder}' and all media within it?",
+      "deleteFolderSuccess": "Folder deleted successfully",
+      "deleteFolderError": "Failed to delete folder"
     },
     "preferences": {
       "title": "Dashboard Settings",

@@ -1,4 +1,4 @@
-import type { ModuleDefinition } from "../BaseModule";
+import type { ModuleDefinition } from "../BaseModule/types";
 import BackgroundMetadataModule from "./BackgroundMetadataModule.vue";
 import BackgroundMetadataSettings from "./BackgroundMetadataSettings.vue";
 

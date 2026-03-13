@@ -107,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { BaseModule } from "../BaseModule";
+import { BaseModule } from "../BaseModule/types";
 import type { WeatherModuleConfig } from "./index";
 import { getWeatherIcon } from "./weatherUtils";
 

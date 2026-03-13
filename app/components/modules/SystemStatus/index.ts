@@ -1,4 +1,4 @@
-import type { ModuleDefinition } from "../BaseModule";
+import type { ModuleDefinition } from "../BaseModule/types";
 import SystemStatusModule from "./SystemStatusModule.vue";
 import SystemStatusSettings from "./SystemStatusSettings.vue";
 

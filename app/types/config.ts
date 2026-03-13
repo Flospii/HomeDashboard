@@ -44,7 +44,6 @@ export interface ModuleConfig {
 
 export interface DashboardConfig {
   background: {
-    externalMediaUrlList: BackgroundItem[];
     interval: number;
     useLocalBackgrounds?: boolean;
     localPollingInterval?: number;
@@ -53,7 +52,6 @@ export interface DashboardConfig {
     videoPlaybackMode?: VideoPlaybackMode;
     lowPowerMode?: boolean;
     enabledFolders?: string[];
-    enabledExternalUrls?: string[];
     useAllFolders?: boolean;
   };
   language?: string;

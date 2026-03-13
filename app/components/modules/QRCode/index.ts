@@ -1,4 +1,4 @@
-import type { ModuleDefinition } from "../BaseModule";
+import type { ModuleDefinition } from "../BaseModule/types";
 import QRCodeModule from "./QRCodeModule.vue";
 import QRCodeSettings from "./QRCodeSettings.vue";
 

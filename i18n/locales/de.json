@@ -8,7 +8,9 @@
     "delete": "Löschen",
     "cancel": "Abbrechen",
     "confirm": "Bestätigen",
-    "back": "Zurück"
+    "back": "Zurück",
+    "share": "Ordner teilen",
+    "download": "Herunterladen"
   },
   "dashboard": {
     "loading": "Dashboard wird geladen...",
@@ -36,7 +38,7 @@
     "backgrounds": {
       "title": "Hintergrundmedien",
       "subtitle": "Verwalten Sie Ihre lokalen und externen Hintergrundressourcen",
-      "uploadLocal": "Lokal hochladen",
+      "uploadLocal": "Bild oder Video in diesen Ordner hochladen",
       "uploadSubtitle": "Drag & Drop oder zum Durchsuchen klicken",
       "addExternal": "Extern hinzufügen",
       "resourceUrl": "Ressourcen-URL",
@@ -76,7 +78,18 @@
       "renameFolder": "Ordner umbenennen",
       "newName": "Neuer Name",
       "renameSuccess": "Ordner erfolgreich umbenannt",
-      "renameError": "Fehler beim Umbenennen des Ordners"
+      "renameError": "Fehler beim Umbenennen des Ordners",
+      "uploadProgress": "{current} von {total} Dateien werden hochgeladen",
+      "uploadComplete": "Alle {total} Dateien erfolgreich hochgeladen",
+      "uploadPartialComplete": "{success} von {total} Dateien hochgeladen",
+      "clearCompleted": "Abgeschlossene entfernen",
+      "cancelAll": "Alle abbrechen",
+      "retryFailed": "Fehlgeschlagene erneut versuchen",
+      "retry": "Erneut versuchen",
+      "fileCount": "{count} Dateien ausgewählt",
+      "deleteFolderConfirm": "Sind Sie sicher, dass Sie den Ordner '{folder}' und alle darin enthaltenen Medien löschen möchten?",
+      "deleteFolderSuccess": "Ordner erfolgreich gelöscht",
+      "deleteFolderError": "Fehler beim Löschen des Ordners"
     },
     "preferences": {
       "title": "Dashboard-Einstellungen",

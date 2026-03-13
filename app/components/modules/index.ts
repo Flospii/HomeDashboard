@@ -1,4 +1,4 @@
-import type { ModuleDefinition } from "./BaseModule";
+import type { ModuleDefinition } from "./BaseModule/types";
 
 // Automatically import all module definitions from subdirectories
 const modules = import.meta.glob<{ [key: string]: ModuleDefinition }>(

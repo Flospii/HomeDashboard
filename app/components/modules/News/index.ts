@@ -1,4 +1,4 @@
-import type { ModuleDefinition } from "../BaseModule";
+import type { ModuleDefinition } from "../BaseModule/types";
 import NewsModule from "./NewsModule.vue";
 import NewsSettings from "./NewsSettings.vue";
 

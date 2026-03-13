@@ -1,4 +1,4 @@
-import type { ModuleDefinition } from "../BaseModule";
+import type { ModuleDefinition } from "../BaseModule/types";
 import ClockModule from "./ClockModule.vue";
 import ClockSettings from "./ClockSettings.vue";
 

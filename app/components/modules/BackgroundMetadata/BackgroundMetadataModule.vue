@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { BaseModule } from "../BaseModule";
+import { BaseModule } from "../BaseModule/types";
 import type { BackgroundMetadataModuleConfig } from "./index";
 import { useConfigStore } from "~~/stores/config";
 

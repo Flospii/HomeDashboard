@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { BaseModule } from "../BaseModule";
+import { BaseModule } from "../BaseModule/types";
 import type { NewsModuleConfig } from "./index";
 
 const props = defineProps<NewsModuleConfig>();
