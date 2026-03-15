@@ -16,6 +16,8 @@ export const useConfigStore = defineStore("config", () => {
   const serverTransitionMode = ref("fade");
   const serverStateId = ref(0);
   const serverIsPaused = ref(false);
+  const isSavingConfig = ref(false);
+  let saveConfigDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   let ws: WebSocket | null = null;
 
   const fetchConfig = async () => {
@@ -31,6 +33,8 @@ export const useConfigStore = defineStore("config", () => {
   };
 
   const refreshConfig = async () => {
+    // Don't overwrite local state while a save is in-flight
+    if (isSavingConfig.value) return;
     try {
       const data = await $fetch<DashboardConfig>("/api/config");
 
@@ -65,20 +69,35 @@ export const useConfigStore = defineStore("config", () => {
     }
   };
 
-  const saveConfig = async () => {
+  const saveConfig = () => {
     if (!config.value) return;
 
-    try {
-      const result = await $fetch("/api/config", {
-        method: "POST",
-        body: config.value,
-      });
+    // Mark as saving immediately to guard against WebSocket overwrites
+    isSavingConfig.value = true;
 
-      return result;
-    } catch (err) {
-      console.error("Error saving dashboard config:", err);
-      throw err;
+    // Clear any pending debounced save so only the latest state is sent
+    if (saveConfigDebounceTimer) {
+      clearTimeout(saveConfigDebounceTimer);
     }
+
+    // Debounce: wait 300ms for rapid consecutive changes (e.g. toggling multiple checkboxes)
+    return new Promise((resolve, reject) => {
+      saveConfigDebounceTimer = setTimeout(async () => {
+        try {
+          const result = await $fetch("/api/config", {
+            method: "POST",
+            body: config.value,
+          });
+          resolve(result);
+        } catch (err) {
+          console.error("Error saving dashboard config:", err);
+          reject(err);
+        } finally {
+          isSavingConfig.value = false;
+          saveConfigDebounceTimer = null;
+        }
+      }, 300);
+    });
   };
 
   const getModulesAtPosition = (position: ModulePosition) => {
@@ -123,6 +142,8 @@ export const useConfigStore = defineStore("config", () => {
           serverStateId.value = status.stateId || 0;
           serverIsPaused.value = status.isPaused || false;
         } else if (message.type === "config") {
+          // Skip config broadcasts while we're saving — local state is the source of truth
+          if (isSavingConfig.value) return;
           // Update the configuration instantly when pushed from the server
           if (JSON.stringify(config.value) !== JSON.stringify(message.data)) {
             config.value = message.data;
