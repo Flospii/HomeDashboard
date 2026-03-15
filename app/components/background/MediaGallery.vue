@@ -230,16 +230,30 @@ const handleCreate = async () => {
   showCreateFolderModal.value = false;
 };
 
-const copyShareLink = () => {
+const copyShareLink = async () => {
   if (!props.currentFolder) return;
   const url = new URL(window.location.origin);
   url.pathname = `/share/${props.currentFolder}`;
-  navigator.clipboard.writeText(url.toString());
-  toast.add({
-    title: "Share link copied!",
-    color: "success",
-    icon: "i-lucide-copy"
-  });
+  const text = url.toString();
+
+  try {
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      // Fallback for non-HTTPS contexts
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
+    toast.add({ title: "Share link copied!", color: "success", icon: "i-lucide-copy" });
+  } catch {
+    toast.add({ title: "Failed to copy link", color: "error", icon: "i-lucide-alert-circle" });
+  }
 };
 
 const openLightbox = (item: BackgroundItem) => {

@@ -43,7 +43,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import type { BackgroundItem } from "~~/app/types/config";
 
 // Components
@@ -51,7 +51,6 @@ import MediaUpload from "~/components/background/MediaUpload.vue";
 import MediaGallery from "~/components/background/MediaGallery.vue";
 
 const route = useRoute();
-const router = useRouter();
 
 // The path can be a string or an array depending on how it's handled in Nuxt
 const pathParam = computed(() => {
@@ -59,7 +58,7 @@ const pathParam = computed(() => {
     return Array.isArray(p) ? p.join('/') : p;
 });
 
-const sharedRoot = pathParam.value;
+const sharedRoot = pathParam.value || '';
 const currentSubPath = ref<string | null>(null);
 
 const sharedPath = computed(() => {
