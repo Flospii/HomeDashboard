@@ -1,7 +1,9 @@
 <template>
   <div class="space-y-12">
     <!-- Header with quick controls -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+    >
       <div>
         <h2 class="text-2xl sm:text-3xl font-bold text-default tracking-tight">
           {{ $t("manage.backgrounds.title") }}
@@ -10,12 +12,18 @@
           {{ $t("manage.backgrounds.subtitle") }}
         </p>
       </div>
-      <div class="flex items-center space-x-2 sm:space-x-4 overflow-x-auto pb-2 sm:pb-0">
+      <div
+        class="flex items-center space-x-2 sm:space-x-4 overflow-x-auto pb-2 sm:pb-0"
+      >
         <UButton
           :icon="store.serverIsPaused ? 'i-lucide-play' : 'i-lucide-pause'"
           color="neutral"
           variant="subtle"
-          :label="store.serverIsPaused ? $t('manage.backgrounds.resume') : $t('manage.backgrounds.pause')"
+          :label="
+            store.serverIsPaused
+              ? $t('manage.backgrounds.resume')
+              : $t('manage.backgrounds.pause')
+          "
           size="md"
           sm:size="lg"
           class="shrink-0"
@@ -36,7 +44,9 @@
 
     <!-- Waiting List Section -->
     <div class="space-y-4">
-      <div class="flex items-center justify-between border-b border-default pb-4">
+      <div
+        class="flex items-center justify-between border-b border-default pb-4"
+      >
         <h3 class="text-xl font-bold text-default">
           {{ $t("manage.backgrounds.waitingList") }}
         </h3>
@@ -47,7 +57,9 @@
           size="lg"
         />
       </div>
-      <div class="flex overflow-x-auto gap-4 pb-4 scrollbar-hide min-h-[90px] sm:min-h-[110px]">
+      <div
+        class="flex overflow-x-auto gap-4 pb-4 scrollbar-hide min-h-[90px] sm:min-h-[110px]"
+      >
         <TransitionGroup name="list" tag="div" class="flex gap-4">
           <div
             v-for="(item, index) in store.serverWaitingList"
@@ -61,11 +73,13 @@
             />
             <video
               v-else
-              :src="item.url"
+              :src="`${item.url}#t=0.001`"
               class="w-full h-full object-cover"
               muted
             />
-            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div
+              class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+            >
               <UButton
                 icon="i-lucide-x"
                 color="error"
@@ -74,7 +88,9 @@
                 @click="store.removeFromWaitingList(index)"
               />
             </div>
-            <div class="absolute top-0 left-0 bg-primary-500 text-white text-[8px] px-1 font-bold">
+            <div
+              class="absolute top-0 left-0 bg-primary-500 text-white text-[8px] px-1 font-bold"
+            >
               #{{ index + 1 }}
             </div>
           </div>
@@ -86,7 +102,9 @@
           class="shrink-0 w-32 sm:w-40 aspect-video flex flex-col items-center justify-center border border-dashed border-default/30 bg-default/5 opacity-50 rounded-xs"
         >
           <UIcon name="i-lucide-clock" class="w-6 h-6 mb-2 text-default/20" />
-          <span class="text-[9px] uppercase tracking-wider font-black text-center px-4 text-default/30 leading-tight">
+          <span
+            class="text-[9px] uppercase tracking-wider font-black text-center px-4 text-default/30 leading-tight"
+          >
             {{ $t("manage.backgrounds.waitingListEmpty") }}
           </span>
         </div>
@@ -94,7 +112,10 @@
     </div>
 
     <!-- Folder Selection Settings -->
-    <div v-if="store.config" class="p-6 bg-default/5 border border-default rounded-lg">
+    <div
+      v-if="store.config"
+      class="p-6 bg-default/5 border border-default rounded-lg"
+    >
       <div class="flex items-center space-x-3 mb-6">
         <UIcon name="i-lucide-folder-open" class="w-6 h-6 text-primary-500" />
         <h3 class="text-xl font-bold text-default">
@@ -123,19 +144,29 @@
           >
             <UCheckbox
               :label="folder === 'root' ? folder : folder.split('/').pop()"
-              :model-value="store.config?.background.enabledFolders?.includes(folder)"
-              @update:model-value="(val) => {
-                if (!store.config) return;
-                if (val) {
-                  if (!store.config.background.enabledFolders) store.config.background.enabledFolders = [];
-                  if (!store.config.background.enabledFolders.includes(folder)) {
-                    store.config.background.enabledFolders.push(folder);
+              :model-value="
+                store.config?.background.enabledFolders?.includes(folder)
+              "
+              @update:model-value="
+                (val) => {
+                  if (!store.config) return;
+                  if (val) {
+                    if (!store.config.background.enabledFolders)
+                      store.config.background.enabledFolders = [];
+                    if (
+                      !store.config.background.enabledFolders.includes(folder)
+                    ) {
+                      store.config.background.enabledFolders.push(folder);
+                    }
+                  } else if (store.config.background.enabledFolders) {
+                    store.config.background.enabledFolders =
+                      store.config.background.enabledFolders.filter(
+                        (f) => f !== folder,
+                      );
                   }
-                } else if (store.config.background.enabledFolders) {
-                  store.config.background.enabledFolders = store.config.background.enabledFolders.filter(f => f !== folder);
+                  store.saveConfig();
                 }
-                store.saveConfig();
-              }"
+              "
             />
           </div>
         </div>
