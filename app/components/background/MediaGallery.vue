@@ -98,7 +98,7 @@
           <!-- Preview -->
           <img v-if="item.type === 'image'" :src="item.url"
             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-          <video v-else :src="item.url" class="w-full h-full object-cover" muted />
+          <video v-else :src="item.url" class="w-full h-full object-cover" muted preload="metadata" playsinline />
 
           <!-- Overlay Actions -->
           <div
