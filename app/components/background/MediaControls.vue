@@ -121,20 +121,45 @@
         <h3 class="text-xl font-bold text-default">
           {{ $t("manage.backgrounds.selectFolders") }}
         </h3>
+        <span class="grow"></span>
+        <Transition name="fade">
+          <span
+            v-if="saveStatus === 'success'"
+            class="text-primary-400 text-sm font-medium flex items-center mr-4"
+          >
+            <UIcon name="i-heroicons-check-circle" class="mr-1 w-5 h-5" />
+            {{ $t("common.saved") }}
+          </span>
+          <span
+            v-else-if="saveStatus === 'error'"
+            class="text-red-400 text-sm font-medium flex items-center mr-4"
+          >
+            <UIcon name="i-heroicons-exclamation-circle" class="mr-1 w-5 h-5" />
+            {{ $t("common.failed") }}
+          </span>
+        </Transition>
+        <UButton
+          v-if="hasChanges"
+          icon="i-heroicons-check"
+          color="primary"
+          size="sm"
+          :loading="isSaving"
+          :label="$t('common.save')"
+          @click="saveFolderSettings"
+        />
       </div>
 
-      <div class="space-y-6">
+      <div class="space-y-6" v-if="localConfig">
         <URadioGroup
-          v-model="store.config.background.useAllFolders"
+          v-model="localConfig.useAllFolders"
           :items="[
             { label: $t('manage.backgrounds.allFolders'), value: true },
             { label: $t('manage.backgrounds.distinctFolders'), value: false },
           ]"
-          @change="store.saveConfig"
         />
 
         <div
-          v-if="store.config.background.useAllFolders === false"
+          v-if="localConfig.useAllFolders === false"
           class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 pl-6 border-l-2 border-primary-500/20"
         >
           <div
@@ -144,27 +169,22 @@
           >
             <UCheckbox
               :label="folder === 'root' ? folder : folder.split('/').pop()"
-              :model-value="
-                store.config?.background.enabledFolders?.includes(folder)
-              "
+              :model-value="localConfig.enabledFolders?.includes(folder)"
               @update:model-value="
                 (val) => {
-                  if (!store.config) return;
+                  if (!localConfig) return;
                   if (val) {
-                    if (!store.config.background.enabledFolders)
-                      store.config.background.enabledFolders = [];
-                    if (
-                      !store.config.background.enabledFolders.includes(folder)
-                    ) {
-                      store.config.background.enabledFolders.push(folder);
+                    if (!localConfig.enabledFolders)
+                      localConfig.enabledFolders = [];
+                    if (!localConfig.enabledFolders.includes(folder)) {
+                      localConfig.enabledFolders.push(folder);
                     }
-                  } else if (store.config.background.enabledFolders) {
-                    store.config.background.enabledFolders =
-                      store.config.background.enabledFolders.filter(
-                        (f) => f !== folder,
+                  } else if (localConfig.enabledFolders) {
+                    localConfig.enabledFolders =
+                      localConfig.enabledFolders.filter(
+                        (f: string) => f !== folder,
                       );
                   }
-                  store.saveConfig();
                 }
               "
             />
@@ -176,6 +196,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch, computed } from "vue";
 import { useConfigStore } from "~~/stores/config";
 
 defineProps<{
@@ -183,6 +204,67 @@ defineProps<{
 }>();
 
 const store = useConfigStore();
+
+const localConfig = ref<{
+  useAllFolders?: boolean;
+  enabledFolders?: string[];
+} | null>(null);
+
+const isSaving = ref(false);
+const saveStatus = ref<"success" | "error" | null>(null);
+
+const hasChanges = computed(() => {
+  if (!store.config?.background || !localConfig.value) return false;
+  
+  if (store.config.background.useAllFolders !== localConfig.value.useAllFolders) return true;
+  
+  const originalFolders = store.config.background.enabledFolders || [];
+  const localFolders = localConfig.value.enabledFolders || [];
+  
+  if (originalFolders.length !== localFolders.length) return true;
+  
+  // Check if arrays have same elements
+  const sortedOriginal = [...originalFolders].sort();
+  const sortedLocal = [...localFolders].sort();
+  
+  return !sortedOriginal.every((val, index) => val === sortedLocal[index]);
+});
+
+watch(
+  () => store.config?.background,
+  (newBg) => {
+    if (newBg && !localConfig.value && !hasChanges.value) {
+      localConfig.value = {
+        useAllFolders: newBg.useAllFolders,
+        enabledFolders: newBg.enabledFolders ? [...newBg.enabledFolders] : [],
+      };
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+const saveFolderSettings = async () => {
+  if (!store.config || !localConfig.value) return;
+  
+  isSaving.value = true;
+  saveStatus.value = null;
+  
+  try {
+    store.config.background.useAllFolders = localConfig.value.useAllFolders;
+    store.config.background.enabledFolders = localConfig.value.enabledFolders ? [...localConfig.value.enabledFolders] : [];
+    
+    await store.saveConfig();
+    saveStatus.value = "success";
+    setTimeout(() => {
+      saveStatus.value = null;
+    }, 3000);
+  } catch (error) {
+    saveStatus.value = "error";
+    console.error("Failed to save folder settings:", error);
+  } finally {
+    isSaving.value = false;
+  }
+};
 </script>
 
 <style scoped>

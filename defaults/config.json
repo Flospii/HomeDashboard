@@ -1,33 +1,5 @@
 {
   "background": {
-    "externalMediaUrlList": [
-      {
-        "url": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b",
-        "type": "image",
-        "metadata": {
-          "fileName": "mountain.jpg",
-          "fileSize": 1234567,
-          "mimeType": "image/jpeg",
-          "gps": {
-            "latitude": 46.8182,
-            "longitude": 9.8439
-          }
-        }
-      },
-      {
-        "url": "https://images.unsplash.com/1/irish-hands.jpg?q=80&w=2340&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        "type": "image",
-        "metadata": {
-          "fileName": "mountain.jpg",
-          "fileSize": 1234567,
-          "mimeType": "image/jpeg",
-          "gps": {
-            "latitude": 46.8182,
-            "longitude": 9.8439
-          }
-        }
-      }
-    ],
     "interval": 6000,
     "useLocalBackgrounds": true,
     "localPollingInterval": 10000,

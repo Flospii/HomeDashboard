@@ -57,8 +57,8 @@ export default defineEventHandler(async (event) => {
             .replace(/<[^>]*>/g, "") // Strip HTML tags
             .trim();
 
-        let title = decode(titleMatch[1]);
-        let description = descMatch ? decode(descMatch[1]) : "";
+        let title = titleMatch && titleMatch[1] ? decode(titleMatch[1]) : "";
+        let description = descMatch && descMatch[1] ? decode(descMatch[1]) : "";
 
         if (title) {
           const rawPubDate = (pubDateMatch && pubDateMatch[1]) || "";

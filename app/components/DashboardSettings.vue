@@ -1,6 +1,6 @@
 <template>
   <UCard
-    v-if="store.config"
+    v-if="store.config && localBackgroundConfig"
     variant="glassDark"
     class="border-0! shadow-none! overflow-hidden"
     :ui="{
@@ -68,7 +68,7 @@
           :description="$t('manage.preferences.transitionDescription')"
         >
           <USelect
-            v-model="store.config.background.transitionMode"
+            v-model="localBackgroundConfig.transitionMode"
             :items="[...TRANSITION_MODES]"
             size="xl"
             class="w-full"
@@ -80,7 +80,7 @@
           :description="$t('manage.preferences.playbackDescription')"
         >
           <USelect
-            v-model="store.config.background.playbackOrder"
+            v-model="localBackgroundConfig.playbackOrder"
             :items="[...PLAYBACK_MODES]"
             size="xl"
             class="w-full"
@@ -92,7 +92,7 @@
           :description="$t('manage.preferences.intervalDescription')"
         >
           <UInput
-            v-model.number="store.config.background.interval"
+            v-model.number="localBackgroundConfig.interval"
             type="number"
             step="1000"
             min="1000"
@@ -106,7 +106,7 @@
           :description="$t('manage.preferences.videoDescription')"
         >
           <USelect
-            v-model="store.config.background.videoPlaybackMode"
+            v-model="localBackgroundConfig.videoPlaybackMode"
             :items="[...VIDEO_PLAYBACK_MODES]"
             size="xl"
             class="w-full"
@@ -121,7 +121,7 @@
             <span class="text-sm text-default/70">{{
               $t("manage.preferences.enableLowPower")
             }}</span>
-            <USwitch v-model="store.config.background.lowPowerMode" />
+            <USwitch v-model="localBackgroundConfig.lowPowerMode" />
           </div>
         </UFormField>
       </div>
@@ -164,17 +164,17 @@
           <span class="text-sm text-default/70">{{
             $t("manage.preferences.enableDiscovery")
           }}</span>
-          <USwitch v-model="store.config.background.useLocalBackgrounds" />
+          <USwitch v-model="localBackgroundConfig.useLocalBackgrounds" />
         </UFormField>
 
         <Transition name="slide-up">
           <UFormField
-            v-if="store.config.background.useLocalBackgrounds"
+            v-if="localBackgroundConfig.useLocalBackgrounds"
             :label="$t('manage.preferences.pollingInterval')"
             :description="$t('manage.preferences.pollingDescription')"
           >
             <UInput
-              v-model.number="store.config.background.localPollingInterval"
+              v-model.number="localBackgroundConfig.localPollingInterval"
               type="number"
               step="1000"
               min="5000"
@@ -203,6 +203,7 @@ const isSaving = ref(false);
 const saveStatus = ref<"success" | "error" | null>(null);
 
 const selectedLanguage = ref(store.config?.language || locale.value);
+const localBackgroundConfig = ref<any>(null);
 
 watch(
   () => store.config?.language,
@@ -212,6 +213,16 @@ watch(
     }
   },
   { immediate: true }
+);
+
+watch(
+  () => store.config?.background,
+  (newBg) => {
+    if (newBg && !localBackgroundConfig.value) {
+      localBackgroundConfig.value = JSON.parse(JSON.stringify(newBg));
+    }
+  },
+  { immediate: true, deep: true }
 );
 
 const locales = computed(() => {
@@ -227,6 +238,9 @@ const handleSaveSettings = async () => {
   try {
     if (store.config) {
       store.config.language = selectedLanguage.value;
+      if (localBackgroundConfig.value) {
+        Object.assign(store.config.background, localBackgroundConfig.value);
+      }
     }
     await store.saveConfig();
     saveStatus.value = "success";

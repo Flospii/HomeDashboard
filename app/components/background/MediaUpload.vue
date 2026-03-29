@@ -344,8 +344,8 @@ const processQueue = async () => {
   pending.status = "uploading";
 
   const formData = new FormData();
-  formData.append("files", pending.file);
   formData.append("folder", props.currentFolder || "root");
+  formData.append("files", pending.file);
 
   try {
     await new Promise((resolve, reject) => {

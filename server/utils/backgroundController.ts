@@ -220,7 +220,7 @@ class BackgroundController {
           this.currentIndex =
             (this.currentIndex + 1) % this.rotationMedia.length;
         }
-        this.currentMedia = this.rotationMedia[this.currentIndex];
+        this.currentMedia = this.rotationMedia[this.currentIndex] || null;
       }
 
       this.stateId++;
@@ -325,10 +325,10 @@ class BackgroundController {
     // Calculate next media for preloading
     let nextMedia: BackgroundItem | null = null;
     if (this.waitingList.length > 0) {
-      nextMedia = this.waitingList[0];
+      nextMedia = this.waitingList[0] || null;
     } else if (this.rotationMedia.length > 0) {
       const nextIndex = (this.currentIndex + 1) % this.rotationMedia.length;
-      nextMedia = this.rotationMedia[nextIndex];
+      nextMedia = this.rotationMedia[nextIndex] || null;
     }
 
     return {
@@ -356,10 +356,12 @@ class BackgroundController {
   public removeFromWaitingList(index: number) {
     if (index >= 0 && index < this.waitingList.length) {
       const removed = this.waitingList.splice(index, 1)[0];
-      console.log(
-        `[Server] BackgroundController | Waiting List | Removed: ${removed.url} (Total: ${this.waitingList.length})`,
-      );
-      this.notifyStateChange();
+      if (removed) {
+        console.log(
+          `[Server] BackgroundController | Waiting List | Removed: ${removed.url} (Total: ${this.waitingList.length})`,
+        );
+        this.notifyStateChange();
+      }
     }
   }
 

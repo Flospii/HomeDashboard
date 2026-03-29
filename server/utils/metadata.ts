@@ -1,4 +1,5 @@
-import type { MediaMetadata } from "../../app/types/config";
+import type { BackgroundItem } from "../../app/types/config";
+type MediaMetadata = NonNullable<BackgroundItem["metadata"]>;
 
 export const mapMetadata = (
   raw: any,

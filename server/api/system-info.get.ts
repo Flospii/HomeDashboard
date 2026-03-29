@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   // (load / number of CPUs) * 100
   const cpuPercentage = Math.min(
     100,
-    Math.round((loadAvg[0] / cpus.length) * 100),
+    Math.round(((loadAvg[0] || 0) / (cpus.length || 1)) * 100),
   );
 
   const uptime = os.uptime();
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
     cpu: {
       usage: cpuPercentage,
       cores: cpus.length,
-      model: cpus[0].model,
+      model: cpus[0]?.model || "Unknown",
       loadAvg,
     },
     memory: {
