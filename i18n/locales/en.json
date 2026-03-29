@@ -1,13 +1,16 @@
 {
   "common": {
     "loading": "Loading...",
-    "error": "Error: {error}",
+    "success": "Success",
+    "error": "Error",
+    "errorWithDetails": "Error: {error}",
     "save": "Save Changes",
     "saved": "Saved!",
     "failed": "Failed to save",
     "delete": "Delete",
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "create": "Create",
     "back": "Back",
     "share": "Share Folder",
     "download": "Download"
@@ -89,12 +92,16 @@
       "fileCount": "{count} files selected",
       "deleteFolderConfirm": "Are you sure you want to delete the folder '{folder}' and all media within it?",
       "deleteFolderSuccess": "Folder deleted successfully",
-      "deleteFolderError": "Failed to delete folder"
+      "deleteFolderError": "Failed to delete folder",
+      "folderName": "Folder Name",
+      "image": "Image",
+      "video": "Video"
     },
     "preferences": {
       "title": "Dashboard Settings",
       "subtitle": "Configure how your dashboard looks and behaves",
       "visuals": "Visuals & Transitions",
+      "general": "General Settings",
       "language": "Language",
       "languageDescription": "Choose your preferred interface language",
       "transitionMode": "Transition Mode",

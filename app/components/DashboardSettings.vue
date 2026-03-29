@@ -131,7 +131,7 @@
         <h3
           class="text-sm font-bold uppercase tracking-widest text-primary-400/80"
         >
-          General Settings
+          {{ $t("manage.preferences.general") }}
         </h3>
 
         <UFormField

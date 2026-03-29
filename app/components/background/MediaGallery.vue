@@ -235,7 +235,7 @@
               "
               class="w-3 h-3"
             />
-            {{ item.type === "image" ? "Image" : "Video" }}
+            {{ item.type === "image" ? $t("manage.backgrounds.image") : $t("manage.backgrounds.video") }}
           </div>
         </div>
       </div>

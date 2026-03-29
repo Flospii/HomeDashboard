@@ -1,13 +1,16 @@
 {
   "common": {
     "loading": "Laden...",
-    "error": "Fehler: {error}",
+    "success": "Erfolg",
+    "error": "Fehler",
+    "errorWithDetails": "Fehler: {error}",
     "save": "Änderungen speichern",
     "saved": "Gespeichert!",
     "failed": "Speichern fehlgeschlagen",
     "delete": "Löschen",
     "cancel": "Abbrechen",
     "confirm": "Bestätigen",
+    "create": "Erstellen",
     "back": "Zurück",
     "share": "Ordner teilen",
     "download": "Herunterladen"
@@ -89,12 +92,16 @@
       "fileCount": "{count} Dateien ausgewählt",
       "deleteFolderConfirm": "Sind Sie sicher, dass Sie den Ordner '{folder}' und alle darin enthaltenen Medien löschen möchten?",
       "deleteFolderSuccess": "Ordner erfolgreich gelöscht",
-      "deleteFolderError": "Fehler beim Löschen des Ordners"
+      "deleteFolderError": "Fehler beim Löschen des Ordners",
+      "folderName": "Ordnername",
+      "image": "Bild",
+      "video": "Video"
     },
     "preferences": {
       "title": "Dashboard-Einstellungen",
       "subtitle": "Konfigurieren Sie das Aussehen und Verhalten Ihres Dashboards",
       "visuals": "Visuals & Übergänge",
+      "general": "Allgemeine Einstellungen",
       "language": "Sprache",
       "languageDescription": "Wählen Sie Ihre bevorzugte Interface-Sprache",
       "transitionMode": "Übergangsmodus",
