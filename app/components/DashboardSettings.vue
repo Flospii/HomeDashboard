@@ -69,7 +69,7 @@
         >
           <USelect
             v-model="localBackgroundConfig.transitionMode"
-            :items="[...TRANSITION_MODES]"
+            :items="transitionModeOptions"
             size="xl"
             class="w-full"
           />
@@ -224,6 +224,14 @@ watch(
   },
   { immediate: true, deep: true }
 );
+
+const transitionModeOptions = computed(() => {
+  const { t } = useI18n();
+  return TRANSITION_MODES.map((mode) => ({
+    label: t(`manage.preferences.transitions.${mode}`),
+    value: mode,
+  }));
+});
 
 const locales = computed(() => {
   return availableLocales.value.map((l: any) => ({

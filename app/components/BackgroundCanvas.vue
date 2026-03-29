@@ -96,7 +96,7 @@ const nextImageUrl = computed(() => {
   opacity: 0;
 }
 
-/* Slide */
+/* Slide (Horizontal) */
 .slide-enter-active,
 .slide-leave-active {
   transition: transform 1.5s ease-in-out;
@@ -110,7 +110,35 @@ const nextImageUrl = computed(() => {
   transform: translateX(-100%);
 }
 
-/* Zoom */
+/* Slide Up */
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: transform 1.5s ease-in-out;
+}
+
+.slide-up-enter-from {
+  transform: translateY(100%);
+}
+
+.slide-up-leave-to {
+  transform: translateY(-100%);
+}
+
+/* Slide Down */
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: transform 1.5s ease-in-out;
+}
+
+.slide-down-enter-from {
+  transform: translateY(-100%);
+}
+
+.slide-down-leave-to {
+  transform: translateY(100%);
+}
+
+/* Zoom (Legacy/Default) */
 .zoom-enter-active,
 .zoom-leave-active {
   transition: transform 2s ease-in-out, opacity 2s ease-in-out;
@@ -122,6 +150,38 @@ const nextImageUrl = computed(() => {
 }
 
 .zoom-leave-to {
+  transform: scale(0.8);
+  opacity: 0;
+}
+
+/* Zoom In */
+.zoom-in-enter-active,
+.zoom-in-leave-active {
+  transition: transform 2s ease-in-out, opacity 2s ease-in-out;
+}
+
+.zoom-in-enter-from {
+  transform: scale(0.8);
+  opacity: 0;
+}
+
+.zoom-in-leave-to {
+  transform: scale(1.2);
+  opacity: 0;
+}
+
+/* Zoom Out */
+.zoom-out-enter-active,
+.zoom-out-leave-active {
+  transition: transform 2s ease-in-out, opacity 2s ease-in-out;
+}
+
+.zoom-out-enter-from {
+  transform: scale(1.2);
+  opacity: 0;
+}
+
+.zoom-out-leave-to {
   transform: scale(0.8);
   opacity: 0;
 }
@@ -140,5 +200,49 @@ const nextImageUrl = computed(() => {
 .blur-leave-to {
   filter: blur(20px);
   opacity: 0;
+}
+
+/* Flip */
+.flip-enter-active,
+.flip-leave-active {
+  transition: transform 1.5s ease-in-out, opacity 1.5s ease-in-out;
+  backface-visibility: hidden;
+}
+
+.flip-enter-from {
+  transform: rotateY(-180deg);
+  opacity: 0;
+}
+
+.flip-leave-to {
+  transform: rotateY(180deg);
+  opacity: 0;
+}
+
+/* Rotate */
+.rotate-enter-active,
+.rotate-leave-active {
+  transition: transform 1.5s ease-in-out, opacity 1.5s ease-in-out;
+}
+
+.rotate-enter-from {
+  transform: rotate(15deg) scale(1.1);
+  opacity: 0;
+}
+
+.rotate-leave-to {
+  transform: rotate(-15deg) scale(0.9);
+  opacity: 0;
+}
+
+/* None */
+.none-enter-active,
+.none-leave-active {
+  transition: none !important;
+}
+
+.none-enter-from,
+.none-leave-to {
+  opacity: 1;
 }
 </style>

@@ -23,7 +23,19 @@ export const MODULE_POSITIONS = [
 
 export type ModulePosition = (typeof MODULE_POSITIONS)[number];
 
-export const TRANSITION_MODES = ["fade", "slide", "zoom", "blur"] as const;
+export const TRANSITION_MODES = [
+  "fade",
+  "slide",
+  "slide-up",
+  "slide-down",
+  "zoom",
+  "zoom-in",
+  "zoom-out",
+  "blur",
+  "flip",
+  "rotate",
+  "none",
+] as const;
 export type TransitionMode = (typeof TRANSITION_MODES)[number];
 
 export const PLAYBACK_MODES = ["sequential", "random"] as const;
