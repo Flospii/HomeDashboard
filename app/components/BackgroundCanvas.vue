@@ -26,6 +26,7 @@
           muted
           loop
           playsinline
+          preload="metadata"
           class="object-cover w-full h-full"
           @error="
             (e) => console.error('BackgroundCanvas: Video error', item.url, e)
@@ -36,9 +37,10 @@
     <!-- Overlay for better text readability -->
     <div class="absolute inset-0 bg-black/20 z-10"></div>
 
-    <!-- Preload next image -->
-    <div v-if="nextImageUrl" class="hidden">
-      <img :src="nextImageUrl" />
+    <!-- Preload next media -->
+    <div v-if="nextMediaUrl" class="hidden">
+      <img v-if="store.serverNextBackground?.type === 'image'" :src="nextMediaUrl" />
+      <video v-else-if="!store.config?.background?.lowPowerMode" :src="nextMediaUrl" preload="metadata" muted />
     </div>
   </div>
 </template>
@@ -76,8 +78,8 @@ const effectiveTransitionMode = computed(() => {
   return props.transitionMode || "fade";
 });
 
-const nextImageUrl = computed(() => {
-  if (store.serverNextBackground?.type === "image") {
+const nextMediaUrl = computed(() => {
+  if (store.serverNextBackground) {
     return store.serverNextBackground.url;
   }
   return null;

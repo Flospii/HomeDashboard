@@ -78,7 +78,7 @@ class BackgroundController {
 
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
-        const currentRelative = relativePath ? `${relativePath}/${entry.name}` : entry.name;
+        const currentRelative = relativePath ? `${relativePath}/${encodeURIComponent(entry.name)}` : encodeURIComponent(entry.name);
 
         if (entry.isDirectory()) {
           // Recursively scan all subdirectories
@@ -400,7 +400,7 @@ class BackgroundController {
       for (const entry of entries) {
         if (entry.isDirectory()) {
           const fullPath = path.join(dir, entry.name);
-          const currentRelative = relativePath ? `${relativePath}/${entry.name}` : entry.name;
+          const currentRelative = relativePath ? `${relativePath}/${encodeURIComponent(entry.name)}` : encodeURIComponent(entry.name);
           folders.push(currentRelative);
           folders = [...folders, ...getSubFolders(fullPath, currentRelative)];
         }
