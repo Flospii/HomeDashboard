@@ -21,6 +21,7 @@
     "busboy": "^1.6.0",
     "exiftool-vendored": "^35.0.0",
     "nuxt": "^4.2.2",
+    "nuxt-directus": "^5.7.0",
     "qrcode": "^1.5.4",
     "qrcode.vue": "^3.6.0"
   },

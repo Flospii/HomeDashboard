@@ -163,26 +163,27 @@
           class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 pl-6 border-l-2 border-primary-500/20"
         >
           <div
-            v-for="folder in availableFolders"
-            :key="folder"
+            v-for="folder in (availableFolders as any[])"
+            :key="typeof folder === 'string' ? folder : folder.id"
             class="flex items-center space-x-2"
           >
             <UCheckbox
-              :label="folder === 'root' ? folder : folder.split('/').pop()"
-              :model-value="localConfig.enabledFolders?.includes(folder)"
+              :label="typeof folder === 'string' ? folder : folder.name"
+              :model-value="localConfig.enabledFolders?.includes(typeof folder === 'string' ? folder : folder.id)"
               @update:model-value="
                 (val) => {
                   if (!localConfig) return;
+                  const folderId = typeof folder === 'string' ? folder : folder.id;
                   if (val) {
                     if (!localConfig.enabledFolders)
                       localConfig.enabledFolders = [];
-                    if (!localConfig.enabledFolders.includes(folder)) {
-                      localConfig.enabledFolders.push(folder);
+                    if (!localConfig.enabledFolders.includes(folderId)) {
+                      localConfig.enabledFolders.push(folderId);
                     }
                   } else if (localConfig.enabledFolders) {
                     localConfig.enabledFolders =
                       localConfig.enabledFolders.filter(
-                        (f: string) => f !== folder,
+                        (f: string) => f !== folderId,
                       );
                   }
                 }
@@ -200,7 +201,7 @@ import { ref, watch, computed } from "vue";
 import { useConfigStore } from "~~/stores/config";
 
 defineProps<{
-  availableFolders: string[];
+  availableFolders: any[];
 }>();
 
 const store = useConfigStore();
@@ -250,6 +251,10 @@ const saveFolderSettings = async () => {
   saveStatus.value = null;
   
   try {
+    // Ensure background is an object
+    if (typeof store.config.background === 'string') {
+      store.config.background = JSON.parse(store.config.background);
+    }
     store.config.background.useAllFolders = localConfig.value.useAllFolders;
     store.config.background.enabledFolders = localConfig.value.enabledFolders ? [...localConfig.value.enabledFolders] : [];
     

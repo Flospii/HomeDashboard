@@ -1,7 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { ExifTool } from "exiftool-vendored";
-import { mapMetadata } from "./metadata";
 import { getProjectPaths } from "./paths";
 import { configManager } from "./config";
 import type {
@@ -10,11 +8,15 @@ import type {
   MediaType,
 } from "../../app/types/config";
 
-// Create a custom ExifTool instance with a timeout to prevent hanging
-const exiftool = new ExifTool({
-  taskTimeoutMillis: 5000,
-  logger: () => console,
-});
+const DIRECTUS_URL = process.env.DIRECTUS_URL || "http://localhost:8055";
+
+// ExifTool removed in favor of Directus metadata
+
+interface DirectusFolder {
+  id: string;
+  name: string;
+  parent: string | null;
+}
 
 class BackgroundController {
   private currentMedia: BackgroundItem | null = null;
@@ -57,56 +59,48 @@ class BackgroundController {
   }
 
   public async refreshMedia() {
-    const { backgroundsDir } = getProjectPaths();
+    await this.getFolders();
     const config = configManager.getConfig();
 
-    // Performance: Async directory scanning
-    const scanDirAsync = async (
-      dir: string,
-      relativePath: string = "",
-    ): Promise<BackgroundItem[]> => {
-      const { promises: fsPromises } = await import("node:fs");
-
-      try {
-        await fsPromises.access(dir);
-      } catch {
-        return [];
+    let files = [];
+    try {
+      const headers: Record<string, string> = {};
+      if (process.env.DIRECTUS_SERVER_TOKEN) {
+        headers["Authorization"] = `Bearer ${process.env.DIRECTUS_SERVER_TOKEN}`;
       }
+      
+      const res = await fetch(`${DIRECTUS_URL}/files?limit=-1`, { headers });
+      const json = await res.json();
+      files = json.data || [];
+    } catch(e) {
+      console.error("[Server] BackgroundController | Error fetching files from Directus:", e);
+    }
 
-      const entries = await fsPromises.readdir(dir, { withFileTypes: true });
-      let results: BackgroundItem[] = [];
+    const isImage = (f: any) => (f.type || '').startsWith('image/') || (f.filename_download || f.title || '').match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
+    const isVideo = (f: any) => (f.type || '').startsWith('video/') || (f.filename_download || f.title || '').match(/\.(mp4|mov|webm|ogg)$/i);
 
-      for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
-        const currentRelative = relativePath ? `${relativePath}/${encodeURIComponent(entry.name)}` : encodeURIComponent(entry.name);
+    console.log(`[Server] BackgroundController | Scanned ${files.length} files from Directus.`);
+    files.forEach((f: any) => {
+      const type = isVideo(f) ? "video" : (isImage(f) ? "image" : "unknown");
+      if (f.filename_download?.toLowerCase().endsWith(".mp4")) {
+        console.log(`[Server] BackgroundController | MP4 Check | Name: ${f.filename_download}, Directus Type: ${f.type}, Detected: ${type}`);
+      }
+    });
 
-        if (entry.isDirectory()) {
-          // Recursively scan all subdirectories
-          const subItems = await scanDirAsync(fullPath, currentRelative);
-          results = [...results, ...subItems];
-        } else {
-          const ext = path.extname(entry.name).toLowerCase();
-          let type: MediaType | null = null;
-
-          if (this.mediaExtensions.image.includes(ext)) {
-            type = "image";
-          } else if (this.mediaExtensions.video.includes(ext)) {
-            type = "video";
-          }
-
-          if (type) {
-            results.push({
-              url: `/backgrounds/${currentRelative}`,
-              type,
-              folder: relativePath || "root",
-            });
-          }
+    const scannedMedia: BackgroundItem[] = files
+      .filter((entry: any) => isImage(entry) || isVideo(entry))
+      .map((entry: any) => ({
+        url: `${DIRECTUS_URL}/assets/${entry.id}`,
+        type: isVideo(entry) ? "video" : "image",
+        folder: typeof entry.folder === 'string' ? entry.folder : entry.folder?.id || "root",
+        metadata: {
+           fileName: entry.filename_download,
+           fileSize: entry.filesize,
+           mimeType: entry.type,
+           dimensions: entry.width ? { width: entry.width, height: entry.height } : undefined
         }
-      }
-      return results;
-    };
+      }));
 
-    const scannedMedia = await scanDirAsync(backgroundsDir);
     const newAllMedia = scannedMedia;
 
     // Filter for rotation
@@ -114,11 +108,10 @@ class BackgroundController {
       // If using all folders, include everything
       if (config.background.useAllFolders !== false) return true;
 
-
-
       // Local media filtered by folder settings
       if (!config.background.enabledFolders) return false;
-      return config.background.enabledFolders.includes(item.folder || "root");
+      
+      return this.isFolderEnabled(item.folder, config.background.enabledFolders);
     });
 
     // Check if media list actually changed to avoid redundant updates
@@ -176,10 +169,12 @@ class BackgroundController {
   private startPolling() {
     if (this.pollingTimer) clearInterval(this.pollingTimer);
     const config = configManager.getConfig();
-    if (config.background.useLocalBackgrounds) {
+    // In Directus mode, we always want to poll for new files/changes unless explicitly disabled
+    // interpreting useLocalBackgrounds as "Poll for media updates"
+    if (config.background.useLocalBackgrounds !== false) {
       const interval = config.background.localPollingInterval || 30000;
       console.log(
-        `[Server] BackgroundController | Starting local polling (${interval}ms)`,
+        `[Server] BackgroundController | Starting Directus polling (${interval}ms)`,
       );
       this.pollingTimer = setInterval(() => this.refreshMedia(), interval);
     }
@@ -187,7 +182,7 @@ class BackgroundController {
 
   public async reconfigure() {
     console.log("[Server] BackgroundController | Reconfiguring...");
-    configManager.loadConfig(); // Ensure fresh config
+    await configManager.fetchFromDirectus();
     await this.refreshMedia();
     this.startTimer();
     this.startPolling();
@@ -239,60 +234,7 @@ class BackgroundController {
   }
 
   private async fetchMetadataForCurrent() {
-    if (
-      !this.currentMedia ||
-      !this.currentMedia.url ||
-      !this.currentMedia.url.startsWith("/backgrounds/") ||
-      this.currentMedia.metadata ||
-      this.fetchingMetadata.has(this.currentMedia.url)
-    ) {
-      return;
-    }
-
-    const url = this.currentMedia.url;
-    this.fetchingMetadata.add(url);
-
-    const { backgroundsDir } = getProjectPaths();
-    const relativePath = decodeURIComponent(url.replace("/backgrounds/", ""));
-    const filePath = path.join(backgroundsDir, relativePath);
-
-    try {
-      if (!fs.existsSync(filePath)) {
-        return;
-      }
-
-      const stats = fs.statSync(filePath);
-      const rawMeta = await exiftool.read(filePath);
-      const ext = path.extname(relativePath).toLowerCase();
-
-      // Check if currentMedia is still the same
-      if (this.currentMedia?.url === url) {
-        const metadata = mapMetadata(rawMeta, {
-          fileName: relativePath,
-          fileSize: stats.size,
-          mimeType:
-            this.currentMedia.type === "image"
-              ? `image/${ext.slice(1).replace("jpg", "jpeg")}`
-              : `video/${ext.slice(1)}`,
-        });
-        this.currentMedia.metadata = metadata;
-
-        // Performance: Cache metadata for O(1) lookups on refresh
-        this.metadataCache.set(url, metadata);
-
-        console.log(
-          `[Server] BackgroundController | Metadata cached for: ${relativePath}`,
-        );
-        this.notifyStateChange(); // Notify that metadata is now available
-      }
-    } catch (err) {
-      console.error(
-        `[Server] BackgroundController | Error during metadata fetch for ${relativePath}:`,
-        err,
-      );
-    } finally {
-      this.fetchingMetadata.delete(url);
-    }
+     // Metadata is now fetched upfront from Directus. No local ExifTool processing needed.
   }
 
   public async getStatus() {
@@ -389,27 +331,37 @@ class BackgroundController {
     return this.allMedia;
   }
 
-  public getFolders() {
-    const { backgroundsDir } = getProjectPaths();
-    if (!fs.existsSync(backgroundsDir)) return ["root"];
+  private folders: DirectusFolder[] = [];
 
-    const getSubFolders = (dir: string, relativePath: string = ""): string[] => {
-      let folders: string[] = [];
-      const entries = fs.readdirSync(dir, { withFileTypes: true });
-
-      for (const entry of entries) {
-        if (entry.isDirectory()) {
-          const fullPath = path.join(dir, entry.name);
-          const currentRelative = relativePath ? `${relativePath}/${encodeURIComponent(entry.name)}` : encodeURIComponent(entry.name);
-          folders.push(currentRelative);
-          folders = [...folders, ...getSubFolders(fullPath, currentRelative)];
-        }
+  public async getFolders() {
+    try {
+      const headers: Record<string, string> = {};
+      if (process.env.DIRECTUS_SERVER_TOKEN) {
+        headers["Authorization"] = `Bearer ${process.env.DIRECTUS_SERVER_TOKEN}`;
       }
-      return folders;
-    };
+      const res = await fetch(`${DIRECTUS_URL}/folders?limit=-1`, { headers });
+      const json = await res.json();
+      this.folders = json.data || [];
+      return [{ id: 'root', name: 'Root', parent: null }, ...this.folders];
+    } catch (e) {
+      console.error("[Server] BackgroundController | Error fetching folders:", e);
+      return [{ id: 'root', name: 'Root', parent: null }];
+    }
+  }
 
-    const folders = getSubFolders(backgroundsDir);
-    return ["root", ...folders];
+  private isFolderEnabled(folderId: string | null | undefined, enabledFolders: string[]): boolean {
+    const target = folderId || "root";
+    if (enabledFolders.includes(target)) return true;
+    
+    // Recursive check: Is any parent enabled?
+    let current = this.folders.find(f => f.id === target);
+    while (current && current.parent) {
+      const parentId = typeof current.parent === 'string' ? current.parent : (current.parent as any).id;
+      if (enabledFolders.includes(parentId)) return true;
+      current = this.folders.find(f => f.id === parentId);
+    }
+    
+    return false;
   }
 
   public setOnStateChange(cb: () => void) {

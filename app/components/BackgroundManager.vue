@@ -15,6 +15,7 @@
       :media="displayedMedia"
       :folders="galleryFolders"
       :all-backgrounds="allBackgrounds"
+      :breadcrumb-parts="breadcrumbParts"
       :current-folder="currentGalleryFolder"
       :is-loading="isLoadingMedia"
       @navigate="navigateToFolder"
@@ -45,25 +46,56 @@ const toast = useToast();
 const store = useConfigStore();
 
 const allBackgrounds = ref<BackgroundItem[]>([]);
-const availableFolders = ref<string[]>([]);
 const isLoadingMedia = ref(true);
 const currentGalleryFolder = ref<string | null>((route.query.folder as string) || null);
 
 // --- State Management ---
 
+const directusUrl = useDirectusUrl();
+const { getFiles, deleteFiles } = useDirectusFiles();
+const { token } = useDirectusToken();
+
+interface DirectusFolder {
+  id: string;
+  name: string;
+  parent: string | null;
+}
+
+const availableFolders = ref<DirectusFolder[]>([]);
+
 const fetchAllBackgrounds = async () => {
   try {
-    const data = await $fetch<BackgroundItem[]>("/api/backgrounds");
-    if (Array.isArray(data)) allBackgrounds.value = data;
+    const data = await getFiles<any>({ params: { limit: -1 } });
+    allBackgrounds.value = data
+      .filter((file: any) => {
+        const t = file.type || '';
+        const n = (file.filename_download || file.title || '').toLowerCase();
+        return t.startsWith('image/') || t.startsWith('video/') || n.match(/\.(jpg|jpeg|png|gif|webp|svg|mp4|mov|webm|ogg)$/);
+      })
+      .map((file: any) => {
+        const t = file.type || '';
+        const n = (file.filename_download || file.title || '').toLowerCase();
+        return {
+          id: file.id,
+          url: `${directusUrl}/assets/${file.id}`,
+          type: (t.startsWith('video/') || n.match(/\.(mp4|mov|webm|ogg)$/)) ? "video" : "image",
+          folder: typeof file.folder === 'string' ? file.folder : file.folder?.id || "root",
+        };
+      });
   } catch (err) {
-    console.error("Error fetching backgrounds:", err);
+    console.error("Error fetching backgrounds from directus:", err);
   }
 };
 
 const fetchFolders = async () => {
   try {
-    const data = await $fetch<string[]>("/api/backgrounds/folders");
-    if (Array.isArray(data)) availableFolders.value = data;
+    const res = await fetch(`${directusUrl}/folders?limit=-1`, {
+      headers: { Authorization: `Bearer ${token.value}` }
+    });
+    const json = await res.json();
+    const folders = json.data || [];
+    // Inject virtual root folder for selection settings
+    availableFolders.value = [{ id: 'root', name: 'Root', parent: null }, ...folders];
   } catch (err) {
     console.error("Error fetching folders:", err);
   }
@@ -101,30 +133,27 @@ onUnmounted(() => {
 // --- Computed ---
 
 const galleryFolders = computed(() => {
-  const currentDepth = currentGalleryFolder.value ? currentGalleryFolder.value.split("/").length : 0;
-  const allFolderPaths = new Set<string>();
+  const currentId = currentGalleryFolder.value && currentGalleryFolder.value !== "root" ? currentGalleryFolder.value : null;
+  return availableFolders.value.filter(f => {
+    if (currentId === null) return !f.parent;
+    return f.parent === currentId;
+  }).sort((a, b) => a.name.localeCompare(b.name));
+});
 
-  allBackgrounds.value.forEach((item) => {
-    if (item.folder && item.folder !== "root") {
-      allFolderPaths.add(item.folder);
-      const parts = item.folder.split("/");
-      let currentPath = "";
-      for (let i = 0; i < parts.length - 1; i++) {
-        currentPath = currentPath ? `${currentPath}/${parts[i]}` : (parts[i] as string);
-        allFolderPaths.add(currentPath);
-      }
-    }
-  });
-
-  availableFolders.value.forEach(folder => {
-    if (folder !== "root") allFolderPaths.add(folder);
-  });
-
-  return Array.from(allFolderPaths).filter(folder => {
-    if (currentGalleryFolder.value === null) return !folder.includes("/");
-    if (!folder.startsWith(currentGalleryFolder.value + "/")) return false;
-    return folder.split("/").length === currentDepth + 1;
-  }).sort();
+const breadcrumbParts = computed(() => {
+  if (!currentGalleryFolder.value || currentGalleryFolder.value === "root") return [];
+  
+  const parts: { label: string; path: string }[] = [];
+  let currentId: string | null = currentGalleryFolder.value;
+  
+  while (currentId) {
+    const folder = availableFolders.value.find(f => f.id === currentId);
+    if (!folder) break;
+    parts.unshift({ label: folder.name, path: folder.id });
+    currentId = typeof folder.parent === 'string' ? folder.parent : (folder.parent as any)?.id || null;
+  }
+  
+  return parts;
 });
 
 const displayedMedia = computed(() => {
@@ -140,64 +169,65 @@ const navigateToFolder = (path: string | null) => {
 
 const handleCreateFolder = async (name: string) => {
   try {
-    const response = await $fetch<{ success: boolean }>("/api/backgrounds/folders", {
+    const parentId = currentGalleryFolder.value && currentGalleryFolder.value !== "root" ? currentGalleryFolder.value : null;
+    const res = await fetch(`${directusUrl}/folders`, {
       method: "POST",
-      body: { name, parent: currentGalleryFolder.value || "root" },
+      headers: {
+        Authorization: `Bearer ${token.value}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, parent: parentId })
     });
-    if (response.success) {
+    const json = await res.json();
+    if (json.data) {
       toast.add({ title: t("common.success"), color: "success" });
       await refreshGallery();
-      const newPath = currentGalleryFolder.value ? `${currentGalleryFolder.value}/${name}` : name;
-      navigateToFolder(newPath);
+      navigateToFolder(json.data.id);
+    } else {
+      throw new Error(json.errors?.[0]?.message || "Failed to create folder");
     }
   } catch (err: any) {
     toast.add({ title: t("common.error"), description: err.message, color: "error" });
   }
 };
 
-const handleRenameFolder = async (oldName: string, newName: string) => {
-  if (!newName || newName === oldName) return;
+const handleRenameFolder = async (id: string, newName: string) => {
+  if (!newName) return;
   try {
-    const response = await $fetch<{ success: boolean }>("/api/backgrounds/folders", {
-      method: "PUT",
-      body: { oldName, newName },
+    const res = await fetch(`${directusUrl}/folders/${id}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token.value}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: newName }),
     });
-    if (response.success) {
+    const json = await res.json();
+    if (json.data) {
       toast.add({ title: t("manage.backgrounds.renameSuccess"), color: "success" });
-      if (store.config?.background.enabledFolders) {
-        const index = store.config.background.enabledFolders.indexOf(oldName);
-        if (index !== -1) {
-          store.config.background.enabledFolders[index] = newName;
-          store.saveConfig();
-        }
-      }
       await refreshGallery();
+    } else {
+      throw new Error(json.errors?.[0]?.message || "Failed to rename folder");
     }
   } catch (err: any) {
     toast.add({ title: t("manage.backgrounds.renameError"), description: err.message, color: "error" });
   }
 };
 
-const deleteFolder = async (folder: string) => {
-  if (!confirm(t("manage.backgrounds.deleteFolderConfirm", { folder }))) return;
+const deleteFolder = async (folderId: string) => {
+  if (!confirm(t("manage.backgrounds.deleteFolderConfirm", { folder: folderId }))) return;
   try {
-    const response = await $fetch<{ success: boolean }>("/api/backgrounds/folders", {
+    const res = await fetch(`${directusUrl}/folders/${folderId}`, { 
       method: "DELETE",
-      params: { folder }
+      headers: { Authorization: `Bearer ${token.value}` }
     });
-    if (response.success) {
-      toast.add({ title: t("common.success"), color: "success" });
-      if (store.config?.background.enabledFolders) {
-        store.config.background.enabledFolders = store.config.background.enabledFolders.filter(
-          (f: string) => f !== folder && !f.startsWith(folder + "/"),
-        );
-        await store.saveConfig();
-      }
-      await refreshGallery();
-      if (currentGalleryFolder.value === folder || currentGalleryFolder.value?.startsWith(folder + "/")) {
-        const parent = folder.includes("/") ? folder.substring(0, folder.lastIndexOf("/")) : null;
-        navigateToFolder(parent);
-      }
+    if (res.ok) {
+       toast.add({ title: t("common.success"), color: "success" });
+       await refreshGallery();
+       navigateToFolder(null);
+    } else {
+       const json = await res.json();
+       throw new Error(json.errors?.[0]?.message || "Failed to delete folder");
     }
   } catch (err: any) {
     toast.add({ title: t("common.error"), description: err.message, color: "error" });
@@ -206,18 +236,16 @@ const deleteFolder = async (folder: string) => {
 
 const deleteMedia = async (item: BackgroundItem) => {
   if (!confirm(t("manage.backgrounds.deleteConfirm"))) return;
-  const filename = item.url.replace("/backgrounds/", "");
+  if (!item.id) return;
   try {
-    await $fetch(`/api/backgrounds?filename=${filename}`, { method: "DELETE" });
-    await store.fetchConfig();
+    await deleteFiles({ files: [item.id] });
     await refreshGallery();
   } catch (error) {
-    console.error("Failed to delete local file:", error);
+    console.error("Failed to delete directus file:", error);
   }
 };
 
 const downloadZip = () => {
-  const target = currentGalleryFolder.value || "root";
-  window.location.href = `/api/export-backgrounds?folder=${encodeURIComponent(target)}`;
+  alert("Folder download is managed via Directus UI now.");
 };
 </script>

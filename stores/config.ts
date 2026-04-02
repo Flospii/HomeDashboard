@@ -19,6 +19,8 @@ export const useConfigStore = defineStore("config", () => {
   const isSavingConfig = ref(false);
   let saveConfigDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   let ws: WebSocket | null = null;
+  
+  const directusItems = useDirectusItems();
 
   const fetchConfig = async () => {
     try {
@@ -38,19 +40,14 @@ export const useConfigStore = defineStore("config", () => {
     try {
       const data = await $fetch<DashboardConfig>("/api/config");
 
-      // Use a cleaner comparison or just update if fetching anyway
-      // For now, simple deep comparison persists to avoid jitter
       if (JSON.stringify(config.value) !== JSON.stringify(data)) {
         if (!config.value) {
           config.value = data;
         } else {
-          // Merge top level properties to preserve object reference if possible
-          // but for DashboardConfig, a replacement is often safer for complex nested items.
-          // Let's at least ensure we don't trigger if it's identical.
           Object.assign(config.value, data);
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error refreshing dashboard config:", err);
     }
   };
@@ -72,22 +69,40 @@ export const useConfigStore = defineStore("config", () => {
   const saveConfig = () => {
     if (!config.value) return;
 
-    // Mark as saving immediately to guard against WebSocket overwrites
     isSavingConfig.value = true;
 
-    // Clear any pending debounced save so only the latest state is sent
     if (saveConfigDebounceTimer) {
       clearTimeout(saveConfigDebounceTimer);
     }
 
-    // Debounce: wait 300ms for rapid consecutive changes (e.g. toggling multiple checkboxes)
     return new Promise((resolve, reject) => {
       saveConfigDebounceTimer = setTimeout(async () => {
         try {
-          const result = await $fetch("/api/config", {
-            method: "POST",
-            body: config.value,
-          });
+          let result;
+          // Ensure we don't send an id in the item body, as Directus rejects updating the PK
+          const payload = { ...config.value };
+          
+          try {
+            result = await directusItems.updateItem({
+              collection: "dashboard_config",
+              id: "1",
+              item: payload,
+            });
+          } catch (err: any) {
+            // If the item doesn't exist (403/404), create it
+            if (err.statusCode === 403 || err.statusCode === 404) {
+              result = await directusItems.createItems({
+                collection: "dashboard_config",
+                items: [{ id: "1", ...payload }]
+              });
+            } else {
+              throw err;
+            }
+          }
+          
+          // Notify local server about the updated config
+          await $fetch("/api/config/sync", { method: "POST" });
+          
           resolve(result);
         } catch (err) {
           console.error("Error saving dashboard config:", err);

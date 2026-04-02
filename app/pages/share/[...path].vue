@@ -67,6 +67,7 @@
             :media="displayedMedia"
             :folders="galleryFolders"
             :all-backgrounds="allBackgrounds"
+            :breadcrumb-parts="[]"
             :current-folder="sharedPath"
             :is-loading="isLoadingMedia"
             :is-shared-view="true"
@@ -113,32 +114,67 @@ const sharedPath = computed(() => {
 
 const folderName = computed(() => {
     const p = sharedPath.value;
+    if (!p) return "";
+    const folder = availableFolders.value.find(f => f.id === p);
+    if (folder) return folder.name;
     return p.split('/').pop() || p;
 });
 
 const allBackgrounds = ref<BackgroundItem[]>([]);
-const availableFolders = ref<string[]>([]);
+
+interface DirectusFolder {
+  id: string;
+  name: string;
+  parent: string | null;
+}
+
+const availableFolders = ref<DirectusFolder[]>([]);
 const isLoadingMedia = ref(true);
 
 const imageCount = computed(() => displayedMedia.value.filter(i => i.type === 'image').length);
 const videoCount = computed(() => displayedMedia.value.filter(i => i.type === 'video').length);
 
+const directusUrl = useDirectusUrl();
+const { getFiles } = useDirectusFiles();
+
+const { token } = useDirectusToken();
+
 const fetchAllBackgrounds = async () => {
-    try {
-        const data = await $fetch<BackgroundItem[]>("/api/backgrounds");
-        if (Array.isArray(data)) allBackgrounds.value = data;
-    } catch (err) {
-        console.error("Error:", err);
-    }
+  try {
+    const data = await getFiles<any>({ params: { limit: -1 } });
+    allBackgrounds.value = data
+      .filter((file: any) => {
+        const t = file.type || '';
+        const n = (file.filename_download || file.title || '').toLowerCase();
+        return t.startsWith('image/') || t.startsWith('video/') || n.match(/\.(jpg|jpeg|png|gif|webp|svg|mp4|mov|webm|ogg)$/);
+      })
+      .map((file: any) => {
+        const t = file.type || '';
+        const n = (file.filename_download || file.title || '').toLowerCase();
+        return {
+          id: file.id,
+          url: `${directusUrl}/assets/${file.id}`,
+          type: (t.startsWith('video/') || n.match(/\.(mp4|mov|webm|ogg)$/)) ? "video" : "image",
+          folder: typeof file.folder === 'string' ? file.folder : file.folder?.id || "root",
+        };
+      });
+  } catch (err) {
+    console.error("Error fetching backgrounds from directus:", err);
+  }
 };
 
 const fetchFolders = async () => {
-    try {
-        const data = await $fetch<string[]>("/api/backgrounds/folders");
-        if (Array.isArray(data)) availableFolders.value = data;
-    } catch (err) {
-        console.error("Error:", err);
-    }
+  try {
+    const res = await fetch(`${directusUrl}/folders?limit=-1`, {
+      headers: token.value ? { Authorization: `Bearer ${token.value}` } : {}
+    });
+    const json = await res.json();
+    const folders = json.data || [];
+    availableFolders.value = [{ id: 'root', name: 'Root', parent: null }, ...folders];
+  } catch (err) {
+    console.error("Error fetching folders:", err);
+    availableFolders.value = [{ id: 'root', name: 'Root', parent: null }];
+  }
 };
 
 const refreshGallery = async () => {
@@ -154,30 +190,11 @@ const refreshGallery = async () => {
 };
 
 const galleryFolders = computed(() => {
-  const currentDepth = sharedPath.value ? sharedPath.value.split("/").length : 0;
-  const allFolderPaths = new Set<string>();
-
-  // Filter to only include folders within the shared root
-  allBackgrounds.value.forEach((item) => {
-    if (item.folder && item.folder.startsWith(sharedRoot)) {
-      allFolderPaths.add(item.folder);
-      const parts = item.folder.split("/");
-      let currentPath = "";
-      for (let i = 0; i < parts.length - 1; i++) {
-        currentPath = currentPath ? `${currentPath}/${parts[i]}` : (parts[i] as string);
-        if (currentPath.startsWith(sharedRoot)) allFolderPaths.add(currentPath);
-      }
-    }
-  });
-
-  availableFolders.value.forEach(folder => {
-    if (folder.startsWith(sharedRoot)) allFolderPaths.add(folder);
-  });
-
-  return Array.from(allFolderPaths).filter(folder => {
-    if (!folder.startsWith(sharedPath.value + "/")) return false;
-    return folder.split("/").length === currentDepth + 1;
-  }).sort();
+  const currentId = sharedPath.value && sharedPath.value !== "root" ? sharedPath.value : null;
+  return availableFolders.value.filter(f => {
+    if (currentId === null) return !f.parent;
+    return f.parent === currentId;
+  }).sort((a, b) => a.name.localeCompare(b.name));
 });
 
 const displayedMedia = computed(() => {
@@ -185,16 +202,13 @@ const displayedMedia = computed(() => {
 });
 
 const handleNavigate = (path: string | null) => {
-    // We only allow navigating within the shared root
-    if (path === null || !path.startsWith(sharedRoot)) {
-        currentSubPath.value = null;
-    } else {
-        currentSubPath.value = path;
-    }
+    currentSubPath.value = path;
 };
 
 const downloadZip = () => {
-  window.location.href = `/api/export-backgrounds?folder=${encodeURIComponent(sharedPath.value)}`;
+  // Directus raw archiving requires a custom endpoint. 
+  // Disable for now, or redirect to Directus admin.
+  alert("Folder download is managed via Directus UI now.");
 };
 
 onMounted(() => {

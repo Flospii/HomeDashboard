@@ -19,8 +19,7 @@ RUN npm run build
 # Run stage
 FROM node:20-alpine AS run
 
-# Install dependencies (required by exiftool-vendored for metadata extraction on Alpine)
-RUN apk add --no-cache perl libc6-compat exiftool
+# ExifTool is no longer required due to Directus integration
 
 WORKDIR /app
 
@@ -33,9 +32,7 @@ COPY --from=build /app/defaults ./defaults
 # Copy public directory for backgrounds and other static assets
 COPY --from=build /app/public ./public
 
-# Create data directory for persistent storage
-RUN mkdir -p /app/data
-VOLUME /app/data
+# Data directory is no longer required locally
 
 # Expose the port the app runs on
 EXPOSE 3000

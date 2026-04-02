@@ -330,6 +330,9 @@ const handleFileUpload = async (event: Event | FileList) => {
   processQueue();
 };
 
+const directusUrl = useDirectusUrl();
+const { token } = useDirectusToken();
+
 const processQueue = async () => {
   if (isUploading.value) return;
   const pending = uploadQueue.value.find((item) => item.status === "pending");
@@ -344,14 +347,26 @@ const processQueue = async () => {
   pending.status = "uploading";
 
   const formData = new FormData();
-  formData.append("folder", props.currentFolder || "root");
-  formData.append("files", pending.file);
+  // We can attach the folder ID if currentFolder is a directus UUID, but "root" is not a UUID.
+  if (props.currentFolder && props.currentFolder !== "root") {
+    formData.append("folder", props.currentFolder);
+  }
+  // Directus requires the file payload to be named 'file' or just implicitly passed if single file, but standard is 'file' or any other arbitrary key not conflicting with meta. No wait, actually it's any key. But let's use 'file' or Directus defaults. Wait, for Directus /files: 'file', 'title', etc. 
+  formData.append("title", pending.file.name);
+  formData.append("file", pending.file); // The actual file stream
 
   try {
     await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       pending.xhr = xhr;
-      xhr.open("POST", "/api/backgrounds");
+      
+      const uploadUrl = directusUrl ? `${directusUrl}/files` : '/files';
+      xhr.open("POST", uploadUrl);
+      
+      if (token.value) {
+        xhr.setRequestHeader("Authorization", `Bearer ${token.value}`);
+      }
+
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           pending.progress = Math.round((event.loaded / event.total) * 100);
@@ -359,7 +374,7 @@ const processQueue = async () => {
       };
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) resolve(xhr.response);
-        else reject(new Error(`Upload failed: ${xhr.status}`));
+        else reject(new Error(`Upload failed: ${xhr.status} ${xhr.responseText}`));
       };
       xhr.onabort = () => reject(new Error("Upload cancelled"));
       xhr.onerror = () => reject(new Error("Network error"));

@@ -108,10 +108,10 @@
 
         <!-- Folder Cards -->
         <div
-          v-for="folder in folders"
-          :key="folder"
+          v-for="folder in (folders as any[])"
+          :key="folder.id"
           class="relative aspect-square bg-default/5 border border-default hover:border-primary-500/50 hover:bg-primary-500/5 transition-all cursor-pointer group flex flex-col items-center justify-center space-y-3"
-          @click="emit('navigate', folder)"
+          @click="emit('navigate', folder.id)"
         >
           <div
             class="w-12 h-12 bg-default/5 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform"
@@ -120,10 +120,10 @@
           </div>
           <div class="text-center px-4 overflow-hidden w-full">
             <p class="text-sm font-bold text-default truncate capitalize">
-              {{ folder.split("/").pop() }}
+              {{ folder.name }}
             </p>
             <p class="text-[10px] text-default/40 uppercase tracking-widest">
-              {{ getFolderItemCount(folder) }}
+              {{ getFolderItemCount(folder.id) }}
               {{
                 $t("manage.backgrounds.items", { count: "" }).replace("{}", "")
               }}
@@ -147,7 +147,7 @@
               color="error"
               variant="soft"
               size="xs"
-              @click.stop="emit('deleteFolder', folder)"
+              @click.stop="emit('deleteFolder', folder.id)"
             />
           </div>
         </div>
@@ -318,7 +318,8 @@ import type { BackgroundItem } from "~~/app/types/config";
 
 const props = defineProps<{
   media: BackgroundItem[];
-  folders: string[];
+  folders: any[];
+  breadcrumbParts: { label: string; path: string }[];
   currentFolder: string | null;
   isLoading: boolean;
   isSharedView?: boolean;
@@ -346,26 +347,18 @@ const showCreateFolderModal = ref(false);
 const newFolderNameInput = ref("");
 const isCreatingFolder = ref(false);
 
-const breadcrumbParts = computed(() => {
-  if (!props.currentFolder) return [];
-  const parts = props.currentFolder.split("/");
-  let currentPath = "";
-  return parts.map((part) => {
-    currentPath = currentPath ? `${currentPath}/${part}` : part;
-    return { label: part, path: currentPath };
-  });
-});
+// breadcrumbParts is now passed as a prop from parent for Directus hierarchy support
 
-const getFolderItemCount = (folder: string) => {
+const getFolderItemCount = (folderId: string) => {
   const source = props.allBackgrounds || props.media;
   return source.filter((item) => {
-    return item.folder === folder || item.folder?.startsWith(folder + "/");
+    return item.folder === folderId;
   }).length;
 };
 
-const openRenameModal = (folder: string) => {
-  folderToRename.value = folder;
-  renameValue.value = folder;
+const openRenameModal = (folder: any) => {
+  folderToRename.value = folder.id;
+  renameValue.value = folder.name;
   showRenameModal.value = true;
 };
 
