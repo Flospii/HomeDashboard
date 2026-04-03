@@ -3,7 +3,7 @@ import type {
   DashboardConfig,
   BackgroundItem,
   ModulePosition,
-} from "../app/types/config";
+} from "../types/config";
 
 export const useConfigStore = defineStore("config", () => {
   const config = ref<DashboardConfig | null>(null);

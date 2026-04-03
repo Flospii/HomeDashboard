@@ -1,37 +1,15 @@
 <template>
   <div class="absolute inset-0 z-0 overflow-hidden bg-black">
-    <TransitionGroup
-      :name="effectiveTransitionMode"
-      tag="div"
-      class="relative w-full h-full"
-    >
-      <div
-        v-for="item in displayBackgrounds"
-        :key="item.url + store.serverStateId"
-        class="absolute inset-0 w-full h-full bg-black"
-      >
-        <img
-          v-if="item.type === 'image'"
-          :src="item.url"
-          class="object-cover w-full h-full"
-          alt="Background"
-          @error="
-            (e) => console.error('BackgroundCanvas: Image error', item.url, e)
-          "
-        />
-        <video
-          v-else-if="item.type === 'video'"
-          :src="item.url"
-          autoplay
-          muted
-          loop
-          playsinline
-          preload="metadata"
-          class="object-cover w-full h-full"
-          @error="
+    <TransitionGroup :name="effectiveTransitionMode" tag="div" class="relative w-full h-full">
+      <div v-for="item in displayBackgrounds" :key="item.url + store.serverStateId"
+        class="absolute inset-0 w-full h-full bg-black">
+        <img v-if="item.type === 'image'" :src="item.url" class="object-cover w-full h-full" alt="Background" @error="
+          (e) => console.error('BackgroundCanvas: Image error', item.url, e)
+        " />
+        <video v-else-if="item.type === 'video'" :src="item.url" autoplay muted loop playsinline preload="metadata"
+          class="object-cover w-full h-full" @error="
             (e) => console.error('BackgroundCanvas: Video error', item.url, e)
-          "
-        ></video>
+          "></video>
       </div>
     </TransitionGroup>
     <!-- Overlay for better text readability -->
@@ -47,7 +25,7 @@
 
 <script setup lang="ts">
 import { computed, watch, onMounted } from "vue";
-import { useConfigStore } from "~~/stores/config";
+import { useConfigStore } from "~/stores/config";
 
 const props = defineProps<{
   transitionMode?: string;

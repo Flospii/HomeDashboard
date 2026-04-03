@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 import * as locales from "@nuxt/ui/locale";
-import { useConfigStore } from "~~/stores/config";
+import { useConfigStore } from "~/stores/config";
 import { AVAILABLE_MODULES } from "./components/modules";
 
 const { locale, setLocale, mergeLocaleMessage } = useI18n();

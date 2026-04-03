@@ -134,45 +134,29 @@ const isLoadingMedia = ref(true);
 const imageCount = computed(() => displayedMedia.value.filter(i => i.type === 'image').length);
 const videoCount = computed(() => displayedMedia.value.filter(i => i.type === 'video').length);
 
-const directusUrl = useDirectusUrl();
-const { getFiles } = useDirectusFiles();
-
+// Removed directus tools, using server API
 const { token } = useDirectusToken();
+
 
 const fetchAllBackgrounds = async () => {
   try {
-    const data = await getFiles<any>({ params: { limit: -1 } });
-    allBackgrounds.value = data
-      .filter((file: any) => {
-        const t = file.type || '';
-        const n = (file.filename_download || file.title || '').toLowerCase();
-        return t.startsWith('image/') || t.startsWith('video/') || n.match(/\.(jpg|jpeg|png|gif|webp|svg|mp4|mov|webm|ogg)$/);
-      })
-      .map((file: any) => {
-        const t = file.type || '';
-        const n = (file.filename_download || file.title || '').toLowerCase();
-        return {
-          id: file.id,
-          url: `${directusUrl}/assets/${file.id}`,
-          type: (t.startsWith('video/') || n.match(/\.(mp4|mov|webm|ogg)$/)) ? "video" : "image",
-          folder: typeof file.folder === 'string' ? file.folder : file.folder?.id || "root",
-        };
-      });
+    const data = await $fetch<BackgroundItem[]>('/api/media/files', {
+      headers: { Authorization: `Bearer ${token.value}` }
+    });
+    allBackgrounds.value = data;
   } catch (err) {
-    console.error("Error fetching backgrounds from directus:", err);
+    console.error("Error fetching backgrounds from server:", err);
   }
 };
 
 const fetchFolders = async () => {
   try {
-    const res = await fetch(`${directusUrl}/folders?limit=-1`, {
-      headers: token.value ? { Authorization: `Bearer ${token.value}` } : {}
+    const folders = await $fetch<any[]>('/api/media/folders', {
+      headers: { Authorization: `Bearer ${token.value}` }
     });
-    const json = await res.json();
-    const folders = json.data || [];
     availableFolders.value = [{ id: 'root', name: 'Root', parent: null }, ...folders];
   } catch (err) {
-    console.error("Error fetching folders:", err);
+    console.error("Error fetching folders from server:", err);
     availableFolders.value = [{ id: 'root', name: 'Root', parent: null }];
   }
 };
