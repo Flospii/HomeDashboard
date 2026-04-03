@@ -26,9 +26,6 @@ WORKDIR /app
 # Copy the build output from the build stage
 COPY --from=build /app/.output ./.output
 
-# Copy defaults directory for initial config
-COPY --from=build /app/defaults ./defaults
-
 # Copy public directory for backgrounds and other static assets
 COPY --from=build /app/public ./public
 

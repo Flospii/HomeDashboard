@@ -1,4 +1,13 @@
-import { H3Event, getCookie, getHeader, createError } from 'h3';
+import { H3Event, getCookie, getHeader } from 'h3';
+import { createDirectus, rest, staticToken, DirectusFile, DirectusFolder } from '@directus/sdk';
+
+/**
+ * Define the structure of our Directus instance for the SDK.
+ * This ensures that built-in collections and our custom ones are fully typed.
+ */
+export interface DashboardSchema {
+  dashboard_config: any[];
+}
 
 export const getDirectusToken = (event: H3Event) => {
   // First check Authorization header
@@ -10,7 +19,6 @@ export const getDirectusToken = (event: H3Event) => {
   // nuxt-directus default cookie name
   const token = getCookie(event, 'directus_access_token');
   
-  // Return undefined if no token is found, allowing public access where permitted by Directus
   return token || undefined;
 };
 
@@ -18,26 +26,24 @@ export const getDirectusUrl = () => {
   return process.env.DIRECTUS_INTERNAL_URL || process.env.DIRECTUS_URL || 'http://localhost:8055';
 };
 
-export const directusFetch = async <T>(event: H3Event, path: string, options: Parameters<typeof $fetch>[1] = {}): Promise<T> => {
-  const token = getDirectusToken(event);
-  const baseUrl = getDirectusUrl();
-  const url = `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+/**
+ * Creates a Directus SDK client instance.
+ * @param event Optional H3Event to extract the user's token from.
+ *              If not provided, uses DIRECTUS_SERVER_TOKEN for server-side admin access.
+ */
+export const createDirectusClient = (event?: H3Event) => {
+  const url = getDirectusUrl();
+  const client = createDirectus<DashboardSchema>(url).with(rest());
   
-  const headers: Record<string, string> = { ...options.headers as any };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  const userToken = event ? getDirectusToken(event) : undefined;
+  const serverToken = process.env.DIRECTUS_SERVER_TOKEN;
 
-  try {
-    const response = await $fetch(url, { ...options, headers });
-    return response as unknown as T;
-  } catch (err: any) {
-    // If we got a 401 with a token (stale/expired cookie), retry without the token as a public request
-    if (token && err?.response?.status === 401) {
-      delete headers['Authorization'];
-      const response = await $fetch(url, { ...options, headers });
-      return response as unknown as T;
-    }
-    throw err;
+  if (userToken && userToken !== 'undefined' && userToken !== 'null') {
+    return client.with(staticToken(userToken));
+  } else if (serverToken) {
+    return client.with(staticToken(serverToken));
   }
+  
+  return client;
 };
+

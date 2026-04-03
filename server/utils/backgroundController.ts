@@ -1,18 +1,13 @@
 import { configManager } from "./config";
-import type {
-  BackgroundItem,
-} from "../../app/types/config";
+import type { BackgroundItem } from "../../app/types/config";
+import { createDirectusClient, getDirectusUrl } from "./directus";
+import { readFiles, readFolders, type DirectusFile, type DirectusFolder } from "@directus/sdk";
 
-const DIRECTUS_URL = process.env.DIRECTUS_URL || "http://localhost:8055";
-const DIRECTUS_INTERNAL_URL = process.env.DIRECTUS_INTERNAL_URL || DIRECTUS_URL;
+const DIRECTUS_URL = getDirectusUrl();
 
 // ExifTool removed in favor of Directus metadata
 
-interface DirectusFolder {
-  id: string;
-  name: string;
-  parent: string | null;
-}
+
 
 class BackgroundController {
   private currentMedia: BackgroundItem | null = null;
@@ -43,8 +38,9 @@ class BackgroundController {
   }
 
   private async init() {
-    console.log("[Server] BackgroundController | Initializing...");
-    await this.reconfigure();
+    console.log("[Server] BackgroundController | Initializing (deferred)...");
+    // Wait a bit to let DirectusSetup finish provisioning
+    setTimeout(() => this.reconfigure(), 5000);
   }
 
   // Public debounced version for external calls (e.g., after file uploads)
@@ -57,70 +53,46 @@ class BackgroundController {
     await this.getFolders();
     const config = configManager.getConfig();
 
-    let files = [];
+    let files: any[] = [];
     try {
-      const headers: Record<string, string> = {};
-      if (process.env.DIRECTUS_SERVER_TOKEN) {
-        headers["Authorization"] = `Bearer ${process.env.DIRECTUS_SERVER_TOKEN}`;
-      }
-      
-      const res = await fetch(`${DIRECTUS_INTERNAL_URL}/files?limit=-1`, { headers });
-      const json = await res.json();
-      files = json.data || [];
-      if (files.length === 0 && json.errors) {
-        console.error("[Server] BackgroundController | API Errors:", json.errors);
-      }
-      console.log(`[Server] BackgroundController | API check: Found ${files.length} raw files in Directus.`);
+      const client = createDirectusClient();
+      // Using explicit field selection to ensure we get metadata and location
+      files = await client.request(readFiles({ 
+        limit: -1,
+        fields: ['id', 'filename_download', 'filesize', 'type', 'width', 'height', 'uploaded_on', 'modified_on', 'metadata', 'location', { folder: ['id'] }]
+      })) as any[];
+      console.log(`[Server] BackgroundController | Found ${files.length} raw files in Directus.`);
     } catch(e: any) {
       console.error("[Server] BackgroundController | Error fetching files from Directus:", e.message || e);
     }
-
     const isImage = (f: any) => (f.type || '').startsWith('image/') || (f.filename_download || f.title || '').match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
     const isVideo = (f: any) => (f.type || '').startsWith('video/') || (f.filename_download || f.title || '').match(/\.(mp4|mov|webm|ogg)$/i);
 
-    const parseGPS = (exif: any) => {
-      if (!exif || (!exif.GPSLatitude && !exif.latitude)) return undefined;
-      try {
-        if (typeof exif.latitude === 'number') return { latitude: exif.latitude, longitude: exif.longitude };
-        const toDec = (arr: any, ref: string) => {
-           if (!Array.isArray(arr) || arr.length < 3) return Array.isArray(arr) ? parseFloat(arr[0]) : parseFloat(arr);
-           let dec = arr[0] + arr[1]/60 + arr[2]/3600;
-           if (ref === 'S' || ref === 'W') dec = -dec;
-           return dec;
-        };
-        return {
-          latitude: toDec(exif.GPSLatitude, exif.GPSLatitudeRef),
-          longitude: toDec(exif.GPSLongitude, exif.GPSLongitudeRef)
-        };
-      } catch(e) { return undefined; }
-    };
-
-    const parseExifDate = (dateStr: string | undefined) => {
-      if (!dateStr) return undefined;
-      return dateStr.replace(/^(\d{4}):(\d{2}):(\d{2})/, "$1-$2-$3");
-    };
-
     const scannedMedia: BackgroundItem[] = files
-      .filter((entry: any) => isImage(entry) || isVideo(entry))
-      .map((entry: any) => {
-        const m = entry.metadata?.exif || entry.metadata || {};
+      .filter((entry) => isImage(entry) || isVideo(entry))
+      .map((entry) => {
+        const m = (entry.metadata || {}) as any;
+        const location = entry.location as any;
         return {
         url: `${DIRECTUS_URL}/assets/${entry.id}`,
         type: isVideo(entry) ? "video" : "image",
         folder: typeof entry.folder === 'string' ? entry.folder : entry.folder?.id || "root",
         metadata: {
            fileName: entry.filename_download,
-           fileSize: entry.filesize,
-           mimeType: entry.type,
-           dimensions: entry.width ? { width: entry.width, height: entry.height } : undefined,
-           createdAt: parseExifDate(m.DateTimeOriginal) || parseExifDate(m.CreateDate) || entry.uploaded_on,
-           modifiedAt: parseExifDate(m.ModifyDate) || entry.modified_on,
-           gps: parseGPS(entry.metadata?.exif) || parseGPS(entry.metadata),
+           fileSize: entry.filesize ? parseInt(entry.filesize) : 0,
+           mimeType: entry.type || '',
+           dimensions: entry.width && entry.height ? { width: entry.width, height: entry.height } : undefined,
+           createdAt: m.DateTimeOriginal || entry.uploaded_on,
+           modifiedAt: entry.modified_on,
+           gps: location && location.coordinates ? { 
+             latitude: location.coordinates[1], 
+             longitude: location.coordinates[0] 
+           } : undefined,
            camera: m.Make || m.Model ? `${m.Make || ''} ${m.Model || ''}`.trim() : undefined,
            focalLength: m.FocalLength,
-           iso: m.ISOSpeedRatings || m.ISO,
+           iso: m.ISOSpeedRatings,
            aperture: m.FNumber ? `f/${m.FNumber}` : undefined,
-           exposureTime: m.ExposureTime ? `${m.ExposureTime}` : undefined
+           exposureTime: m.ExposureTime
         }
       }});
 
@@ -340,16 +312,12 @@ class BackgroundController {
 
   public async getFolders() {
     try {
-      const headers: Record<string, string> = {};
-      if (process.env.DIRECTUS_SERVER_TOKEN) {
-        headers["Authorization"] = `Bearer ${process.env.DIRECTUS_SERVER_TOKEN}`;
-      }
-      const res = await fetch(`${DIRECTUS_INTERNAL_URL}/folders?limit=-1`, { headers });
-      const json = await res.json();
-      this.folders = json.data || [];
+      const client = createDirectusClient();
+      const data = await client.request(readFolders({ limit: -1 }));
+      this.folders = (data as unknown as DirectusFolder[]) || [];
       return [{ id: 'root', name: 'Root', parent: null }, ...this.folders];
-    } catch (e) {
-      console.error("[Server] BackgroundController | Error fetching folders:", e);
+    } catch (e: any) {
+      console.error("[Server] BackgroundController | Error fetching folders from SDK:", e.message || e);
       return [{ id: 'root', name: 'Root', parent: null }];
     }
   }

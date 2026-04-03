@@ -1,14 +1,12 @@
-import { directusFetch } from '../../utils/directus';
+import { createDirectusClient } from '../../utils/directus';
+import { createFolder } from '@directus/sdk';
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   
   try {
-    const res = await directusFetch<{ data: any }>(event, '/folders', {
-      method: 'POST',
-      body
-    });
-    return res;
+    const client = createDirectusClient(event);
+    return await client.request(createFolder(body));
   } catch (error: any) {
     throw createError({
       statusCode: error?.response?.status || 500,
@@ -16,3 +14,4 @@ export default defineEventHandler(async (event) => {
     });
   }
 });
+

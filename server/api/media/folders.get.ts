@@ -1,10 +1,11 @@
-import { directusFetch } from '../../utils/directus';
+import { createDirectusClient } from '../../utils/directus';
+import { readFolders } from '@directus/sdk';
 
 export default defineEventHandler(async (event) => {
-  // get folders
   try {
-    const res = await directusFetch<{ data: any[] }>(event, '/folders?limit=-1');
-    return res.data || [];
+    const client = createDirectusClient(event);
+    const folders = await client.request(readFolders({ limit: -1 }));
+    return folders || [];
   } catch (error: any) {
     throw createError({
       statusCode: error?.response?.status || 500,
@@ -12,3 +13,4 @@ export default defineEventHandler(async (event) => {
     });
   }
 });
+

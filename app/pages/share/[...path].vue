@@ -141,7 +141,7 @@ const { token } = useDirectusToken();
 const fetchAllBackgrounds = async () => {
   try {
     const data = await $fetch<BackgroundItem[]>('/api/media/files', {
-      headers: { Authorization: `Bearer ${token.value}` }
+      headers: token.value ? { Authorization: `Bearer ${token.value}` } : {}
     });
     allBackgrounds.value = data;
   } catch (err) {
@@ -152,7 +152,7 @@ const fetchAllBackgrounds = async () => {
 const fetchFolders = async () => {
   try {
     const folders = await $fetch<any[]>('/api/media/folders', {
-      headers: { Authorization: `Bearer ${token.value}` }
+      headers: token.value ? { Authorization: `Bearer ${token.value}` } : {}
     });
     availableFolders.value = [{ id: 'root', name: 'Root', parent: null }, ...folders];
   } catch (err) {

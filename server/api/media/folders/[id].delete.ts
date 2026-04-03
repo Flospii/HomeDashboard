@@ -1,4 +1,5 @@
-import { directusFetch } from '../../../utils/directus';
+import { createDirectusClient } from '../../../utils/directus';
+import { deleteFolder } from '@directus/sdk';
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id');
@@ -8,9 +9,8 @@ export default defineEventHandler(async (event) => {
   }
   
   try {
-    await directusFetch(event, `/folders/${id}`, {
-      method: 'DELETE'
-    });
+    const client = createDirectusClient(event);
+    await client.request(deleteFolder(id));
     return { success: true };
   } catch (error: any) {
     throw createError({
@@ -19,3 +19,4 @@ export default defineEventHandler(async (event) => {
     });
   }
 });
+

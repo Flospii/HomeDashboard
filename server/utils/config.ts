@@ -1,7 +1,6 @@
 import type { DashboardConfig } from "../../app/types/config";
-
-const DIRECTUS_URL = process.env.DIRECTUS_URL || "http://localhost:8055";
-const DIRECTUS_INTERNAL_URL = process.env.DIRECTUS_INTERNAL_URL || DIRECTUS_URL;
+import { createDirectusClient } from "./directus";
+import { readItem } from "@directus/sdk";
 
 class ConfigManager {
   private config: DashboardConfig | null = null;
@@ -114,31 +113,42 @@ class ConfigManager {
   }
 
   public async fetchFromDirectus(): Promise<DashboardConfig> {
-    try {
-      const headers: Record<string, string> = {};
-      if (process.env.DIRECTUS_SERVER_TOKEN) {
-        headers["Authorization"] = `Bearer ${process.env.DIRECTUS_SERVER_TOKEN}`;
-      }
-      
-      const res = await fetch(`${DIRECTUS_INTERNAL_URL}/items/dashboard_config/1`, { headers });
-      const json = await res.json();
-      
-      if (json && json.data && !json.errors) {
-        const data = json.data;
-        if (typeof data.background === 'string') {
-          try { data.background = JSON.parse(data.background); } catch (e) {}
+    const maxRetries = 10;
+    let retries = 0;
+    
+    while (retries < maxRetries) {
+      try {
+        const client = createDirectusClient();
+        const data = await client.request(readItem('dashboard_config', '1')) as any;
+        
+        if (data) {
+          if (typeof data.background === 'string') {
+            try { data.background = JSON.parse(data.background); } catch (e) {}
+          }
+          if (typeof data.modules === 'string') {
+            try { data.modules = JSON.parse(data.modules); } catch (e) {}
+          }
+          this.config = data;
+          return this.config!;
         }
-        if (typeof data.modules === 'string') {
-          try { data.modules = JSON.parse(data.modules); } catch (e) {}
+        throw new Error("Invalid response from Directus: No data returned");
+      } catch (e: any) {
+        const msg = (e.message || e || "").toString();
+        // If collection doesn't exist yet or permission is denied, it's likely still provisioning
+        if (msg.includes("does not exist") || msg.includes("permission") || msg.includes("Forbidden")) {
+          retries++;
+          if (retries < maxRetries) {
+            console.log(`[Server] ConfigManager | Database not ready yet (Attempt ${retries}/${maxRetries}), retrying in 5s...`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            continue;
+          }
         }
-        this.config = data;
-        return this.config!;
+        
+        console.error("[Server] ConfigManager | Failed to fetch config from Directus, using default/memory cache:", msg);
+        return this.getConfig();
       }
-      throw new Error(json.errors ? json.errors[0].message : "Invalid response from Directus");
-    } catch (e) {
-      console.error("[Server] ConfigManager | Failed to fetch config from Directus, using default/memory cache:", e);
-      return this.getConfig();
     }
+    return this.getConfig();
   }
 
   public updateConfig(newConfig: DashboardConfig) {

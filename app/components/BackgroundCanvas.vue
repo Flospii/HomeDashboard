@@ -6,10 +6,12 @@
         <img v-if="item.type === 'image'" :src="item.url" class="object-cover w-full h-full" alt="Background" @error="
           (e) => console.error('BackgroundCanvas: Image error', item.url, e)
         " />
-        <video v-else-if="item.type === 'video'" :src="item.url" autoplay muted loop playsinline preload="metadata"
+        <video v-else-if="item.type === 'video'" autoplay muted loop playsinline preload="metadata"
           class="object-cover w-full h-full" @error="
             (e) => console.error('BackgroundCanvas: Video error', item.url, e)
-          "></video>
+          ">
+          <source :src="item.url" :type="item.metadata?.mimeType">
+        </video>
       </div>
     </TransitionGroup>
     <!-- Overlay for better text readability -->
