@@ -4,8 +4,9 @@ services:
     ports:
       - "3000:3000"
     environment:
-      # IMPORTANT: If accessing from another device, change localhost to your host's IP (e.g., http://192.168.1.100:8055)
+      # DIRECTUS_URL is what the BROWSER uses (so localhost:8055 is fine for local dev)
       - DIRECTUS_URL=http://localhost:8055
+      # DIRECTUS_INTERNAL_URL is what the SERVER uses (Docker service name)
       - DIRECTUS_INTERNAL_URL=http://directus:8055
     depends_on:
       directus:
@@ -31,7 +32,11 @@ services:
       - CORS_ORIGIN=true
       - FILE_METADATA_ALLOW_LIST=*
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:8055/server/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://127.0.0.1:8055/server/health || exit 1",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5

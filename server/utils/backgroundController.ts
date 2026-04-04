@@ -1,13 +1,9 @@
 import { configManager } from "./config";
 import type { BackgroundItem } from "../../app/types/config";
 import { createDirectusClient, getDirectusUrl } from "./directus";
-import { readFiles, readFolders, type DirectusFile, type DirectusFolder } from "@directus/sdk";
+import { readFiles, readFolders, type DirectusFolder } from "@directus/sdk";
 
 const DIRECTUS_URL = getDirectusUrl();
-
-// ExifTool removed in favor of Directus metadata
-
-
 
 class BackgroundController {
   private currentMedia: BackgroundItem | null = null;
@@ -57,16 +53,41 @@ class BackgroundController {
     try {
       const client = createDirectusClient();
       // Using explicit field selection to ensure we get metadata and location
-      files = await client.request(readFiles({ 
-        limit: -1,
-        fields: ['id', 'filename_download', 'filesize', 'type', 'width', 'height', 'uploaded_on', 'modified_on', 'metadata', 'location', { folder: ['id'] }]
-      })) as any[];
-      console.log(`[Server] BackgroundController | Found ${files.length} raw files in Directus.`);
-    } catch(e: any) {
-      console.error("[Server] BackgroundController | Error fetching files from Directus:", e.message || e);
+      files = (await client.request(
+        readFiles({
+          limit: -1,
+          fields: [
+            "id",
+            "filename_download",
+            "filesize",
+            "type",
+            "width",
+            "height",
+            "uploaded_on",
+            "modified_on",
+            "metadata",
+            "location",
+            { folder: ["id"] },
+          ],
+        }),
+      )) as any[];
+      console.log(
+        `[Server] BackgroundController | Found ${files.length} raw files in Directus.`,
+      );
+    } catch (e: any) {
+      console.error(
+        "[Server] BackgroundController | Error fetching files from Directus:",
+        e.message || e,
+      );
     }
-    const isImage = (f: any) => (f.type || '').startsWith('image/') || (f.filename_download || f.title || '').match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
-    const isVideo = (f: any) => (f.type || '').startsWith('video/') || (f.filename_download || f.title || '').match(/\.(mp4|mov|webm|ogg)$/i);
+    const isImage = (f: any) =>
+      (f.type || "").startsWith("image/") ||
+      (f.filename_download || f.title || "").match(
+        /\.(jpg|jpeg|png|gif|webp|svg)$/i,
+      );
+    const isVideo = (f: any) =>
+      (f.type || "").startsWith("video/") ||
+      (f.filename_download || f.title || "").match(/\.(mp4|mov|webm|ogg)$/i);
 
     const scannedMedia: BackgroundItem[] = files
       .filter((entry) => isImage(entry) || isVideo(entry))
@@ -74,27 +95,40 @@ class BackgroundController {
         const m = (entry.metadata || {}) as any;
         const location = entry.location as any;
         return {
-        url: `${DIRECTUS_URL}/assets/${entry.id}`,
-        type: isVideo(entry) ? "video" : "image",
-        folder: typeof entry.folder === 'string' ? entry.folder : entry.folder?.id || "root",
-        metadata: {
-           fileName: entry.filename_download,
-           fileSize: entry.filesize ? parseInt(entry.filesize) : 0,
-           mimeType: entry.type || '',
-           dimensions: entry.width && entry.height ? { width: entry.width, height: entry.height } : undefined,
-           createdAt: m.exif?.DateTimeOriginal,
-           modifiedAt: entry.modified_on,
-           gps: location && location.coordinates ? { 
-             latitude: location.coordinates[1], 
-             longitude: location.coordinates[0] 
-           } : undefined,
-           camera: m.exif?.Make || m.exif?.Model ? `${m.exif?.Make || ''} ${m.exif?.Model || ''}`.trim() : undefined,
-           focalLength: m.exif?.FocalLength,
-           iso: m.exif?.ISOSpeedRatings,
-           aperture: m.exif?.FNumber ? `f/${m.exif?.FNumber}` : undefined,
-           exposureTime: m.exif?.ExposureTime
-        }
-      }});
+          url: `${DIRECTUS_URL}/assets/${entry.id}`,
+          type: isVideo(entry) ? "video" : "image",
+          folder:
+            typeof entry.folder === "string"
+              ? entry.folder
+              : entry.folder?.id || "root",
+          metadata: {
+            fileName: entry.filename_download,
+            fileSize: entry.filesize ? parseInt(entry.filesize) : 0,
+            mimeType: entry.type || "",
+            dimensions:
+              entry.width && entry.height
+                ? { width: entry.width, height: entry.height }
+                : undefined,
+            createdAt: m.exif?.DateTimeOriginal,
+            modifiedAt: entry.modified_on,
+            gps:
+              location && location.coordinates
+                ? {
+                    latitude: location.coordinates[1],
+                    longitude: location.coordinates[0],
+                  }
+                : undefined,
+            camera:
+              m.exif?.Make || m.exif?.Model
+                ? `${m.exif?.Make || ""} ${m.exif?.Model || ""}`.trim()
+                : undefined,
+            focalLength: m.exif?.FocalLength,
+            iso: m.exif?.ISOSpeedRatings,
+            aperture: m.exif?.FNumber ? `f/${m.exif?.FNumber}` : undefined,
+            exposureTime: m.exif?.ExposureTime,
+          },
+        };
+      });
 
     const newAllMedia = scannedMedia;
 
@@ -105,8 +139,11 @@ class BackgroundController {
 
       // Local media filtered by folder settings
       if (!config.background.enabledFolders) return false;
-      
-      return this.isFolderEnabled(item.folder, config.background.enabledFolders);
+
+      return this.isFolderEnabled(
+        item.folder,
+        config.background.enabledFolders,
+      );
     });
 
     // Check if media list actually changed to avoid redundant updates
@@ -315,25 +352,34 @@ class BackgroundController {
       const client = createDirectusClient();
       const data = await client.request(readFolders({ limit: -1 }));
       this.folders = (data as unknown as DirectusFolder[]) || [];
-      return [{ id: 'root', name: 'Root', parent: null }, ...this.folders];
+      return [{ id: "root", name: "Root", parent: null }, ...this.folders];
     } catch (e: any) {
-      console.error("[Server] BackgroundController | Error fetching folders from SDK:", e.message || e);
-      return [{ id: 'root', name: 'Root', parent: null }];
+      console.error(
+        "[Server] BackgroundController | Error fetching folders from SDK:",
+        e.message || e,
+      );
+      return [{ id: "root", name: "Root", parent: null }];
     }
   }
 
-  private isFolderEnabled(folderId: string | null | undefined, enabledFolders: string[]): boolean {
+  private isFolderEnabled(
+    folderId: string | null | undefined,
+    enabledFolders: string[],
+  ): boolean {
     const target = folderId || "root";
     if (enabledFolders.includes(target)) return true;
-    
+
     // Recursive check: Is any parent enabled?
-    let current = this.folders.find(f => f.id === target);
+    let current = this.folders.find((f) => f.id === target);
     while (current && current.parent) {
-      const parentId = typeof current.parent === 'string' ? current.parent : (current.parent as any).id;
+      const parentId =
+        typeof current.parent === "string"
+          ? current.parent
+          : (current.parent as any).id;
       if (enabledFolders.includes(parentId)) return true;
-      current = this.folders.find(f => f.id === parentId);
+      current = this.folders.find((f) => f.id === parentId);
     }
-    
+
     return false;
   }
 
