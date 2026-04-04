@@ -82,17 +82,17 @@ class BackgroundController {
            fileSize: entry.filesize ? parseInt(entry.filesize) : 0,
            mimeType: entry.type || '',
            dimensions: entry.width && entry.height ? { width: entry.width, height: entry.height } : undefined,
-           createdAt: m.DateTimeOriginal || entry.uploaded_on,
+           createdAt: m.exif?.DateTimeOriginal,
            modifiedAt: entry.modified_on,
            gps: location && location.coordinates ? { 
              latitude: location.coordinates[1], 
              longitude: location.coordinates[0] 
            } : undefined,
-           camera: m.Make || m.Model ? `${m.Make || ''} ${m.Model || ''}`.trim() : undefined,
-           focalLength: m.FocalLength,
-           iso: m.ISOSpeedRatings,
-           aperture: m.FNumber ? `f/${m.FNumber}` : undefined,
-           exposureTime: m.ExposureTime
+           camera: m.exif?.Make || m.exif?.Model ? `${m.exif?.Make || ''} ${m.exif?.Model || ''}`.trim() : undefined,
+           focalLength: m.exif?.FocalLength,
+           iso: m.exif?.ISOSpeedRatings,
+           aperture: m.exif?.FNumber ? `f/${m.exif?.FNumber}` : undefined,
+           exposureTime: m.exif?.ExposureTime
         }
       }});
 
