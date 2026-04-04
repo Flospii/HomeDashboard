@@ -101,12 +101,12 @@
       </div>
 
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <div v-for="item in media" :key="item.url"
+        <div v-for="item in media" :key="item.id"
           class="relative group aspect-video overflow-hidden border border-default bg-default/40 shadow-xl">
           <!-- Preview -->
-          <img v-if="item.type === 'image'" :src="item.url"
+          <img v-if="item.type === 'image'" :src="'/api/media/file/' + item.id"
             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-          <video v-else :src="`${item.url}#t=0.001`" class="w-full h-full object-cover" muted preload="metadata"
+          <video v-else :src="'/api/media/file/' + item.id + '#t=0.001'" class="w-full h-full object-cover" muted preload="metadata"
             playsinline />
 
           <!-- Overlay Actions -->
@@ -268,6 +268,6 @@ const copyShareLink = async () => {
 };
 
 const openLightbox = (item: BackgroundItem) => {
-  window.open(item.url, "_blank");
+  window.open('/api/media/file/' + item.id, "_blank");
 };
 </script>

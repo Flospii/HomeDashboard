@@ -31,10 +31,10 @@
       </div>
       <div class="flex overflow-x-auto gap-4 pb-4 scrollbar-hide min-h-[90px] sm:min-h-[110px]">
         <TransitionGroup name="list" tag="div" class="flex gap-4">
-          <div v-for="(item, index) in store.serverWaitingList" :key="item.url + '-' + index"
+          <div v-for="(item, index) in store.serverWaitingList" :key="item.id + '-' + index"
             class="relative shrink-0 w-32 sm:w-40 aspect-video overflow-hidden border border-default bg-default/40 group">
-            <img v-if="item.type === 'image'" :src="item.url" class="w-full h-full object-cover" />
-            <video v-else :src="`${item.url}#t=0.001`" class="w-full h-full object-cover" muted />
+            <img v-if="item.type === 'image'" :src="'/api/media/file/' + item.id" class="w-full h-full object-cover" />
+            <video v-else :src="'/api/media/file/' + item.id + '#t=0.001'" class="w-full h-full object-cover" muted />
             <div
               class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <UButton icon="i-lucide-x" color="error" variant="ghost" size="xs"

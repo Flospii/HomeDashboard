@@ -1,16 +1,16 @@
 <template>
   <div class="absolute inset-0 z-0 overflow-hidden bg-black">
     <TransitionGroup :name="effectiveTransitionMode" tag="div" class="relative w-full h-full">
-      <div v-for="item in displayBackgrounds" :key="item.url + store.serverStateId"
+      <div v-for="item in displayBackgrounds" :key="item.id + store.serverStateId"
         class="absolute inset-0 w-full h-full bg-black">
-        <img v-if="item.type === 'image'" :src="item.url" class="object-cover w-full h-full" alt="Background" @error="
-          (e) => console.error('BackgroundCanvas: Image error', item.url, e)
+        <img v-if="item.type === 'image'" :src="'/api/media/file/' + item.id" class="object-cover w-full h-full" alt="Background" @error="
+          (e) => console.error('BackgroundCanvas: Image error', item.id, e)
         " />
         <video v-else-if="item.type === 'video'" autoplay muted loop playsinline preload="metadata"
           class="object-cover w-full h-full" @error="
-            (e) => console.error('BackgroundCanvas: Video error', item.url, e)
+            (e) => console.error('BackgroundCanvas: Video error', item.id, e)
           ">
-          <source :src="item.url" :type="item.metadata?.mimeType">
+          <source :src="'/api/media/file/' + item.id" :type="item.metadata?.mimeType">
         </video>
       </div>
     </TransitionGroup>
@@ -18,9 +18,9 @@
     <div class="absolute inset-0 bg-black/20 z-10"></div>
 
     <!-- Preload next media -->
-    <div v-if="nextMediaUrl" class="hidden">
-      <img v-if="store.serverNextBackground?.type === 'image'" :src="nextMediaUrl" />
-      <video v-else-if="!store.config?.background?.lowPowerMode" :src="nextMediaUrl" preload="metadata" muted />
+    <div v-if="nextMediaId" class="hidden">
+      <img v-if="store.serverNextBackground?.type === 'image'" :src="'/api/media/file/' + nextMediaId" />
+      <video v-else-if="!store.config?.background?.lowPowerMode" :src="'/api/media/file/' + nextMediaId" preload="metadata" muted />
     </div>
   </div>
 </template>
@@ -58,9 +58,9 @@ const effectiveTransitionMode = computed(() => {
   return props.transitionMode || "fade";
 });
 
-const nextMediaUrl = computed(() => {
+const nextMediaId = computed(() => {
   if (store.serverNextBackground) {
-    return store.serverNextBackground.url;
+    return store.serverNextBackground.id;
   }
   return null;
 });

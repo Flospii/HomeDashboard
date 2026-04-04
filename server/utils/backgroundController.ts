@@ -95,7 +95,7 @@ class BackgroundController {
         const m = (entry.metadata || {}) as any;
         const location = entry.location as any;
         return {
-          url: `${DIRECTUS_URL}/assets/${entry.id}`,
+          id: entry.id,
           type: isVideo(entry) ? "video" : "image",
           folder:
             typeof entry.folder === "string"
@@ -149,13 +149,13 @@ class BackgroundController {
     // Check if media list actually changed to avoid redundant updates
     const hasChanged =
       this.allMedia.length !== newAllMedia.length ||
-      this.allMedia.some((m, i) => m.url !== newAllMedia[i]?.url) ||
+      this.allMedia.some((m, i) => m.id !== newAllMedia[i]?.id) ||
       this.rotationMedia.length !== newRotationMedia.length;
 
     if (hasChanged) {
       // Performance: Use Map cache for O(1) metadata lookups
       for (const item of newAllMedia) {
-        const cachedMetadata = this.metadataCache.get(item.url);
+        const cachedMetadata = this.metadataCache.get(item.id);
         if (cachedMetadata) {
           item.metadata = cachedMetadata;
         }
@@ -171,11 +171,11 @@ class BackgroundController {
       // Ensure currentMedia is still valid (must be in rotation)
       if (this.currentMedia) {
         const stillInRotation = this.rotationMedia.find(
-          (m) => m.url === this.currentMedia?.url,
+          (m) => m.id === this.currentMedia?.id,
         );
         if (!stillInRotation) {
           console.log(
-            `[Server] BackgroundController | Current media ${this.currentMedia.url} no longer in rotation, skipping to next.`,
+            `[Server] BackgroundController | Current media ${this.currentMedia.id} no longer in rotation, skipping to next.`,
           );
           this.currentMedia = null;
           await this.next();
@@ -252,7 +252,7 @@ class BackgroundController {
 
       this.stateId++;
       console.log(
-        `[Server] BackgroundController | Next | picked ${this.currentMedia?.url} (stateId: ${this.stateId})`,
+        `[Server] BackgroundController | Next | picked ${this.currentMedia?.id} (stateId: ${this.stateId})`,
       );
 
       this.startTime = Date.now();
@@ -290,7 +290,7 @@ class BackgroundController {
     return {
       currentMedia: this.currentMedia,
       nextMedia: nextMedia
-        ? { url: nextMedia.url, type: nextMedia.type }
+        ? { id: nextMedia.id, type: nextMedia.type }
         : null,
       remainingTime: remaining,
       transitionMode,
@@ -304,7 +304,7 @@ class BackgroundController {
   public addToWaitingList(item: BackgroundItem) {
     this.waitingList.push(item);
     console.log(
-      `[Server] BackgroundController | Waiting List | Added: ${item.url} (Total: ${this.waitingList.length})`,
+      `[Server] BackgroundController | Waiting List | Added: ${item.id} (Total: ${this.waitingList.length})`,
     );
     this.notifyStateChange();
   }
@@ -314,7 +314,7 @@ class BackgroundController {
       const removed = this.waitingList.splice(index, 1)[0];
       if (removed) {
         console.log(
-          `[Server] BackgroundController | Waiting List | Removed: ${removed.url} (Total: ${this.waitingList.length})`,
+          `[Server] BackgroundController | Waiting List | Removed: ${removed.id} (Total: ${this.waitingList.length})`,
         );
         this.notifyStateChange();
       }
