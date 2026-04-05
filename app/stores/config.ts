@@ -78,10 +78,12 @@ export const useConfigStore = defineStore("config", () => {
     return new Promise((resolve, reject) => {
       saveConfigDebounceTimer = setTimeout(async () => {
         try {
+          const { token } = useDirectusToken();
           // Send all changes to our Nuxt backend which handles the Directus persistence
           const result = await $fetch("/api/config", {
             method: "POST",
             body: config.value,
+            headers: token.value ? { Authorization: `Bearer ${token.value}` } : {},
           });
           
           resolve(result);
