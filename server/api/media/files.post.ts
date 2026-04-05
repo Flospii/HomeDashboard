@@ -1,9 +1,9 @@
+import { getDirectusToken, getDirectusInternalUrl } from "../../utils/directus";
 import { proxyRequest } from "h3";
-import { getDirectusToken, getDirectusUrl } from "../../utils/directus";
 
 export default defineEventHandler(async (event) => {
   const token = getDirectusToken(event);
-  const baseUrl = getDirectusUrl();
+  const baseUrl = getDirectusInternalUrl();
   const url = `${baseUrl}/files`;
 
   // Inject the Directus API token into the forwarded request headers if we have one

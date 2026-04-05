@@ -1,7 +1,5 @@
-import {
-  getDirectusInternalUrl,
-  getDirectusToken,
-} from "../../../utils/directus";
+import { getDirectusInternalUrl } from "../../../utils/directus";
+import { proxyRequest } from "h3";
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, "id");
