@@ -3,14 +3,15 @@
     <TransitionGroup :name="effectiveTransitionMode" tag="div" class="relative w-full h-full">
       <div v-for="item in displayBackgrounds" :key="item.id + store.serverStateId"
         class="absolute inset-0 w-full h-full bg-black">
-        <img v-if="item.type === 'image'" :src="'/api/media/file/' + item.id" class="object-cover w-full h-full" alt="Background" @error="
-          (e) => console.error('BackgroundCanvas: Image error', item.id, e)
-        " />
+        <img v-if="item.type === 'image'" :src="'/api/media/file/' + item.id" class="object-cover w-full h-full"
+          alt="Background" @error="
+            (e) => console.error('BackgroundCanvas: Image error', item.id, e)
+          " />
         <video v-else-if="item.type === 'video'" autoplay muted loop playsinline preload="metadata"
           class="object-cover w-full h-full" @error="
             (e) => console.error('BackgroundCanvas: Video error', item.id, e)
           ">
-          <source :src="'/api/media/file/' + item.id" :type="item.metadata?.mimeType">
+          <source :src="'/api/media/file/' + item.id">
         </video>
       </div>
     </TransitionGroup>
@@ -20,7 +21,8 @@
     <!-- Preload next media -->
     <div v-if="nextMediaId" class="hidden">
       <img v-if="store.serverNextBackground?.type === 'image'" :src="'/api/media/file/' + nextMediaId" />
-      <video v-else-if="!store.config?.background?.lowPowerMode" :src="'/api/media/file/' + nextMediaId" preload="metadata" muted />
+      <video v-else-if="!store.config?.background?.lowPowerMode" :src="'/api/media/file/' + nextMediaId"
+        preload="metadata" muted />
     </div>
   </div>
 </template>

@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
         return (
           t.startsWith("image/") ||
           t.startsWith("video/") ||
-          n.match(/\.(jpg|jpeg|png|gif|webp|svg|mp4|mov|webm|ogg)$/)
+          n.match(/\.(jpg|jpeg|png|gif|webp|svg|mp4|mov|webm|ogg|m4v|mkv)$/)
         );
       })
       .map((file) => {

@@ -1,4 +1,4 @@
-import { getDirectusInternalUrl } from "../../../utils/directus";
+import { getDirectusUrl } from "../../../utils/directus";
 import { proxyRequest } from "h3";
 
 export default defineEventHandler(async (event) => {
@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const directusUrl = getDirectusInternalUrl();
+  const directusUrl = getDirectusUrl();
 
   const assetUrl = `${directusUrl}/assets/${id}`;
 

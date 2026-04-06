@@ -4,10 +4,12 @@ services:
     ports:
       - "3000:3000"
     environment:
-      # DIRECTUS_URL is what the BROWSER uses (so localhost:8055 is fine for local dev)
-      - DIRECTUS_URL=http://localhost:8055
-      # DIRECTUS_INTERNAL_URL is what the SERVER uses (Docker service name)
-      - DIRECTUS_INTERNAL_URL=http://directus:8055
+      # DIRECTUS_URL is what the BROWSER uses (so http://directus:8055 is fine for local dev)
+      - DIRECTUS_URL=http://directus:8055
+      # DIRECTUS_EMAIL and DIRECTUS_PASSWORD are used by the server to authenticate with Directus,
+      # if using http://directus:8055, these should be the same as the ADMIN_EMAIL and ADMIN_PASSWORD in the directus service
+      - DIRECTUS_EMAIL=admin@example.com
+      - DIRECTUS_PASSWORD=admin
     depends_on:
       directus:
         condition: service_healthy

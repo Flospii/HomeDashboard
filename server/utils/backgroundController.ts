@@ -3,8 +3,6 @@ import type { BackgroundItem } from "../../app/types/config";
 import { createDirectusClient, getDirectusUrl } from "./directus";
 import { readFiles, readFolders, type DirectusFolder } from "@directus/sdk";
 
-const DIRECTUS_URL = getDirectusUrl();
-
 class BackgroundController {
   private currentMedia: BackgroundItem | null = null;
   private currentIndex: number = -1;
@@ -23,11 +21,6 @@ class BackgroundController {
 
   // Performance: Debounce timer for refreshMedia
   private refreshDebounceTimer: NodeJS.Timeout | null = null;
-
-  private readonly mediaExtensions = {
-    image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
-    video: [".mp4", ".webm", ".ogg", ".mov"],
-  };
 
   constructor() {
     this.init();
@@ -87,7 +80,7 @@ class BackgroundController {
       );
     const isVideo = (f: any) =>
       (f.type || "").startsWith("video/") ||
-      (f.filename_download || f.title || "").match(/\.(mp4|mov|webm|ogg)$/i);
+      (f.filename_download || f.title || "").match(/\.(mp4|mov|webm|ogg|m4v|mkv)$/i);
 
     const scannedMedia: BackgroundItem[] = files
       .filter((entry) => isImage(entry) || isVideo(entry))
@@ -155,9 +148,13 @@ class BackgroundController {
     if (hasChanged) {
       // Performance: Use Map cache for O(1) metadata lookups
       for (const item of newAllMedia) {
-        const cachedMetadata = this.metadataCache.get(item.id);
-        if (cachedMetadata) {
-          item.metadata = cachedMetadata;
+        if (item.metadata) {
+          this.metadataCache.set(item.id, item.metadata);
+        } else {
+          const cachedMetadata = this.metadataCache.get(item.id);
+          if (cachedMetadata) {
+            item.metadata = cachedMetadata;
+          }
         }
       }
 
@@ -248,6 +245,11 @@ class BackgroundController {
             (this.currentIndex + 1) % this.rotationMedia.length;
         }
         this.currentMedia = this.rotationMedia[this.currentIndex] || null;
+        if (this.currentMedia) {
+          console.log(
+            `[Server] BackgroundController | Rotation | Picked: ${this.currentMedia.id} (${this.currentMedia.type})`,
+          );
+        }
       }
 
       this.stateId++;

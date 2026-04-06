@@ -33,20 +33,12 @@ export const getDirectusUrl = () => {
 };
 
 /**
- * Returns the internal Directus URL for server-to-server communication.
- * Falls back to DIRECTUS_URL if DIRECTUS_INTERNAL_URL is not set.
- */
-export const getDirectusInternalUrl = () => {
-  return process.env.DIRECTUS_INTERNAL_URL || getDirectusUrl();
-};
-
-/**
  * Creates a Directus SDK client instance.
  * @param event Optional H3Event to extract the user's token from.
  *              If not provided, uses DIRECTUS_SERVER_TOKEN for server-side admin access.
  */
 export const createDirectusClient = (event?: H3Event) => {
-  const url = getDirectusInternalUrl();
+  const url = getDirectusUrl();
   const client = createDirectus<DashboardSchema>(url).with(rest());
 
   const userToken = event ? getDirectusToken(event) : undefined;

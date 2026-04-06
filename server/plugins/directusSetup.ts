@@ -1,7 +1,6 @@
 import { defineNitroPlugin } from "nitropack/runtime";
 import { configManager } from "../utils/config";
 import { backgroundController } from "../utils/backgroundController";
-import { getDirectusInternalUrl } from "../utils/directus";
 import {
   createDirectus,
   rest,
@@ -20,22 +19,21 @@ import {
 } from "@directus/sdk";
 
 export default defineNitroPlugin(async (nitroApp) => {
-  const DIRECTUS_INTERNAL_URL = getDirectusInternalUrl();
-
   try {
     console.log(
       "[Server] DirectusSetup | Checking if 'dashboard_config' collection exists...",
     );
 
     // Initialize the SDK client for internal setup
-    const client = createDirectus(DIRECTUS_INTERNAL_URL).with(rest());
+    const client = createDirectus(getDirectusUrl()).with(rest());
 
     // Authenticate using the default admin credentials
     let authResult;
     try {
       authResult = await client.request(
-        login({ email: "admin@example.com", password: "admin" }),
+        login({ email: process.env.DIRECTUS_EMAIL || "", password: process.env.DIRECTUS_PASSWORD || "" }),
       );
+      console.log("[Server] DirectusSetup | Authenticated using default admin account.");
     } catch (e) {
       console.log(
         "[Server] DirectusSetup | Could not authenticate using default admin account. Assuming custom setup.",
@@ -110,35 +108,6 @@ export default defineNitroPlugin(async (nitroApp) => {
         e,
       );
     }
-
-    const revokePublicAccess = async (collection: string, action: string) => {
-      if (!publicPolicyId) return;
-      try {
-        const perms = await adminClient.request(
-          readPermissions({
-            filter: {
-              collection: { _eq: collection },
-              policy: { _eq: publicPolicyId },
-              action: { _eq: action },
-            },
-          }),
-        );
-
-        if (perms && perms.length > 0) {
-          console.log(
-            `[Server] DirectusSetup | Revoking Public ${action.toUpperCase()} from ${collection}...`,
-          );
-          for (const perm of perms) {
-            await adminClient.request(deletePermission(perm.id));
-          }
-        }
-      } catch (e) {
-        console.error(
-          `[Server] DirectusSetup | Failed to revoke ${action} for ${collection}`,
-          e,
-        );
-      }
-    };
 
     const grantPublicAccess = async (
       collection: string,
@@ -274,8 +243,6 @@ export default defineNitroPlugin(async (nitroApp) => {
       );
 
       await grantPublicAccess("dashboard_config", "read");
-      await revokePublicAccess("dashboard_config", "create");
-      await revokePublicAccess("dashboard_config", "update");
       await grantPublicAccess("directus_files", "read");
       await grantPublicAccess("directus_files", "create");
       await grantPublicAccess("directus_folders", "read");
