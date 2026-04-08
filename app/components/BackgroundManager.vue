@@ -140,16 +140,16 @@ const navigateToFolder = (path: string | null) => {
 const handleCreateFolder = async (name: string) => {
   try {
     const parentId = currentGalleryFolder.value && currentGalleryFolder.value !== "root" ? currentGalleryFolder.value : null;
-    const res = await $fetch<{ data: any }>('/api/media/folders', {
+    const res = await $fetch<any>('/api/media/folders', {
       method: "POST",
       headers: { Authorization: `Bearer ${token.value}` },
       body: { name, parent: parentId }
     });
 
-    if (res.data) {
+    if (res && res.id) {
       toast.add({ title: t("common.success"), color: "success" });
       await refreshGallery();
-      navigateToFolder(res.data.id);
+      navigateToFolder(res.id);
     } else {
       throw new Error("Failed to create folder");
     }
@@ -161,12 +161,12 @@ const handleCreateFolder = async (name: string) => {
 const handleRenameFolder = async (id: string, newName: string) => {
   if (!newName) return;
   try {
-    const res = await $fetch<{ data: any }>(`/api/media/folders/${id}`, {
+    const res = await $fetch<any>(`/api/media/folders/${id}`, {
       method: "PATCH",
       headers: { Authorization: `Bearer ${token.value}` },
       body: { name: newName },
     });
-    if (res.data) {
+    if (res) {
       toast.add({ title: t("manage.backgrounds.renameSuccess"), color: "success" });
       await refreshGallery();
     } else {
