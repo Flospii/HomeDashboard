@@ -8,8 +8,8 @@ services:
       - DIRECTUS_URL=http://directus:8055
       # DIRECTUS_EMAIL and DIRECTUS_PASSWORD are used by the server to authenticate with Directus,
       # if using http://directus:8055, these should be the same as the ADMIN_EMAIL and ADMIN_PASSWORD in the directus service
-      - DIRECTUS_EMAIL=admin@example.com
-      - DIRECTUS_PASSWORD=admin
+      - DIRECTUS_EMAIL=${DIRECTUS_EMAIL}
+      - DIRECTUS_PASSWORD=${DIRECTUS_PASSWORD}
     depends_on:
       directus:
         condition: service_healthy
@@ -23,10 +23,10 @@ services:
       - directus-database:/directus/database
       - directus-uploads:/directus/uploads
     environment:
-      - KEY=04b20cc8-0bf4-45e0-8bde-6f5b9d33a1e2
-      - SECRET=91cd10c5-e51c-4bba-bd44-24e548d88eef
-      - ADMIN_EMAIL=admin@example.com
-      - ADMIN_PASSWORD=admin
+      - KEY=${DIRECTUS_KEY}
+      - SECRET=${DIRECTUS_SECRET}
+      - ADMIN_EMAIL=${DIRECTUS_EMAIL}
+      - ADMIN_PASSWORD=${DIRECTUS_PASSWORD}
       - DB_CLIENT=sqlite3
       - DB_FILENAME=/directus/database/data.db
       - WEBSOCKETS_ENABLED=true
@@ -34,14 +34,11 @@ services:
       - CORS_ORIGIN=true
       - FILE_METADATA_ALLOW_LIST=*
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "wget --no-verbose --tries=1 --spider http://127.0.0.1:8055/server/health || exit 1",
-        ]
+      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:8055/server/ping || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_interval: 5s
       start_period: 30s
     restart: always
 
