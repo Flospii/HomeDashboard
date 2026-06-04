@@ -1,6 +1,7 @@
 import { defineNitroPlugin } from "nitropack/runtime";
 import { configManager } from "../utils/config";
 import { backgroundController } from "../utils/backgroundController";
+import { getDirectusUrl } from "../utils/directus";
 import {
   createDirectus,
   rest,
