@@ -26,8 +26,11 @@ export default defineEventHandler(async (event) => {
     try {
       await client.request(updateItem("dashboard_config", "1", body));
     } catch (err: any) {
-      if (err.statusCode === 403 || err.statusCode === 404) {
-        await client.request(createItems("dashboard_config", [{ id: "1", ...body }]));
+      const status = err?.response?.status;
+      if (status === 403 || status === 404) {
+        await client.request(
+          createItems("dashboard_config", [{ id: "1", ...body }]),
+        );
       } else {
         throw err;
       }
