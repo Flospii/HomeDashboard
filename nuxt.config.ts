@@ -2,7 +2,18 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
-  modules: ["@nuxt/ui", "@nuxtjs/i18n", "@nuxt/eslint", "@pinia/nuxt"],
+  modules: [
+    "@nuxt/ui",
+    "@nuxtjs/i18n",
+    "@nuxt/eslint",
+    "@pinia/nuxt",
+    "nuxt-directus",
+  ],
+
+  directus: {
+    url: "/api/directus",
+    autoFetch: false,
+  },
 
   css: ["~/assets/css/main.css"],
 

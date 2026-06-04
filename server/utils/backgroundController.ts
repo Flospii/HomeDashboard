@@ -1,20 +1,7 @@
-import fs from "node:fs";
-import path from "node:path";
-import { ExifTool } from "exiftool-vendored";
-import { mapMetadata } from "./metadata";
-import { getProjectPaths } from "./paths";
 import { configManager } from "./config";
-import type {
-  BackgroundItem,
-  DashboardConfig,
-  MediaType,
-} from "../../app/types/config";
-
-// Create a custom ExifTool instance with a timeout to prevent hanging
-const exiftool = new ExifTool({
-  taskTimeoutMillis: 5000,
-  logger: () => console,
-});
+import type { BackgroundItem } from "../../app/types/config";
+import { createDirectusClient, getDirectusUrl } from "./directus";
+import { readFiles, readFolders, type DirectusFolder } from "@directus/sdk";
 
 class BackgroundController {
   private currentMedia: BackgroundItem | null = null;
@@ -27,7 +14,6 @@ class BackgroundController {
   private onStateChange: (() => void) | null = null;
   private stateId: number = 0;
   private pollingTimer: NodeJS.Timeout | null = null;
-  private fetchingMetadata: Set<string> = new Set();
   private isPaused: boolean = false;
 
   // Performance: Map-based metadata cache for O(1) lookups
@@ -36,18 +22,14 @@ class BackgroundController {
   // Performance: Debounce timer for refreshMedia
   private refreshDebounceTimer: NodeJS.Timeout | null = null;
 
-  private readonly mediaExtensions = {
-    image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
-    video: [".mp4", ".webm", ".ogg", ".mov"],
-  };
-
   constructor() {
     this.init();
   }
 
   private async init() {
-    console.log("[Server] BackgroundController | Initializing...");
-    await this.reconfigure();
+    console.log("[Server] BackgroundController | Initializing (deferred)...");
+    // Wait a bit to let DirectusSetup finish provisioning
+    setTimeout(() => this.reconfigure(), 5000);
   }
 
   // Public debounced version for external calls (e.g., after file uploads)
@@ -57,56 +39,90 @@ class BackgroundController {
   }
 
   public async refreshMedia() {
-    const { backgroundsDir } = getProjectPaths();
+    await this.getFolders();
     const config = configManager.getConfig();
 
-    // Performance: Async directory scanning
-    const scanDirAsync = async (
-      dir: string,
-      relativePath: string = "",
-    ): Promise<BackgroundItem[]> => {
-      const { promises: fsPromises } = await import("node:fs");
+    let files: any[] = [];
+    try {
+      const client = createDirectusClient();
+      // Using explicit field selection to ensure we get metadata and location
+      files = (await client.request(
+        readFiles({
+          limit: -1,
+          fields: [
+            "id",
+            "filename_download",
+            "filesize",
+            "type",
+            "width",
+            "height",
+            "uploaded_on",
+            "modified_on",
+            "metadata",
+            "location",
+            { folder: ["id"] },
+          ],
+        }),
+      )) as any[];
+      console.log(
+        `[Server] BackgroundController | Found ${files.length} raw files in Directus.`,
+      );
+    } catch (e: any) {
+      console.error(
+        "[Server] BackgroundController | Error fetching files from Directus:",
+        e.message || e,
+      );
+    }
+    const isImage = (f: any) =>
+      (f.type || "").startsWith("image/") ||
+      (f.filename_download || f.title || "").match(
+        /\.(jpg|jpeg|png|gif|webp|svg)$/i,
+      );
+    const isVideo = (f: any) =>
+      (f.type || "").startsWith("video/") ||
+      (f.filename_download || f.title || "").match(/\.(mp4|mov|webm|ogg|m4v|mkv)$/i);
 
-      try {
-        await fsPromises.access(dir);
-      } catch {
-        return [];
-      }
+    const scannedMedia: BackgroundItem[] = files
+      .filter((entry) => isImage(entry) || isVideo(entry))
+      .map((entry) => {
+        const m = (entry.metadata || {}) as any;
+        const location = entry.location as any;
+        return {
+          id: entry.id,
+          type: isVideo(entry) ? "video" : "image",
+          folder:
+            typeof entry.folder === "string"
+              ? entry.folder
+              : entry.folder?.id || "root",
+          metadata: {
+            fileName: entry.filename_download,
+            fileSize: entry.filesize ? parseInt(entry.filesize) : 0,
+            mimeType: entry.type || "",
+            dimensions:
+              entry.width && entry.height
+                ? { width: entry.width, height: entry.height }
+                : undefined,
+            createdAt: m.exif?.DateTimeOriginal,
+            modifiedAt: entry.modified_on,
+            gps:
+              location && location.coordinates
+                ? {
+                    latitude: location.coordinates[1],
+                    longitude: location.coordinates[0],
+                  }
+                : undefined,
+            camera:
+              m.exif?.Make || m.exif?.Model
+                ? `${m.exif?.Make || ""} ${m.exif?.Model || ""}`.trim()
+                : undefined,
+            focalLength: m.exif?.FocalLength,
+            iso: m.exif?.ISOSpeedRatings,
+            aperture: m.exif?.FNumber ? `f/${m.exif?.FNumber}` : undefined,
+            exposureTime: m.exif?.ExposureTime,
+          },
+        };
+      });
 
-      const entries = await fsPromises.readdir(dir, { withFileTypes: true });
-      let results: BackgroundItem[] = [];
-
-      for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
-        const currentRelative = relativePath ? `${relativePath}/${encodeURIComponent(entry.name)}` : encodeURIComponent(entry.name);
-
-        if (entry.isDirectory()) {
-          // Recursively scan all subdirectories
-          const subItems = await scanDirAsync(fullPath, currentRelative);
-          results = [...results, ...subItems];
-        } else {
-          const ext = path.extname(entry.name).toLowerCase();
-          let type: MediaType | null = null;
-
-          if (this.mediaExtensions.image.includes(ext)) {
-            type = "image";
-          } else if (this.mediaExtensions.video.includes(ext)) {
-            type = "video";
-          }
-
-          if (type) {
-            results.push({
-              url: `/backgrounds/${currentRelative}`,
-              type,
-              folder: relativePath || "root",
-            });
-          }
-        }
-      }
-      return results;
-    };
-
-    const scannedMedia = await scanDirAsync(backgroundsDir);
     const newAllMedia = scannedMedia;
 
     // Filter for rotation
@@ -114,25 +130,31 @@ class BackgroundController {
       // If using all folders, include everything
       if (config.background.useAllFolders !== false) return true;
 
-
-
       // Local media filtered by folder settings
       if (!config.background.enabledFolders) return false;
-      return config.background.enabledFolders.includes(item.folder || "root");
+
+      return this.isFolderEnabled(
+        item.folder,
+        config.background.enabledFolders,
+      );
     });
 
     // Check if media list actually changed to avoid redundant updates
     const hasChanged =
       this.allMedia.length !== newAllMedia.length ||
-      this.allMedia.some((m, i) => m.url !== newAllMedia[i]?.url) ||
+      this.allMedia.some((m, i) => m.id !== newAllMedia[i]?.id) ||
       this.rotationMedia.length !== newRotationMedia.length;
 
     if (hasChanged) {
       // Performance: Use Map cache for O(1) metadata lookups
       for (const item of newAllMedia) {
-        const cachedMetadata = this.metadataCache.get(item.url);
-        if (cachedMetadata) {
-          item.metadata = cachedMetadata;
+        if (item.metadata) {
+          this.metadataCache.set(item.id, item.metadata);
+        } else {
+          const cachedMetadata = this.metadataCache.get(item.id);
+          if (cachedMetadata) {
+            item.metadata = cachedMetadata;
+          }
         }
       }
 
@@ -146,11 +168,11 @@ class BackgroundController {
       // Ensure currentMedia is still valid (must be in rotation)
       if (this.currentMedia) {
         const stillInRotation = this.rotationMedia.find(
-          (m) => m.url === this.currentMedia?.url,
+          (m) => m.id === this.currentMedia?.id,
         );
         if (!stillInRotation) {
           console.log(
-            `[Server] BackgroundController | Current media ${this.currentMedia.url} no longer in rotation, skipping to next.`,
+            `[Server] BackgroundController | Current media ${this.currentMedia.id} no longer in rotation, skipping to next.`,
           );
           this.currentMedia = null;
           await this.next();
@@ -176,10 +198,12 @@ class BackgroundController {
   private startPolling() {
     if (this.pollingTimer) clearInterval(this.pollingTimer);
     const config = configManager.getConfig();
-    if (config.background.useLocalBackgrounds) {
+    // In Directus mode, we always want to poll for new files/changes unless explicitly disabled
+    // interpreting useLocalBackgrounds as "Poll for media updates"
+    if (config.background.useLocalBackgrounds !== false) {
       const interval = config.background.localPollingInterval || 30000;
       console.log(
-        `[Server] BackgroundController | Starting local polling (${interval}ms)`,
+        `[Server] BackgroundController | Starting Directus polling (${interval}ms)`,
       );
       this.pollingTimer = setInterval(() => this.refreshMedia(), interval);
     }
@@ -187,7 +211,7 @@ class BackgroundController {
 
   public async reconfigure() {
     console.log("[Server] BackgroundController | Reconfiguring...");
-    configManager.loadConfig(); // Ensure fresh config
+    await configManager.fetchFromDirectus();
     await this.refreshMedia();
     this.startTimer();
     this.startPolling();
@@ -221,11 +245,16 @@ class BackgroundController {
             (this.currentIndex + 1) % this.rotationMedia.length;
         }
         this.currentMedia = this.rotationMedia[this.currentIndex] || null;
+        if (this.currentMedia) {
+          console.log(
+            `[Server] BackgroundController | Rotation | Picked: ${this.currentMedia.id} (${this.currentMedia.type})`,
+          );
+        }
       }
 
       this.stateId++;
       console.log(
-        `[Server] BackgroundController | Next | picked ${this.currentMedia?.url} (stateId: ${this.stateId})`,
+        `[Server] BackgroundController | Next | picked ${this.currentMedia?.id} (stateId: ${this.stateId})`,
       );
 
       this.startTime = Date.now();
@@ -235,63 +264,6 @@ class BackgroundController {
       console.error("[Server] BackgroundController | Next | Error:", err);
     } finally {
       this.isNextRunning = false;
-    }
-  }
-
-  private async fetchMetadataForCurrent() {
-    if (
-      !this.currentMedia ||
-      !this.currentMedia.url ||
-      !this.currentMedia.url.startsWith("/backgrounds/") ||
-      this.currentMedia.metadata ||
-      this.fetchingMetadata.has(this.currentMedia.url)
-    ) {
-      return;
-    }
-
-    const url = this.currentMedia.url;
-    this.fetchingMetadata.add(url);
-
-    const { backgroundsDir } = getProjectPaths();
-    const relativePath = decodeURIComponent(url.replace("/backgrounds/", ""));
-    const filePath = path.join(backgroundsDir, relativePath);
-
-    try {
-      if (!fs.existsSync(filePath)) {
-        return;
-      }
-
-      const stats = fs.statSync(filePath);
-      const rawMeta = await exiftool.read(filePath);
-      const ext = path.extname(relativePath).toLowerCase();
-
-      // Check if currentMedia is still the same
-      if (this.currentMedia?.url === url) {
-        const metadata = mapMetadata(rawMeta, {
-          fileName: relativePath,
-          fileSize: stats.size,
-          mimeType:
-            this.currentMedia.type === "image"
-              ? `image/${ext.slice(1).replace("jpg", "jpeg")}`
-              : `video/${ext.slice(1)}`,
-        });
-        this.currentMedia.metadata = metadata;
-
-        // Performance: Cache metadata for O(1) lookups on refresh
-        this.metadataCache.set(url, metadata);
-
-        console.log(
-          `[Server] BackgroundController | Metadata cached for: ${relativePath}`,
-        );
-        this.notifyStateChange(); // Notify that metadata is now available
-      }
-    } catch (err) {
-      console.error(
-        `[Server] BackgroundController | Error during metadata fetch for ${relativePath}:`,
-        err,
-      );
-    } finally {
-      this.fetchingMetadata.delete(url);
     }
   }
 
@@ -308,20 +280,6 @@ class BackgroundController {
       await this.next();
     }
 
-    // Lazy load metadata for current media (non-blocking)
-    if (
-      this.currentMedia &&
-      !this.currentMedia.metadata &&
-      !this.fetchingMetadata.has(this.currentMedia.url)
-    ) {
-      this.fetchMetadataForCurrent().catch((e) => {
-        console.error(
-          "[Server] BackgroundController | getStatus | Metadata error:",
-          e,
-        );
-      });
-    }
-
     // Calculate next media for preloading
     let nextMedia: BackgroundItem | null = null;
     if (this.waitingList.length > 0) {
@@ -334,7 +292,7 @@ class BackgroundController {
     return {
       currentMedia: this.currentMedia,
       nextMedia: nextMedia
-        ? { url: nextMedia.url, type: nextMedia.type }
+        ? { id: nextMedia.id, type: nextMedia.type }
         : null,
       remainingTime: remaining,
       transitionMode,
@@ -348,7 +306,7 @@ class BackgroundController {
   public addToWaitingList(item: BackgroundItem) {
     this.waitingList.push(item);
     console.log(
-      `[Server] BackgroundController | Waiting List | Added: ${item.url} (Total: ${this.waitingList.length})`,
+      `[Server] BackgroundController | Waiting List | Added: ${item.id} (Total: ${this.waitingList.length})`,
     );
     this.notifyStateChange();
   }
@@ -358,7 +316,7 @@ class BackgroundController {
       const removed = this.waitingList.splice(index, 1)[0];
       if (removed) {
         console.log(
-          `[Server] BackgroundController | Waiting List | Removed: ${removed.url} (Total: ${this.waitingList.length})`,
+          `[Server] BackgroundController | Waiting List | Removed: ${removed.id} (Total: ${this.waitingList.length})`,
         );
         this.notifyStateChange();
       }
@@ -389,27 +347,42 @@ class BackgroundController {
     return this.allMedia;
   }
 
-  public getFolders() {
-    const { backgroundsDir } = getProjectPaths();
-    if (!fs.existsSync(backgroundsDir)) return ["root"];
+  private folders: DirectusFolder[] = [];
 
-    const getSubFolders = (dir: string, relativePath: string = ""): string[] => {
-      let folders: string[] = [];
-      const entries = fs.readdirSync(dir, { withFileTypes: true });
+  public async getFolders() {
+    try {
+      const client = createDirectusClient();
+      const data = await client.request(readFolders({ limit: -1 }));
+      this.folders = (data as unknown as DirectusFolder[]) || [];
+      return [{ id: "root", name: "Root", parent: null }, ...this.folders];
+    } catch (e: any) {
+      console.error(
+        "[Server] BackgroundController | Error fetching folders from SDK:",
+        e.message || e,
+      );
+      return [{ id: "root", name: "Root", parent: null }];
+    }
+  }
 
-      for (const entry of entries) {
-        if (entry.isDirectory()) {
-          const fullPath = path.join(dir, entry.name);
-          const currentRelative = relativePath ? `${relativePath}/${encodeURIComponent(entry.name)}` : encodeURIComponent(entry.name);
-          folders.push(currentRelative);
-          folders = [...folders, ...getSubFolders(fullPath, currentRelative)];
-        }
-      }
-      return folders;
-    };
+  private isFolderEnabled(
+    folderId: string | null | undefined,
+    enabledFolders: string[],
+  ): boolean {
+    const target = folderId || "root";
+    if (enabledFolders.includes(target)) return true;
 
-    const folders = getSubFolders(backgroundsDir);
-    return ["root", ...folders];
+    // Recursive check: Is any parent enabled?
+    let current = this.folders.find((f) => f.id === target);
+    while (current && current.parent) {
+      const parentId =
+        typeof current.parent === "string"
+          ? current.parent
+          : (current.parent as any).id;
+      if (enabledFolders.includes(parentId)) return true;
+      current = this.folders.find((f) => f.id === parentId);
+    }
+
+    return false;
   }
 
   public setOnStateChange(cb: () => void) {

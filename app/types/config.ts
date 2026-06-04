@@ -3,7 +3,7 @@ export type MediaType = "image" | "video";
 import type { BackgroundMediaMetadata } from "../components/modules/BackgroundMetadata";
 
 export interface BackgroundItem {
-  url: string;
+  id: string;
   type: MediaType;
   folder?: string;
   metadata?: BackgroundMediaMetadata;

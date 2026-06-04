@@ -15,6 +15,11 @@ export interface BackgroundMediaMetadata {
   createdAt?: string;
   modifiedAt?: string;
   gps?: GPSLocation;
+  camera?: string;
+  focalLength?: number;
+  iso?: number;
+  aperture?: string;
+  exposureTime?: string;
 }
 
 export interface BackgroundMetadataModuleConfig {
@@ -24,6 +29,11 @@ export interface BackgroundMetadataModuleConfig {
   showCreatedAt?: boolean;
   showModifiedAt?: boolean;
   showGPS?: boolean;
+  showCamera?: boolean;
+  showFocalLength?: boolean;
+  showISO?: boolean;
+  showAperture?: boolean;
+  showExposureTime?: boolean;
 }
 
 export const BackgroundMetadataModuleDefinition: ModuleDefinition = {
@@ -39,6 +49,11 @@ export const BackgroundMetadataModuleDefinition: ModuleDefinition = {
     showGPS: true,
     showCreatedAt: true,
     showModifiedAt: false,
+    showCamera: true,
+    showFocalLength: false,
+    showISO: false,
+    showAperture: false,
+    showExposureTime: false,
   } as BackgroundMetadataModuleConfig,
   translations: {
     en: {
@@ -49,6 +64,11 @@ export const BackgroundMetadataModuleDefinition: ModuleDefinition = {
       gps: "Show GPS",
       createdAt: "Created",
       modifiedAt: "Modified",
+      camera: "Camera Model",
+      focalLength: "Focal Length",
+      iso: "ISO Speed",
+      aperture: "Aperture (f-stop)",
+      exposureTime: "Exposure Time",
       settings: {
         createdAt: "Show Created Date",
         modifiedAt: "Show Modified Date",
@@ -62,6 +82,11 @@ export const BackgroundMetadataModuleDefinition: ModuleDefinition = {
       gps: "GPS zeigen",
       createdAt: "Erstellt",
       modifiedAt: "Geändert",
+      camera: "Kameramodell",
+      focalLength: "Brennweite",
+      iso: "ISO-Wert",
+      aperture: "Blende",
+      exposureTime: "Belichtungszeit",
       settings: {
         createdAt: "Erstellungsdatum zeigen",
         modifiedAt: "Änderungsdatum zeigen",

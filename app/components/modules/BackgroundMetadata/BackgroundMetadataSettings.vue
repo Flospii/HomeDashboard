@@ -21,6 +21,21 @@
       >
         <USwitch v-model="config.showModifiedAt" />
       </UFormField>
+      <UFormField :label="$t('modules.background-metadata.camera')">
+        <USwitch v-model="config.showCamera" />
+      </UFormField>
+      <UFormField :label="$t('modules.background-metadata.focalLength')">
+        <USwitch v-model="config.showFocalLength" />
+      </UFormField>
+      <UFormField :label="$t('modules.background-metadata.aperture')">
+        <USwitch v-model="config.showAperture" />
+      </UFormField>
+      <UFormField :label="$t('modules.background-metadata.exposureTime')">
+        <USwitch v-model="config.showExposureTime" />
+      </UFormField>
+      <UFormField :label="$t('modules.background-metadata.iso')">
+        <USwitch v-model="config.showISO" />
+      </UFormField>
     </div>
   </div>
 </template>

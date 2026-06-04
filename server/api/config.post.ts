@@ -18,6 +18,24 @@ export default defineEventHandler(async (event) => {
       throw new Error("Invalid configuration format");
     }
 
+    // Persist to Directus using the internal client
+    const { createDirectusClient } = await import("../utils/directus");
+    const { updateItem, createItems } = await import("@directus/sdk");
+    const client = createDirectusClient(event);
+    
+    try {
+      await client.request(updateItem("dashboard_config", "1", body));
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 403 || status === 404) {
+        await client.request(
+          createItems("dashboard_config", [{ id: "1", ...body }]),
+        );
+      } else {
+        throw err;
+      }
+    }
+
     configManager.updateConfig(body);
 
     // Notify the background controller that the config (and potentially the waiting list) has changed

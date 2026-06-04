@@ -7,17 +7,11 @@
         isDragging
           ? 'border-primary-500 bg-primary-500/10 scale-[1.02]'
           : 'border-default/30 hover:border-primary-500/50 hover:bg-primary-500/5',
-      ]"
-      @click="triggerFileInput"
-      @dragover.prevent="isDragging = true"
-      @dragleave.prevent="isDragging = false"
-      @drop.prevent="handleDrop"
-    >
-      <UIcon
-        :name="isDragging ? 'i-lucide-download' : 'i-lucide-upload-cloud'"
+      ]" @click="triggerFileInput" @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false"
+      @drop.prevent="handleDrop">
+      <UIcon :name="isDragging ? 'i-lucide-download' : 'i-lucide-upload-cloud'"
         class="w-10 h-10 mb-3 transition-colors duration-300"
-        :class="isDragging ? 'text-primary-500' : 'text-default/40'"
-      />
+        :class="isDragging ? 'text-primary-500' : 'text-default/40'" />
       <h3 class="text-base font-bold text-default mb-1">
         {{
           isDragging
@@ -28,47 +22,28 @@
       <p class="text-xs text-default/50 max-w-sm mx-auto">
         {{ $t("manage.backgrounds.uploadSubtitle") }}
       </p>
-      <input
-        ref="fileInput"
-        type="file"
-        class="hidden"
-        accept="image/*,video/*"
-        multiple
-        @change="handleFileUpload"
-      />
+      <input ref="fileInput" type="file" class="hidden" accept="image/*,video/*" multiple @change="handleFileUpload" />
     </div>
 
     <!-- Upload Progress Panel -->
     <Transition name="upload-panel">
-      <div
-        v-if="uploadQueue.length > 0"
-        class="upload-panel border border-default rounded-lg overflow-hidden bg-default/5 backdrop-blur-sm"
-      >
+      <div v-if="uploadQueue.length > 0"
+        class="upload-panel border border-default rounded-lg overflow-hidden bg-default/5 backdrop-blur-sm">
         <!-- Summary Bar -->
         <div class="px-4 py-3 border-b border-default/30 bg-default/10">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center space-x-3">
-              <div
-                class="w-8 h-8 rounded-full flex items-center justify-center"
-                :class="
-                  uploadSummary.isComplete
-                    ? 'bg-success-500/20'
-                    : 'bg-primary-500/20'
-                "
-              >
-                <UIcon
-                  :name="
-                    uploadSummary.isComplete
-                      ? 'i-lucide-check-circle'
-                      : 'i-lucide-upload-cloud'
-                  "
-                  class="w-4 h-4"
-                  :class="
-                    uploadSummary.isComplete
-                      ? 'text-success-500'
-                      : 'text-primary-500'
-                  "
-                />
+              <div class="w-8 h-8 rounded-full flex items-center justify-center" :class="uploadSummary.isComplete
+                ? 'bg-success-500/20'
+                : 'bg-primary-500/20'
+                ">
+                <UIcon :name="uploadSummary.isComplete
+                  ? 'i-lucide-check-circle'
+                  : 'i-lucide-upload-cloud'
+                  " class="w-4 h-4" :class="uploadSummary.isComplete
+                    ? 'text-success-500'
+                    : 'text-primary-500'
+                    " />
               </div>
               <div>
                 <p class="text-sm font-bold text-default leading-tight">
@@ -76,16 +51,16 @@
                     uploadSummary.isComplete
                       ? uploadSummary.errorCount > 0
                         ? $t('manage.backgrounds.uploadPartialComplete', {
-                            success: uploadSummary.successCount,
-                            total: uploadSummary.total,
-                          })
-                        : $t('manage.backgrounds.uploadComplete', {
-                            total: uploadSummary.total,
-                          })
-                      : $t('manage.backgrounds.uploadProgress', {
-                          current: uploadSummary.successCount + 1,
+                          success: uploadSummary.successCount,
                           total: uploadSummary.total,
                         })
+                        : $t('manage.backgrounds.uploadComplete', {
+                          total: uploadSummary.total,
+                        })
+                      : $t('manage.backgrounds.uploadProgress', {
+                        current: uploadSummary.successCount + 1,
+                        total: uploadSummary.total,
+                      })
                   }}
                 </p>
                 <p class="text-[10px] text-default/40 uppercase tracking-wider font-bold">
@@ -95,62 +70,30 @@
               </div>
             </div>
             <div class="flex items-center space-x-2">
-              <UButton
-                v-if="hasFailedUploads"
-                :label="$t('manage.backgrounds.retryFailed')"
-                icon="i-lucide-refresh-cw"
-                color="warning"
-                variant="soft"
-                size="xs"
-                @click="retryAllFailed"
-              />
-              <UButton
-                v-if="uploadSummary.isComplete"
-                :label="$t('manage.backgrounds.clearCompleted')"
-                icon="i-lucide-x"
-                color="neutral"
-                variant="ghost"
-                size="xs"
-                @click="clearCompleted"
-              />
-              <UButton
-                v-if="!uploadSummary.isComplete"
-                :label="$t('manage.backgrounds.cancelAll')"
-                icon="i-lucide-square"
-                color="error"
-                variant="ghost"
-                size="xs"
-                @click="cancelAllUploads"
-              />
+              <UButton v-if="hasFailedUploads" :label="$t('manage.backgrounds.retryFailed')" icon="i-lucide-refresh-cw"
+                color="warning" variant="soft" size="xs" @click="retryAllFailed" />
+              <UButton v-if="uploadSummary.isComplete" :label="$t('manage.backgrounds.clearCompleted')"
+                icon="i-lucide-x" color="neutral" variant="ghost" size="xs" @click="clearCompleted" />
+              <UButton v-if="!uploadSummary.isComplete" :label="$t('manage.backgrounds.cancelAll')"
+                icon="i-lucide-square" color="error" variant="ghost" size="xs" @click="cancelAllUploads" />
             </div>
           </div>
           <div class="w-full h-1.5 bg-default/10 rounded-full overflow-hidden">
-            <div
-              class="h-full rounded-full transition-all duration-500 ease-out"
-              :class="
-                uploadSummary.isComplete && uploadSummary.errorCount === 0
-                  ? 'bg-success-500'
-                  : uploadSummary.isComplete && uploadSummary.errorCount > 0
-                    ? 'bg-warning-500'
-                    : 'bg-primary-500'
-              "
-              :style="{
+            <div class="h-full rounded-full transition-all duration-500 ease-out" :class="uploadSummary.isComplete && uploadSummary.errorCount === 0
+              ? 'bg-success-500'
+              : uploadSummary.isComplete && uploadSummary.errorCount > 0
+                ? 'bg-warning-500'
+                : 'bg-primary-500'
+              " :style="{
                 width: uploadSummary.overallProgress + '%',
-              }"
-            />
+              }" />
           </div>
         </div>
 
         <!-- Upload Items Grid -->
         <div class="p-3 max-h-80 overflow-y-auto">
-          <TransitionGroup
-            name="upload-item"
-            tag="div"
-            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
-          >
-            <div
-              v-for="item in uploadQueue"
-              :key="item.id"
+          <TransitionGroup name="upload-item" tag="div" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <div v-for="item in uploadQueue" :key="item.id"
               class="upload-card relative aspect-square rounded-lg overflow-hidden border transition-all duration-300 group"
               :class="{
                 'border-primary-500/40 shadow-lg shadow-primary-500/10':
@@ -158,23 +101,15 @@
                 'border-success-500/40': item.status === 'success',
                 'border-error-500/40': item.status === 'error',
                 'border-default/20': item.status === 'pending',
-              }"
-            >
+              }">
               <!-- Thumbnail -->
-              <img
-                v-if="item.thumbnailUrl && item.file.type.startsWith('image')"
-                :src="item.thumbnailUrl"
-                class="w-full h-full object-cover"
-                :class="{
+              <img v-if="item.thumbnailUrl && item.file.type.startsWith('image')" :src="item.thumbnailUrl"
+                class="w-full h-full object-cover" :class="{
                   'opacity-40': item.status === 'pending',
                   'opacity-70': item.status === 'uploading',
-                }"
-              />
-              <div
-                v-else
-                class="w-full h-full flex flex-col items-center justify-center bg-default/10"
-                :class="{ 'opacity-40': item.status === 'pending' }"
-              >
+                }" />
+              <div v-else class="w-full h-full flex flex-col items-center justify-center bg-default/10"
+                :class="{ 'opacity-40': item.status === 'pending' }">
                 <UIcon name="i-lucide-video" class="w-8 h-8 text-default/30 mb-1" />
                 <span class="text-[9px] text-default/30 text-center px-2 truncate w-full">
                   {{ item.file.name }}
@@ -182,41 +117,44 @@
               </div>
 
               <!-- Progress Overlay -->
-              <div
-                v-if="item.status === 'uploading'"
-                class="absolute inset-0 flex items-center justify-center bg-black/30"
-              >
+              <div v-if="item.status === 'uploading'"
+                class="absolute inset-0 flex items-center justify-center bg-black/30">
                 <div class="relative w-14 h-14">
                   <svg class="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
-                    <circle cx="28" cy="28" r="24" stroke="currentColor" stroke-width="3" fill="none" class="text-white/20" />
-                    <circle
-                      cx="28" cy="28" r="24" stroke="currentColor" stroke-width="3" fill="none" class="text-primary-400 transition-all duration-300"
-                      stroke-linecap="round"
+                    <circle cx="28" cy="28" r="24" stroke="currentColor" stroke-width="3" fill="none"
+                      class="text-white/20" />
+                    <circle cx="28" cy="28" r="24" stroke="currentColor" stroke-width="3" fill="none"
+                      class="text-primary-400 transition-all duration-300" stroke-linecap="round"
                       :stroke-dasharray="2 * Math.PI * 24"
-                      :stroke-dashoffset="2 * Math.PI * 24 * (1 - item.progress / 100)"
-                    />
+                      :stroke-dashoffset="2 * Math.PI * 24 * (1 - item.progress / 100)" />
                   </svg>
-                  <span class="absolute inset-0 flex items-center justify-center text-white text-xs font-bold">{{ item.progress }}%</span>
+                  <span class="absolute inset-0 flex items-center justify-center text-white text-xs font-bold">{{
+                    item.progress }}%</span>
                 </div>
               </div>
 
               <!-- Success Overlay -->
-              <div v-if="item.status === 'success'" class="absolute inset-0 flex items-center justify-center bg-success-500/20">
-                <div class="w-10 h-10 rounded-full bg-success-500 flex items-center justify-center shadow-lg animate-[scaleIn_0.3s_ease-out]">
+              <div v-if="item.status === 'success'"
+                class="absolute inset-0 flex items-center justify-center bg-success-500/20">
+                <div
+                  class="w-10 h-10 rounded-full bg-success-500 flex items-center justify-center shadow-lg animate-[scaleIn_0.3s_ease-out]">
                   <UIcon name="i-lucide-check" class="w-5 h-5 text-white" />
                 </div>
               </div>
 
               <!-- Error Overlay -->
-              <div v-if="item.status === 'error'" class="absolute inset-0 flex flex-col items-center justify-center bg-error-500/20 gap-2">
+              <div v-if="item.status === 'error'"
+                class="absolute inset-0 flex flex-col items-center justify-center bg-error-500/20 gap-2">
                 <div class="w-10 h-10 rounded-full bg-error-500 flex items-center justify-center shadow-lg">
                   <UIcon name="i-lucide-x" class="w-5 h-5 text-white" />
                 </div>
-                <UButton :label="$t('manage.backgrounds.retry')" icon="i-lucide-refresh-cw" color="error" variant="solid" size="xs" @click="retryUpload(item)" />
+                <UButton :label="$t('manage.backgrounds.retry')" icon="i-lucide-refresh-cw" color="error"
+                  variant="solid" size="xs" @click="retryUpload(item)" />
               </div>
 
               <!-- Pending Overlay -->
-              <div v-if="item.status === 'pending'" class="absolute inset-0 flex items-center justify-center bg-black/20">
+              <div v-if="item.status === 'pending'"
+                class="absolute inset-0 flex items-center justify-center bg-black/20">
                 <div class="w-8 h-8 rounded-full bg-default/40 flex items-center justify-center">
                   <UIcon name="i-lucide-clock" class="w-4 h-4 text-white/60" />
                 </div>
@@ -229,11 +167,9 @@
               </div>
 
               <!-- Cancel button -->
-              <button
-                v-if="item.status === 'pending' || item.status === 'uploading'"
+              <button v-if="item.status === 'pending' || item.status === 'uploading'"
                 class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error-500"
-                @click="cancelUpload(item)"
-              >
+                @click="cancelUpload(item)">
                 <UIcon name="i-lucide-x" class="w-3 h-3 text-white" />
               </button>
             </div>
@@ -246,7 +182,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { useConfigStore } from "~~/stores/config";
+import { useConfigStore } from "~/stores/config";
 
 const props = defineProps<{
   currentFolder: string | null;
@@ -330,6 +266,10 @@ const handleFileUpload = async (event: Event | FileList) => {
   processQueue();
 };
 
+// Using server endpoints for uploads with explicit headers
+const { token } = useDirectusToken();
+
+
 const processQueue = async () => {
   if (isUploading.value) return;
   const pending = uploadQueue.value.find((item) => item.status === "pending");
@@ -344,14 +284,27 @@ const processQueue = async () => {
   pending.status = "uploading";
 
   const formData = new FormData();
-  formData.append("folder", props.currentFolder || "root");
-  formData.append("files", pending.file);
+  // We can attach the folder ID if currentFolder is a directus UUID, but "root" is not a UUID.
+  if (props.currentFolder && props.currentFolder !== "root") {
+    formData.append("folder", props.currentFolder);
+  }
+  // Directus requires the file payload to be named 'file' or just implicitly passed if single file, but standard is 'file' or any other arbitrary key not conflicting with meta. No wait, actually it's any key. But let's use 'file' or Directus defaults. Wait, for Directus /files: 'file', 'title', etc. 
+  formData.append("title", pending.file.name);
+  formData.append("file", pending.file); // The actual file stream
 
   try {
     await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       pending.xhr = xhr;
-      xhr.open("POST", "/api/backgrounds");
+
+      const uploadUrl = '/api/media/files';
+      xhr.open("POST", uploadUrl);
+
+      if (token.value) {
+        xhr.setRequestHeader("Authorization", `Bearer ${token.value}`);
+      }
+
+
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           pending.progress = Math.round((event.loaded / event.total) * 100);
@@ -359,7 +312,7 @@ const processQueue = async () => {
       };
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) resolve(xhr.response);
-        else reject(new Error(`Upload failed: ${xhr.status}`));
+        else reject(new Error(`Upload failed: ${xhr.status} ${xhr.responseText}`));
       };
       xhr.onabort = () => reject(new Error("Upload cancelled"));
       xhr.onerror = () => reject(new Error("Network error"));
@@ -422,20 +375,61 @@ const clearCompleted = () => {
 </script>
 
 <style scoped>
-.upload-panel-enter-active { transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.upload-panel-leave-active { transition: all 0.3s ease-in; }
-.upload-panel-enter-from { opacity: 0; transform: translateY(-12px) scale(0.97); max-height: 0; }
-.upload-panel-leave-to { opacity: 0; transform: translateY(-8px) scale(0.98); }
+.upload-panel-enter-active {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
 
-.upload-item-enter-active { transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.upload-item-leave-active { transition: all 0.25s ease-in; position: absolute; }
-.upload-item-enter-from { opacity: 0; transform: scale(0.8); }
-.upload-item-leave-to { opacity: 0; transform: scale(0.6); }
-.upload-item-move { transition: transform 0.3s ease; }
+.upload-panel-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.upload-panel-enter-from {
+  opacity: 0;
+  transform: translateY(-12px) scale(0.97);
+  max-height: 0;
+}
+
+.upload-panel-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+}
+
+.upload-item-enter-active {
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.upload-item-leave-active {
+  transition: all 0.25s ease-in;
+  position: absolute;
+}
+
+.upload-item-enter-from {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.upload-item-leave-to {
+  opacity: 0;
+  transform: scale(0.6);
+}
+
+.upload-item-move {
+  transition: transform 0.3s ease;
+}
 
 @keyframes scaleIn {
-  0% { transform: scale(0); opacity: 0; }
-  60% { transform: scale(1.15); }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 </style>

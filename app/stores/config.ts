@@ -3,7 +3,7 @@ import type {
   DashboardConfig,
   BackgroundItem,
   ModulePosition,
-} from "../app/types/config";
+} from "../types/config";
 
 export const useConfigStore = defineStore("config", () => {
   const config = ref<DashboardConfig | null>(null);
@@ -19,6 +19,8 @@ export const useConfigStore = defineStore("config", () => {
   const isSavingConfig = ref(false);
   let saveConfigDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   let ws: WebSocket | null = null;
+  
+
 
   const fetchConfig = async () => {
     try {
@@ -38,19 +40,14 @@ export const useConfigStore = defineStore("config", () => {
     try {
       const data = await $fetch<DashboardConfig>("/api/config");
 
-      // Use a cleaner comparison or just update if fetching anyway
-      // For now, simple deep comparison persists to avoid jitter
       if (JSON.stringify(config.value) !== JSON.stringify(data)) {
         if (!config.value) {
           config.value = data;
         } else {
-          // Merge top level properties to preserve object reference if possible
-          // but for DashboardConfig, a replacement is often safer for complex nested items.
-          // Let's at least ensure we don't trigger if it's identical.
           Object.assign(config.value, data);
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error refreshing dashboard config:", err);
     }
   };
@@ -72,22 +69,23 @@ export const useConfigStore = defineStore("config", () => {
   const saveConfig = () => {
     if (!config.value) return;
 
-    // Mark as saving immediately to guard against WebSocket overwrites
     isSavingConfig.value = true;
 
-    // Clear any pending debounced save so only the latest state is sent
     if (saveConfigDebounceTimer) {
       clearTimeout(saveConfigDebounceTimer);
     }
 
-    // Debounce: wait 300ms for rapid consecutive changes (e.g. toggling multiple checkboxes)
     return new Promise((resolve, reject) => {
       saveConfigDebounceTimer = setTimeout(async () => {
         try {
+          const { token } = useDirectusToken();
+          // Send all changes to our Nuxt backend which handles the Directus persistence
           const result = await $fetch("/api/config", {
             method: "POST",
             body: config.value,
+            headers: token.value ? { Authorization: `Bearer ${token.value}` } : {},
           });
+          
           resolve(result);
         } catch (err) {
           console.error("Error saving dashboard config:", err);

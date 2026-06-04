@@ -37,11 +37,14 @@ Use this if you want to clone the repository directly on your Pi.
 
 Use this if you want to keep your Pi clean and only use the `docker-compose.yml` file.
 
-1. **Build and Push (Local Machine)**:
+1. **Configure Environment**:
+   Ensure `docker-compose.yml` has the correct `DIRECTUS_URL` environment variable pointing to your Directus instance.
+
+2. **Build and Push (Local Machine)**:
    ```bash
    docker buildx build --platform linux/arm64 -t <your-username>/home-dashboard:latest --push .
    ```
-2. **Deploy (Raspberry Pi)**:
+3. **Deploy (Raspberry Pi)**:
    Copy `docker-compose.yml` to your Pi and run:
    ```bash
    docker-compose up -d
@@ -127,6 +130,6 @@ A typical module folder (e.g., `MyModule`) looks like this:
 
 ---
 
-## Persistent Data
+## Persistent Data & Directus
 
-Configuration and backgrounds are stored in the `dashboard-data` volume, mapped to `/app/data` in the container.
+Configuration, backgrounds, and authentication are entirely managed by the external **Directus** backend instance. The application is stateless and communicates with Directus directly. Configure the `DIRECTUS_URL` environment variable in your docker setup to point to your backend.

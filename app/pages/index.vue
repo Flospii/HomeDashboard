@@ -1,31 +1,20 @@
 <template>
   <div class="relative w-full h-full overflow-hidden">
-    <div
-      v-if="store.isLoading"
-      class="flex items-center justify-center h-full text-default text-2xl"
-    >
+    <div v-if="store.isLoading" class="flex items-center justify-center h-full text-default text-2xl">
       Loading Dashboard...
     </div>
-    <div
-      v-else-if="store.error"
-      class="flex items-center justify-center h-full text-error-500 text-2xl"
-    >
+    <div v-else-if="store.error" class="flex items-center justify-center h-full text-error-500 text-2xl">
       Error: {{ store.error }}
     </div>
     <template v-else-if="store.config">
       <!-- Background Layer -->
-      <BackgroundCanvas
-        :transition-mode="store.config.background.transitionMode"
-      />
+      <BackgroundCanvas :transition-mode="store.config.background.transitionMode" />
 
       <!-- UI Overlay Grid -->
       <DashboardGrid>
         <template v-for="pos in positions" :key="pos" #[pos]>
           <div v-for="mod in store.getModulesAtPosition(pos)" :key="mod.id">
-            <component
-              :is="getModuleComponent(mod.module)"
-              v-bind="mod.config"
-            />
+            <component :is="getModuleComponent(mod.module)" v-bind="mod.config" />
           </div>
         </template>
       </DashboardGrid>
@@ -36,7 +25,7 @@
 <script setup lang="ts">
 import BackgroundCanvas from "~/components/BackgroundCanvas.vue";
 import DashboardGrid from "~/components/DashboardGrid.vue";
-import { useConfigStore } from "~~/stores/config";
+import { useConfigStore } from "~/stores/config";
 import { getModuleDefinition } from "~/components/modules/index";
 
 const store = useConfigStore();

@@ -3,9 +3,45 @@ services:
     build: .
     ports:
       - "3000:3000"
+    environment:
+      # DIRECTUS_URL is what the BROWSER uses (so http://directus:8055 is fine for local dev)
+      - DIRECTUS_URL=http://directus:8055
+      # DIRECTUS_EMAIL and DIRECTUS_PASSWORD are used by the server to authenticate with Directus,
+      # if using http://directus:8055, these should be the same as the ADMIN_EMAIL and ADMIN_PASSWORD in the directus service
+      - DIRECTUS_EMAIL=${DIRECTUS_EMAIL}
+      - DIRECTUS_PASSWORD=${DIRECTUS_PASSWORD}
+    depends_on:
+      directus:
+        condition: service_healthy
+    restart: always
+
+  directus:
+    image: directus/directus:11.17.1
+    ports:
+      - "8055:8055"
     volumes:
-      - dashboard-data:/app/data
+      - directus-database:/directus/database
+      - directus-uploads:/directus/uploads
+    environment:
+      - KEY=${DIRECTUS_KEY}
+      - SECRET=${DIRECTUS_SECRET}
+      - ADMIN_EMAIL=${DIRECTUS_EMAIL}
+      - ADMIN_PASSWORD=${DIRECTUS_PASSWORD}
+      - DB_CLIENT=sqlite3
+      - DB_FILENAME=/directus/database/data.db
+      - WEBSOCKETS_ENABLED=true
+      - CORS_ENABLED=true
+      - CORS_ORIGIN=true
+      - FILE_METADATA_ALLOW_LIST=*
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:8055/server/ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_interval: 5s
+      start_period: 30s
     restart: always
 
 volumes:
-  dashboard-data:
+  directus-database:
+  directus-uploads:
