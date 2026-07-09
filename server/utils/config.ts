@@ -134,17 +134,14 @@ class ConfigManager {
         throw new Error("Invalid response from Directus: No data returned");
       } catch (e: any) {
         const msg = (e.message || e || "").toString();
-        // If collection doesn't exist yet or permission is denied, it's likely still provisioning
-        if (msg.includes("does not exist") || msg.includes("permission") || msg.includes("Forbidden")) {
-          retries++;
-          if (retries < maxRetries) {
-            console.log(`[Server] ConfigManager | Database not ready yet (Attempt ${retries}/${maxRetries}), retrying in 5s...`);
-            await new Promise(resolve => setTimeout(resolve, 5000));
-            continue;
-          }
+        retries++;
+        if (retries < maxRetries) {
+          console.log(`[Server] ConfigManager | Failed to fetch config (Attempt ${retries}/${maxRetries}), retrying in 5s... Error: ${msg}`);
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          continue;
         }
         
-        console.error("[Server] ConfigManager | Failed to fetch config from Directus, using default/memory cache:", msg);
+        console.error("[Server] ConfigManager | Failed to fetch config from Directus after max retries, using default/memory cache:", msg);
         return this.getConfig();
       }
     }
