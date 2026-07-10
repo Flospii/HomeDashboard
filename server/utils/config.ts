@@ -5,12 +5,13 @@ import { readItem } from "@directus/sdk";
 class ConfigManager {
   private config: DashboardConfig | null = null;
   private pollingTimer: NodeJS.Timeout | null = null;
-  private onConfigChangeCallbacks: ((newConfig: DashboardConfig) => void)[] = [];
-  
+  private onConfigChangeCallbacks: ((newConfig: DashboardConfig) => void)[] =
+    [];
+
   // Default config used for first-time directus seeding
   private defaultConfig: DashboardConfig = {
     background: {
-      interval: 6000,
+      interval: 10000,
       useLocalBackgrounds: true,
       localPollingInterval: 10000,
       transitionMode: "fade",
@@ -117,18 +118,24 @@ class ConfigManager {
   public async fetchFromDirectus(): Promise<DashboardConfig> {
     const maxRetries = 10;
     let retries = 0;
-    
+
     while (retries < maxRetries) {
       try {
         const client = createDirectusClient();
-        const data = await client.request(readItem('dashboard_config', '1')) as any;
-        
+        const data = (await client.request(
+          readItem("dashboard_config", "1"),
+        )) as any;
+
         if (data) {
-          if (typeof data.background === 'string') {
-            try { data.background = JSON.parse(data.background); } catch (e) {}
+          if (typeof data.background === "string") {
+            try {
+              data.background = JSON.parse(data.background);
+            } catch (e) {}
           }
-          if (typeof data.modules === 'string') {
-            try { data.modules = JSON.parse(data.modules); } catch (e) {}
+          if (typeof data.modules === "string") {
+            try {
+              data.modules = JSON.parse(data.modules);
+            } catch (e) {}
           }
           this.config = data;
           return this.config!;
@@ -138,12 +145,17 @@ class ConfigManager {
         const msg = (e.message || e || "").toString();
         retries++;
         if (retries < maxRetries) {
-          console.log(`[Server] ConfigManager | Failed to fetch config (Attempt ${retries}/${maxRetries}), retrying in 5s... Error: ${msg}`);
-          await new Promise(resolve => setTimeout(resolve, 5000));
+          console.log(
+            `[Server] ConfigManager | Failed to fetch config (Attempt ${retries}/${maxRetries}), retrying in 5s... Error: ${msg}`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, 5000));
           continue;
         }
-        
-        console.error("[Server] ConfigManager | Failed to fetch config from Directus after max retries, using default/memory cache:", msg);
+
+        console.error(
+          "[Server] ConfigManager | Failed to fetch config from Directus after max retries, using default/memory cache:",
+          msg,
+        );
         return this.getConfig();
       }
     }
@@ -152,28 +164,38 @@ class ConfigManager {
 
   public startPolling(intervalMs: number = 10000) {
     if (this.pollingTimer) clearInterval(this.pollingTimer);
-    
-    console.log(`[Server] ConfigManager | Starting background config polling (${intervalMs}ms)`);
+
+    console.log(
+      `[Server] ConfigManager | Starting background config polling (${intervalMs}ms)`,
+    );
     this.pollingTimer = setInterval(async () => {
       try {
         const client = createDirectusClient();
-        const data = await client.request(readItem('dashboard_config', '1')) as any;
-        
+        const data = (await client.request(
+          readItem("dashboard_config", "1"),
+        )) as any;
+
         if (data) {
-          if (typeof data.background === 'string') {
-            try { data.background = JSON.parse(data.background); } catch (e) {}
+          if (typeof data.background === "string") {
+            try {
+              data.background = JSON.parse(data.background);
+            } catch (e) {}
           }
-          if (typeof data.modules === 'string') {
-            try { data.modules = JSON.parse(data.modules); } catch (e) {}
+          if (typeof data.modules === "string") {
+            try {
+              data.modules = JSON.parse(data.modules);
+            } catch (e) {}
           }
-          
+
           const newConfigStr = JSON.stringify(data);
           const oldConfigStr = JSON.stringify(this.config);
-          
+
           if (newConfigStr !== oldConfigStr) {
-            console.log("[Server] ConfigManager | Remote configuration changed!");
+            console.log(
+              "[Server] ConfigManager | Remote configuration changed!",
+            );
             this.config = data;
-            this.onConfigChangeCallbacks.forEach(cb => cb(this.config!));
+            this.onConfigChangeCallbacks.forEach((cb) => cb(this.config!));
           }
         }
       } catch (err: any) {

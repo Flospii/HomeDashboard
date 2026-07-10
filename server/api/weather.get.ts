@@ -1,5 +1,8 @@
 import { defineEventHandler, getQuery, createError } from "h3";
 
+const weatherCache = new Map<string, { data: any; expires: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   const { lat, lon } = query;
@@ -9,6 +12,12 @@ export default defineEventHandler(async (event) => {
       statusCode: 400,
       statusMessage: "Latitude and Longitude are required",
     });
+  }
+
+  const cacheKey = `${lat},${lon}`;
+  const cached = weatherCache.get(cacheKey);
+  if (cached && cached.expires > Date.now()) {
+    return cached.data;
   }
 
   try {
@@ -58,7 +67,7 @@ export default defineEventHandler(async (event) => {
       ? relativeHumidityArray[currentHourIndex]
       : null;
 
-    return {
+    const result = {
       location: locationName,
       current: {
         temp: Math.round(weatherData.current_weather.temperature),
@@ -78,6 +87,9 @@ export default defineEventHandler(async (event) => {
         }))
         .slice(1, 6), // Next 5 days
     };
+
+    weatherCache.set(cacheKey, { data: result, expires: Date.now() + CACHE_TTL });
+    return result;
   } catch (error: any) {
     console.error("Weather API Error:", error);
     throw createError({

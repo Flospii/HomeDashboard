@@ -14,7 +14,16 @@
       <DashboardGrid>
         <template v-for="pos in positions" :key="pos" #[pos]>
           <div v-for="mod in store.getModulesAtPosition(pos)" :key="mod.id">
-            <component :is="getModuleComponent(mod.module)" v-bind="mod.config" />
+            <NuxtErrorBoundary>
+              <component :is="getModuleComponent(mod.module)" v-bind="mod.config" />
+              <template #error="{ error, clearError }">
+                <div class="flex flex-col items-center justify-center p-4 bg-black/40 backdrop-blur-md rounded-xl border border-red-500/30 text-white/80 cursor-pointer hover:bg-black/60 transition-colors" @click="clearError">
+                  <UIcon name="i-heroicons-exclamation-triangle" class="w-8 h-8 text-red-400 mb-2" />
+                  <span class="text-[10px] font-black uppercase tracking-widest text-center">{{ mod.module }} Error</span>
+                  <span class="text-[8px] opacity-50 mt-1 uppercase tracking-widest">Click to retry</span>
+                </div>
+              </template>
+            </NuxtErrorBoundary>
           </div>
         </template>
       </DashboardGrid>
