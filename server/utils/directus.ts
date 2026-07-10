@@ -3,8 +3,8 @@ import {
   createDirectus,
   rest,
   staticToken,
-  DirectusFile,
-  DirectusFolder,
+  type DirectusFile,
+  type DirectusFolder,
 } from "@directus/sdk";
 
 /**
