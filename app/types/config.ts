@@ -57,7 +57,6 @@ export interface ModuleConfig {
 export interface DashboardConfig {
   background: {
     interval: number;
-    useLocalBackgrounds?: boolean;
     localPollingInterval?: number;
     transitionMode?: TransitionMode;
     playbackOrder?: PlaybackMode;

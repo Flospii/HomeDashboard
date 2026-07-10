@@ -107,13 +107,11 @@ class BackgroundController {
   private startPolling() {
     if (this.pollingTimer) clearInterval(this.pollingTimer);
     const config = configManager.getConfig();
-    if (config.background.useLocalBackgrounds !== false) {
-      const interval = config.background.localPollingInterval || 30000;
-      console.log(
-        `[Server] BackgroundController | Starting Directus polling (${interval}ms)`,
-      );
-      this.pollingTimer = setInterval(() => this.pollForChanges(), interval);
-    }
+    const interval = config.background.localPollingInterval || 30000;
+    console.log(
+      `[Server] BackgroundController | Starting Directus polling (${interval}ms)`,
+    );
+    this.pollingTimer = setInterval(() => this.pollForChanges(), interval);
   }
 
   private async pollForChanges() {

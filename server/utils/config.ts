@@ -12,7 +12,6 @@ class ConfigManager {
   private defaultConfig: DashboardConfig = {
     background: {
       interval: 10000,
-      useLocalBackgrounds: true,
       localPollingInterval: 10000,
       transitionMode: "fade",
       playbackOrder: "random",

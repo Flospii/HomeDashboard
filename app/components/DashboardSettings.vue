@@ -91,21 +91,11 @@
           {{ $t("manage.preferences.localDiscovery") }}
         </h3>
 
-        <UFormField :label="$t('manage.preferences.localScanning')"
-          :description="$t('manage.preferences.localScanningDescription')">
-          <span class="text-sm text-default/70">{{
-            $t("manage.preferences.enableDiscovery")
-          }}</span>
-          <USwitch v-model="localBackgroundConfig.useLocalBackgrounds" />
+        <UFormField :label="$t('manage.preferences.pollingInterval')"
+          :description="$t('manage.preferences.pollingDescription')">
+          <UInput v-model.number="localBackgroundConfig.localPollingInterval" type="number" step="1000" min="5000"
+            size="xl" class="w-full" />
         </UFormField>
-
-        <Transition name="slide-up">
-          <UFormField v-if="localBackgroundConfig.useLocalBackgrounds" :label="$t('manage.preferences.pollingInterval')"
-            :description="$t('manage.preferences.pollingDescription')">
-            <UInput v-model.number="localBackgroundConfig.localPollingInterval" type="number" step="1000" min="5000"
-              size="xl" class="w-full" />
-          </UFormField>
-        </Transition>
       </div>
     </div>
   </UCard>
