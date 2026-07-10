@@ -103,6 +103,20 @@
         $t("modules.weather.fetching")
       }}</span>
     </div>
+
+    <div
+      v-else-if="hasError && !weather"
+      class="flex flex-col items-center justify-center p-2 text-center text-white/60 cursor-pointer hover:text-white transition-colors duration-200"
+      @click="handleRetry"
+    >
+      <UIcon name="i-heroicons-exclamation-triangle" class="w-8 h-8 text-amber-500/80 mb-2" />
+      <span class="text-[10px] font-black uppercase tracking-[0.2em] max-w-[180px] leading-tight">
+        {{ $t("modules.weather.error") }}
+      </span>
+      <span class="text-[8px] font-bold uppercase tracking-[0.1em] opacity-50 mt-1.5 border border-white/20 px-2 py-0.5 rounded-full hover:bg-white/10">
+        {{ $t("modules.weather.retry") }}
+      </span>
+    </div>
   </BaseModule>
 </template>
 
@@ -115,10 +129,18 @@ const props = defineProps<WeatherModuleConfig>();
 
 const weather = ref<any>(null);
 const isLoading = ref(true);
+const hasError = ref(false);
+const retryCount = ref(0);
+let retryTimer: any = null;
 
 const fetchWeather = async () => {
   try {
     isLoading.value = true;
+    hasError.value = false;
+    if (retryTimer) {
+      clearTimeout(retryTimer);
+      retryTimer = null;
+    }
     const data = await $fetch<any>("/api/weather", {
       params: {
         lat: props.lat,
@@ -126,11 +148,29 @@ const fetchWeather = async () => {
       },
     });
     weather.value = data;
+    retryCount.value = 0; // Reset on success
   } catch (error) {
     console.error("Failed to fetch weather:", error);
+    // Only show error UI if we don't already have weather data loaded
+    if (!weather.value) {
+      hasError.value = true;
+    }
+
+    // Auto-retry with backoff if we don't have weather data
+    if (!weather.value && retryCount.value < 6) {
+      retryCount.value++;
+      const delay = Math.min(10000 * Math.pow(2, retryCount.value), 300000); // 20s, 40s, 80s, 160s, 300s, 300s
+      console.log(`WeatherModule: scheduling auto-retry #${retryCount.value} in ${delay}ms`);
+      retryTimer = setTimeout(fetchWeather, delay);
+    }
   } finally {
     isLoading.value = false;
   }
+};
+
+const handleRetry = () => {
+  retryCount.value = 0;
+  fetchWeather();
 };
 
 const formatTime = (isoString: string) => {
@@ -156,6 +196,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (timer) clearInterval(timer);
+  if (retryTimer) clearTimeout(retryTimer);
 });
 
 watch(() => [props.lat, props.lon], fetchWeather);

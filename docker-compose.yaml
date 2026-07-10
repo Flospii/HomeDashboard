@@ -34,7 +34,11 @@ services:
       - CORS_ORIGIN=true
       - FILE_METADATA_ALLOW_LIST=*
     healthcheck:
-      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:8055/server/ping || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget --spider -q http://127.0.0.1:8055/server/ping || exit 1",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5

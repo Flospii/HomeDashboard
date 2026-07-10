@@ -87,6 +87,13 @@ git pull
 docker-compose up -d --build
 ```
 
+If permission denied, try:
+
+```bash
+sudo git pull
+sudo docker-compose up -d --build
+```
+
 ### Method 2 (Image-only)
 
 1. **Local**: Build and push new image.

@@ -46,6 +46,8 @@ export const WeatherModuleDefinition: ModuleDefinition = {
       showLocation: "Show Location",
       showForecast: "Show Forecast",
       fetching: "Fetching weather...",
+      error: "Failed to load weather",
+      retry: "Tap to retry",
     },
     de: {
       name: "Wetter",
@@ -59,6 +61,8 @@ export const WeatherModuleDefinition: ModuleDefinition = {
       showLocation: "Ort zeigen",
       showForecast: "Vorhersage zeigen",
       fetching: "Wetterdaten werden geladen...",
+      error: "Fehler beim Laden",
+      retry: "Erneut versuchen",
     },
   },
 };
