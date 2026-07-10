@@ -304,7 +304,7 @@ export default defineNitroPlugin(async (nitroApp) => {
         const { broadcastConfig } = await import("../api/ws");
         broadcastConfig(newConfig);
       });
-      configManager.startPolling(10000);
+      configManager.startPolling();
 
       console.log("[Server] DirectusSetup | Auto-setup completed successfully.");
       break;

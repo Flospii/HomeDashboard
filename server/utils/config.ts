@@ -162,11 +162,13 @@ class ConfigManager {
     return this.getConfig();
   }
 
-  public startPolling(intervalMs: number = 10000) {
+  public startPolling(intervalMs?: number) {
     if (this.pollingTimer) clearInterval(this.pollingTimer);
 
+    const actualInterval = intervalMs || this.getConfig()?.background?.localPollingInterval || 10000;
+
     console.log(
-      `[Server] ConfigManager | Starting background config polling (${intervalMs}ms)`,
+      `[Server] ConfigManager | Starting background config polling (${actualInterval}ms)`,
     );
     this.pollingTimer = setInterval(async () => {
       try {
@@ -196,12 +198,17 @@ class ConfigManager {
             );
             this.config = data;
             this.onConfigChangeCallbacks.forEach((cb) => cb(this.config!));
+
+            const newInterval = this.config?.background?.localPollingInterval || 10000;
+            if (newInterval !== actualInterval) {
+              this.startPolling(newInterval);
+            }
           }
         }
       } catch (err: any) {
         // Silently ignore polling errors so we don't spam the console if Directus temporarily goes down
       }
-    }, intervalMs);
+    }, actualInterval);
   }
 
   public onConfigChange(callback: (newConfig: DashboardConfig) => void) {
