@@ -4,6 +4,8 @@ import { readItem } from "@directus/sdk";
 
 class ConfigManager {
   private config: DashboardConfig | null = null;
+  private pollingTimer: NodeJS.Timeout | null = null;
+  private onConfigChangeCallbacks: ((newConfig: DashboardConfig) => void)[] = [];
   
   // Default config used for first-time directus seeding
   private defaultConfig: DashboardConfig = {
@@ -146,6 +148,42 @@ class ConfigManager {
       }
     }
     return this.getConfig();
+  }
+
+  public startPolling(intervalMs: number = 10000) {
+    if (this.pollingTimer) clearInterval(this.pollingTimer);
+    
+    console.log(`[Server] ConfigManager | Starting background config polling (${intervalMs}ms)`);
+    this.pollingTimer = setInterval(async () => {
+      try {
+        const client = createDirectusClient();
+        const data = await client.request(readItem('dashboard_config', '1')) as any;
+        
+        if (data) {
+          if (typeof data.background === 'string') {
+            try { data.background = JSON.parse(data.background); } catch (e) {}
+          }
+          if (typeof data.modules === 'string') {
+            try { data.modules = JSON.parse(data.modules); } catch (e) {}
+          }
+          
+          const newConfigStr = JSON.stringify(data);
+          const oldConfigStr = JSON.stringify(this.config);
+          
+          if (newConfigStr !== oldConfigStr) {
+            console.log("[Server] ConfigManager | Remote configuration changed!");
+            this.config = data;
+            this.onConfigChangeCallbacks.forEach(cb => cb(this.config!));
+          }
+        }
+      } catch (err: any) {
+        // Silently ignore polling errors so we don't spam the console if Directus temporarily goes down
+      }
+    }, intervalMs);
+  }
+
+  public onConfigChange(callback: (newConfig: DashboardConfig) => void) {
+    this.onConfigChangeCallbacks.push(callback);
   }
 
   public updateConfig(newConfig: DashboardConfig) {

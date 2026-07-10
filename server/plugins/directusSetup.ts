@@ -296,6 +296,16 @@ export default defineNitroPlugin(async (nitroApp) => {
       // Always ensure the controller is in sync
       await backgroundController.reconfigure();
 
+      // Start config polling to dynamically catch changes made via Directus admin panel
+      configManager.onConfigChange(async (newConfig) => {
+        await backgroundController.reconfigure();
+        backgroundController.notifyStateChange();
+        
+        const { broadcastConfig } = await import("../api/ws");
+        broadcastConfig(newConfig);
+      });
+      configManager.startPolling(10000);
+
       console.log("[Server] DirectusSetup | Auto-setup completed successfully.");
       break;
     } catch (e: any) {
